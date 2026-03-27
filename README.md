@@ -89,7 +89,33 @@ jobs:
     uses: repentsinner/bug-free-happiness/.github/workflows/spec-lint.yml@v1
 ```
 
+## Opinions
+
+How the [design principles](#design-principles) are implemented in
+practice. Symphonize expects these conventions and won't work well
+without them.
+
+- **[Conventional Commits](https://www.conventionalcommits.org/)** —
+  every commit follows `<type>(<scope>): <description>`. Feeds
+  release-please and changelog generation.
+- **[Release Please](https://github.com/googleapis/release-please)**
+  (or [melos](https://melos.invertase.dev/) for monorepos) — turns
+  conventional commits into semver releases and CHANGELOG.md entries.
+- **Branch protection** — work never lands on main directly. Every
+  change flows through a feature branch and a PR with CI.
+- **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)** —
+  CHANGELOG.md format. `[Unreleased]` section always present.
+- **Feature branches per unit of work** — `/next` creates worktree
+  branches, `/clean` prunes them. No long-lived branches.
+- **`gh` CLI as the Git-ops interface** — authenticated `gh` handles
+  push and PR creation.
+- **Governance files as source of truth** — SPEC.md drives ROADMAP.md
+  drives work, not the other way around. See
+  [Governance files](#governance-files).
+
 ## Design principles
+
+The *why* behind the [opinions](#opinions) above.
 
 - **Depth-first by section** — context coherence, testable PRs, early
   bug detection
