@@ -7,7 +7,7 @@
     {
       "name": "symphonize",
       "description": "Depth-first roadmap execution engine",
-      "source": "."
+      "source": "./"
     }
   ]
 }
