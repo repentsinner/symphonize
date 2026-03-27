@@ -9,7 +9,7 @@ the governance file loop (SPEC.md → ROADMAP.md → CHANGELOG.md)
 and produces conventional commits suitable for release-please.
 
 ## 2. Governance lint command
-*Status: not started*
+*Status: complete*
 
 The plugin provides a `/symphonize:lint` command that validates
 governance files locally without requiring CI.
@@ -34,7 +34,7 @@ governance files before pushing, catching errors in seconds
 instead of waiting for a CI round-trip.
 
 ## 3. Project scaffolding command
-*Status: not started*
+*Status: complete*
 
 The plugin provides a `/symphonize:init` command that scaffolds
 governance files and CI workflows into a target project.
@@ -60,7 +60,7 @@ in the governance loop. Scaffolding reduces setup from "read the
 docs and copy-paste" to one command.
 
 ## 4. Reusable CI workflows
-*Status: not started*
+*Status: complete*
 
 Symphonize ships reusable GitHub Actions workflows under
 `.github/workflows/` that target projects reference via
@@ -91,7 +91,7 @@ Template workflow that moves a floating major version tag
 (e.g., `v1`) on each release.
 
 ## 5. Dogfooding
-*Status: not started*
+*Status: complete*
 
 Symphonize's own CI calls its own `governance-lint.yml` reusable
 workflow. The repo's `.github/workflows/ci.yml` uses
