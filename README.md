@@ -121,8 +121,11 @@ dispatch, merge conflict resolution, and CI verification.
 
 ## Install
 
+Add the marketplace, then install:
+
 ```
-/plugin install symphonize
+/plugin marketplace add repentsinner/symphonize
+/plugin install symphonize@repentsinner-symphonize
 ```
 
 Or from source during development:
