@@ -49,6 +49,46 @@ claude --plugin-dir /path/to/symphonize
 The batch agent protocol (`BATCH_AGENT.md`) manages sub-agent
 dispatch, merge conflict resolution, and CI verification.
 
+## Governance files
+
+Symphonize assumes — and enforces — a three-file state loop at the
+repo root:
+
+| File | Role |
+|------|------|
+| `SPEC.md` | Declarative target state. What the system does and why. |
+| `ROADMAP.md` | Imperative work queue. What remains to close the gap. |
+| `CHANGELOG.md` | Release history. What shipped, in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. |
+
+The loop works like this: **SPEC.md** defines the destination,
+**ROADMAP.md** tracks the remaining work, and **CHANGELOG.md** records
+what landed. Each `/next` batch advances the roadmap, produces
+conventional commits, and opens a PR. A downstream
+[release-please](https://github.com/googleapis/release-please)
+workflow (or [melos](https://melos.invertase.dev/) for monorepos)
+consumes those conventional commits to cut versioned releases and
+update the changelog automatically.
+
+### Governance lint
+
+[bug-free-happiness](https://github.com/repentsinner/bug-free-happiness)
+provides a reusable GitHub Actions workflow that validates governance
+files on every push and PR — markdownlint, SPEC.md status-line
+checks, and optional README heading enforcement. Add it to your repo:
+
+```yaml
+# .github/workflows/spec-lint.yml
+name: Spec Lint
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    uses: repentsinner/bug-free-happiness/.github/workflows/spec-lint.yml@v1
+```
+
 ## Design principles
 
 - **Depth-first by section** — context coherence, testable PRs, early
