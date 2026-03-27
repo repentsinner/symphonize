@@ -1,0 +1,11 @@
+{
+  "name": "symphonize",
+  "version": "0.1.0",
+  "description": "Depth-first roadmap execution engine. Turns ROADMAP.md workstreams into batched PRs via worktree-isolated agents.",
+  "author": {
+    "name": "repentsinner"
+  },
+  "repository": "https://github.com/repentsinner/symphonize",
+  "license": "MIT",
+  "keywords": ["orchestration", "roadmap", "batch", "worktree"]
+}
