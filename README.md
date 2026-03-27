@@ -61,6 +61,22 @@ workflow (or [melos](https://melos.invertase.dev/) for monorepos)
 consumes those conventional commits to cut versioned releases and
 update the changelog automatically.
 
+### Why in-repo?
+
+GitHub Issues and Discussions offer rich triage UI, cross-repo
+linking, and notifications — but they live behind an API. Every
+query costs a tool call, pagination, and noise filtering, all of
+which burn agent context and add failure modes.
+
+Files are first-class to agents. Reading ROADMAP.md is one tool call.
+Governance files travel with the branch, so the spec that was true
+when a commit was made is visible in the same checkout. Spec changes
+and code changes land in the same PR — they can't drift apart.
+
+The tradeoff: you lose labels, milestones, assignees, and
+browser-friendly triage. For agent-driven execution, co-location
+with the code wins.
+
 ### Governance lint
 
 [bug-free-happiness](https://github.com/repentsinner/bug-free-happiness)
