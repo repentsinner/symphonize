@@ -1,0 +1,13 @@
+{
+  "name": "symphonize",
+  "owner": {
+    "name": "repentsinner"
+  },
+  "plugins": [
+    {
+      "name": "symphonize",
+      "description": "Depth-first roadmap execution engine",
+      "source": "."
+    }
+  ]
+}
