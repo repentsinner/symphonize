@@ -7,47 +7,39 @@ agents. Completes all unblocked workstreams within one roadmap section
 before moving to the next — producing testable vertical slices instead
 of scattered plumbing PRs.
 
-## Prerequisites
+## Design principles
 
-- A project with `SPEC.md` and `ROADMAP.md` following the conventions
-  in your `CLAUDE.md`
-- [ralph-loop](https://github.com/anthropics/claude-plugins-public/tree/main/plugins/ralph-loop)
-  plugin (for unattended `/orchestrate` mode)
-- `gh` CLI authenticated
+The goals that shape every decision in symphonize.
 
-## Install
+- **Depth-first by section** — context coherence, testable PRs, early
+  bug detection
+- **Worktree isolation** — never touches the user's main checkout
+- **Single PR per batch** — one CI run, one review surface
+- **Fail fast** — CI after each cherry-pick, not just at the end
 
-```
-/plugin install symphonize
-```
+## Opinions
 
-Or from source during development:
+How the [design principles](#design-principles) are implemented in
+practice. Symphonize expects these conventions and won't work well
+without them.
 
-```bash
-claude --plugin-dir /path/to/symphonize
-```
-
-## Commands
-
-| Command | Description |
-|---|---|
-| `/symphonize:next [target]` | Execute next unblocked workstreams (depth-first by section) |
-| `/symphonize:orchestrate` | Start ralph-loop to work through ROADMAP.md unattended |
-| `/symphonize:clean [--lite\|--full]` | Clean up after batch execution |
-| `/symphonize:plan [task]` | Plan spec and roadmap entries for a new task |
-
-## How it works
-
-1. **`/plan`** scopes the spec gap and breaks it into sized workstreams
-2. **`/next`** selects the active section, dispatches a batch agent in
-   a worktree, cherry-picks results, runs CI, opens a single PR
-3. **`/orchestrate`** wraps `/next` in ralph-loop for unattended
-   multi-batch execution
-4. **`/clean`** prunes branches, worktrees, and updates governance docs
-   after PRs merge
-
-The batch agent protocol (`BATCH_AGENT.md`) manages sub-agent
-dispatch, merge conflict resolution, and CI verification.
+- **[Conventional Commits](https://www.conventionalcommits.org/)** —
+  every commit follows `<type>(<scope>): <description>`. Feeds
+  release-please and changelog generation.
+- **[Release Please](https://github.com/googleapis/release-please)**
+  (or [melos](https://melos.invertase.dev/) for monorepos) — turns
+  conventional commits into semver releases and CHANGELOG.md entries.
+- **Branch protection** — work never lands on main directly. Every
+  change flows through a feature branch and a PR with CI.
+- **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)** —
+  CHANGELOG.md format. `[Unreleased]` section always present.
+- **Feature branches per unit of work** — `/next` creates worktree
+  branches, `/clean` prunes them. No long-lived branches.
+- **`gh` CLI as the Git-ops interface** — authenticated `gh` handles
+  push and PR creation.
+- **Governance files as source of truth** — SPEC.md drives ROADMAP.md
+  drives work, not the other way around. See
+  [Governance files](#governance-files).
 
 ## Governance files
 
@@ -89,36 +81,44 @@ jobs:
     uses: repentsinner/bug-free-happiness/.github/workflows/spec-lint.yml@v1
 ```
 
-## Opinions
+## How it works
 
-How the [design principles](#design-principles) are implemented in
-practice. Symphonize expects these conventions and won't work well
-without them.
+1. **`/plan`** scopes the spec gap and breaks it into sized workstreams
+2. **`/next`** selects the active section, dispatches a batch agent in
+   a worktree, cherry-picks results, runs CI, opens a single PR
+3. **`/orchestrate`** wraps `/next` in ralph-loop for unattended
+   multi-batch execution
+4. **`/clean`** prunes branches, worktrees, and updates governance docs
+   after PRs merge
 
-- **[Conventional Commits](https://www.conventionalcommits.org/)** —
-  every commit follows `<type>(<scope>): <description>`. Feeds
-  release-please and changelog generation.
-- **[Release Please](https://github.com/googleapis/release-please)**
-  (or [melos](https://melos.invertase.dev/) for monorepos) — turns
-  conventional commits into semver releases and CHANGELOG.md entries.
-- **Branch protection** — work never lands on main directly. Every
-  change flows through a feature branch and a PR with CI.
-- **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)** —
-  CHANGELOG.md format. `[Unreleased]` section always present.
-- **Feature branches per unit of work** — `/next` creates worktree
-  branches, `/clean` prunes them. No long-lived branches.
-- **`gh` CLI as the Git-ops interface** — authenticated `gh` handles
-  push and PR creation.
-- **Governance files as source of truth** — SPEC.md drives ROADMAP.md
-  drives work, not the other way around. See
-  [Governance files](#governance-files).
+The batch agent protocol (`BATCH_AGENT.md`) manages sub-agent
+dispatch, merge conflict resolution, and CI verification.
 
-## Design principles
+## Commands
 
-The *why* behind the [opinions](#opinions) above.
+| Command | Description |
+|---|---|
+| `/symphonize:next [target]` | Execute next unblocked workstreams (depth-first by section) |
+| `/symphonize:orchestrate` | Start ralph-loop to work through ROADMAP.md unattended |
+| `/symphonize:clean [--lite\|--full]` | Clean up after batch execution |
+| `/symphonize:plan [task]` | Plan spec and roadmap entries for a new task |
 
-- **Depth-first by section** — context coherence, testable PRs, early
-  bug detection
-- **Worktree isolation** — never touches the user's main checkout
-- **Single PR per batch** — one CI run, one review surface
-- **Fail fast** — CI after each cherry-pick, not just at the end
+## Install
+
+```
+/plugin install symphonize
+```
+
+Or from source during development:
+
+```bash
+claude --plugin-dir /path/to/symphonize
+```
+
+## Prerequisites
+
+- A project with `SPEC.md` and `ROADMAP.md` following the conventions
+  in your `CLAUDE.md`
+- [ralph-loop](https://github.com/anthropics/claude-plugins-public/tree/main/plugins/ralph-loop)
+  plugin (for unattended `/orchestrate` mode)
+- `gh` CLI authenticated
