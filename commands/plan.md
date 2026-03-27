@@ -1,6 +1,6 @@
 ---
 argument-hint: [task or workstream]
-description: Roadmap a new task
+description: Plan spec and roadmap entries for a new task
 ---
 Read the project's CLAUDE.md for roadmap format rules (§ Roadmap Format
 if using the standard convention).

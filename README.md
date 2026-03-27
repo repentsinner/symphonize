@@ -34,11 +34,11 @@ claude --plugin-dir /path/to/symphonize
 | `/symphonize:next [target]` | Execute next unblocked workstreams (depth-first by section) |
 | `/symphonize:orchestrate` | Start ralph-loop to work through ROADMAP.md unattended |
 | `/symphonize:clean [--lite\|--full]` | Clean up after batch execution |
-| `/symphonize:roadmap [task]` | Plan and write new workstream entries |
+| `/symphonize:plan [task]` | Plan spec and roadmap entries for a new task |
 
 ## How it works
 
-1. **`/roadmap`** breaks a task into sized workstreams in `ROADMAP.md`
+1. **`/plan`** scopes the spec gap and breaks it into sized workstreams
 2. **`/next`** selects the active section, dispatches a batch agent in
    a worktree, cherry-picks results, runs CI, opens a single PR
 3. **`/orchestrate`** wraps `/next` in ralph-loop for unattended
