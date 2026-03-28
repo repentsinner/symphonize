@@ -210,7 +210,7 @@ richer priority rationale in the requirements — even when the
 output is prose, not scores.
 
 ## Governance consistency §spec:governance-consistency
-*Status: not started*
+*Status: in progress*
 
 Governance files, commands, and scaffolding templates are
 internally consistent. Specifically:
