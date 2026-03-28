@@ -158,7 +158,7 @@ cross-repo):
 
 Add the marketplace, then install:
 
-```
+```shell
 /plugin marketplace add repentsinner/symphonize
 /plugin install symphonize@repentsinner-symphonize
 ```
