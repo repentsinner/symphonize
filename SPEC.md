@@ -204,6 +204,24 @@ and produces requirements that miss concerns specific to other
 product types (API ergonomics, operator workflows, physical
 constraints).
 
+## Progress file location §spec:progress-file-location
+*Status: not started*
+
+The `/symphonize:next` command tracks attempted workstreams in
+`.symphonize-progress.local.md` at the project root. The file was
+previously at `.claude/.ralph-progress.local.md`, which has two
+problems: it lives inside Claude Code's managed `.claude/` directory
+(permissions conflicts), and its name implies ralph-loop ownership
+when symphonize's own commands write and delete it.
+
+The file is symphonize state — it belongs alongside other
+project-root dotfiles, named after the tool that owns it.
+`/symphonize:clean` deletes it when the loop ends.
+
+**Why:** Claude Code controls `.claude/` and may restrict writes
+from plugin commands. Symphonize state belongs to symphonize, not
+to the host tool's config directory.
+
 ## Governance consistency §spec:governance-consistency
 *Status: in progress*
 
