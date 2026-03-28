@@ -12,10 +12,13 @@ the interview on gaps, changes, or new feature areas.
 
 ## Interview Workflow
 
-1. **Discovery** — Understand core concept and user needs
-2. **Deep Dive** — Explore features, workflows, and constraints
-3. **Validation** — Confirm understanding and identify gaps
-4. **Output** — Create REQUIREMENTS.md
+1. **Discovery** — Understand the problem and who has it
+2. **Validation** — Define success criteria and acceptance conditions
+3. **Deep Dive** — Explore features, workflows, and constraints
+4. **Output** — Create or update REQUIREMENTS.md
+
+Define "done" before exploring "how" — the same TDD discipline
+applied at the requirements level.
 
 ## Phase 1: Discovery
 
@@ -27,11 +30,25 @@ Open with these questions (adapt based on responses):
 - What similar apps inspire you or compete with your idea?
 
 **Goal:** Establish clear understanding of the problem space and user needs
-before diving into features.
+before defining success.
 
-## Phase 2: Deep Dive
+## Phase 2: Validation
 
-Explore each area systematically:
+Define what success looks like *before* exploring features:
+
+- How would you measure success for this app?
+- What would make a user abandon your app?
+- How do you envision users discovering and onboarding?
+- What must be true for this to be worth building?
+
+**Goal:** Establish observable, measurable acceptance conditions that
+scope the deep dive. Features explored in Phase 3 must trace back to
+a success criterion defined here.
+
+## Phase 3: Deep Dive
+
+Explore each area systematically, scoped by the success criteria
+from Phase 2:
 
 | Area | Key Questions |
 |------|---------------|
@@ -43,14 +60,6 @@ Explore each area systematically:
 | **Business Logic** | Rules governing app behavior in different scenarios? |
 
 **Pacing:** Ask 2-3 questions at a time. Don't overwhelm non-technical users.
-
-## Phase 3: Validation
-
-Confirm understanding before creating output:
-
-- How would you measure success for this app?
-- What would make a user abandon your app?
-- How do you envision users discovering and onboarding?
 
 ## Phase 4: Output
 
@@ -66,20 +75,21 @@ traceability convention.
 Who the target users are, what problem they face, and why current
 solutions fall short.
 
+## Success criteria §req:success-criteria
+
+Observable, measurable outcomes that define whether the product
+succeeds. Defined before features — these scope the solution space.
+
 ## User stories §req:user-stories
 
 Concrete workflows and scenarios in the user's language.
 Format: "As a [user], I want [goal] so that [benefit]."
+Each story traces to a success criterion.
 
 ## Constraints §req:constraints
 
 Technical, business, and regulatory constraints that bound the
 solution space.
-
-## Success criteria §req:success-criteria
-
-Observable, measurable outcomes that define whether the product
-succeeds.
 
 ## Priorities §req:priorities
 
