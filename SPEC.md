@@ -222,6 +222,15 @@ project-root dotfiles, named after the tool that owns it.
 from plugin commands. Symphonize state belongs to symphonize, not
 to the host tool's config directory.
 
+**Known issue:** the ralph-loop stop hook fires based on the
+presence of `.claude/ralph-loop.local.md`, not on which skill is
+active. If an orchestrate loop is blocked on review and the user
+runs `/symphonize:plan` or `/symphonize:discover` in the same
+project, the stop hook interrupts planning with orchestration
+directives. Workaround: `/clear` and manually remove the flag
+file before planning. A proper fix requires the stop hook (in
+ralph-loop, not symphonize) to check active skill context.
+
 ## Governance consistency §spec:governance-consistency
 *Status: in progress*
 
