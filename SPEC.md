@@ -1,12 +1,24 @@
 # symphonize — Specification
 
 ## 1. Plugin commands
-*Status: complete*
+*Status: in progress*
 
-Symphonize provides four Claude Code plugin commands: `/plan`,
-`/next`, `/orchestrate`, and `/clean`. Each command operates on
-the governance file loop (SPEC.md → ROADMAP.md → CHANGELOG.md)
-and produces conventional commits suitable for release-please.
+Symphonize provides Claude Code plugin commands that operate on
+the governance file loop (REQUIREMENTS.md → SPEC.md → ROADMAP.md
+→ CHANGELOG.md) and produce conventional commits suitable for
+release-please.
+
+The command pipeline:
+
+1. `/symphonize:discover` — interviews the user, produces
+   REQUIREMENTS.md
+2. `/symphonize:plan` — translates requirements into SPEC.md
+   sections and ROADMAP.md workstreams
+3. `/symphonize:next` — executes workstreams
+4. `/symphonize:orchestrate` — unattended multi-batch execution
+5. `/symphonize:clean` — post-merge cleanup
+6. `/symphonize:lint` — governance file validation
+7. `/symphonize:init` — project scaffolding
 
 ## 2. Governance lint command
 *Status: complete*
@@ -95,3 +107,78 @@ Symphonize's own CI calls its own `governance-lint.yml` reusable
 workflow. The repo's `.github/workflows/ci.yml` uses
 `./.github/workflows/governance-lint.yml` with
 `readme-type: library`.
+
+## 6. Self-contained conventions
+*Status: not started*
+
+The plugin ships its own `CONVENTIONS.md` defining the governance
+file formats, commit conventions, and quality gate rules. Commands
+and BATCH_AGENT.md reference this file via
+`!`cat ${CLAUDE_SKILL_DIR}/../CONVENTIONS.md`` instead of
+deferring to the user's CLAUDE.md.
+
+The plugin is self-contained: a user who installs symphonize and
+runs `/symphonize:init` gets a working governance loop without
+needing any symphonize-specific content in their CLAUDE.md.
+
+CONVENTIONS.md contains:
+
+- **Spec format** — declarative style, slug-style `##` headings
+  (unnumbered), status lines (`*Status: not started|in progress|
+  complete*`) required on every `##` section, EARS reference,
+  rationale requirements
+- **Spec compression** — rules for compressing completed sections
+  (retain rationale and observable behavior, remove protocol
+  detail and pseudocode)
+- **Roadmap format** — imperative work queue, build-dependency
+  order, workstream slug format, sizing to ~200k tokens, delete
+  completed work
+- **Changelog format** — Keep a Changelog, `[Unreleased]` section,
+  reverse chronological
+- **Commit conventions** — conventional commits, one logical
+  change per commit, semver mapping
+- **Branching** — feature branches, `<type>/<short-description>`
+  naming, create from `origin/main`
+- **Quality gate** — zero failures, zero warnings from new code,
+  never skip failing tests
+
+**Why self-contained:** the plugin currently depends on the user
+having specific sections in their CLAUDE.md. This works for the
+author but fails for any other user. The conventions are part of
+the plugin's contract, not the user's personal configuration.
+
+## 7. Requirements discovery command
+*Status: not started*
+
+The plugin provides a `/symphonize:discover` command that
+conducts a structured interview with the user to produce
+REQUIREMENTS.md — a problem-space document in the user's
+language.
+
+REQUIREMENTS.md captures:
+
+- Problem statement and target users
+- User stories and workflows
+- Constraints (technical, business, regulatory)
+- Success criteria
+- Priorities (must-have vs. nice-to-have)
+
+REQUIREMENTS.md is the fourth governance file. The pipeline:
+
+| Document | Voice | Question |
+|----------|-------|----------|
+| REQUIREMENTS.md | User's | What do we need? |
+| SPEC.md | System's | What does the system do? |
+| ROADMAP.md | Work queue | What remains to build? |
+| CHANGELOG.md | History | What shipped? |
+
+`/symphonize:plan` reads REQUIREMENTS.md (if present) as input
+when drafting SPEC.md sections. If REQUIREMENTS.md does not exist,
+`/plan` falls back to clarifying requirements directly with the
+user (current behavior).
+
+**Why a separate document:** requirements live in the user's
+problem space. Specs live in the system's solution space. Mixing
+them produces documents that serve neither audience well. The
+translation from requirements to spec is where design decisions
+happen — that boundary should be explicit.
