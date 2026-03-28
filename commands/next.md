@@ -20,9 +20,9 @@ Ensure local state is current before selecting work.
 4. Read ROADMAP.md from `origin/main` (use `git show origin/main:ROADMAP.md`)
    — not the local working copy, which may be stale.
 
-## 2. Detect ralph-loop context
+## 2. Detect unattended mode
 
-Check if `.claude/ralph-loop.local.md` exists. If it does, set
+Check if `--unattended` was passed as an argument. If present, set
 `unattended = true`. Otherwise `unattended = false`.
 
 If `unattended`, read `.symphonize-progress.local.md` (if it exists)

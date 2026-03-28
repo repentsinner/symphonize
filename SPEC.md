@@ -232,7 +232,7 @@ file before planning. A proper fix requires the stop hook (in
 ralph-loop, not symphonize) to check active skill context.
 
 ## Unattended flag passthrough §spec:unattended-flag-passthrough
-*Status: not started*
+*Status: complete*
 
 When `/symphonize:orchestrate` starts a ralph-loop, every agent in
 the execution hierarchy runs unattended. The `--unattended` flag
