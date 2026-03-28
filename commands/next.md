@@ -65,7 +65,7 @@ If `unattended`, also output:
 ## 4. Dispatch
 
 Read the batch agent protocol:
-!`cat ${CLAUDE_SKILL_DIR}/../BATCH_AGENT.md`
+`!cat ${CLAUDE_SKILL_DIR}/../BATCH_AGENT.md`
 
 Spawn a single Agent with `isolation: "worktree"` and pass it:
 - The full contents of the batch agent protocol above
