@@ -25,6 +25,23 @@ validate requirements feasibility, and enough requirements to
 constrain design. The boundary between them is where design decisions
 happen — keep it explicit.
 
+### Acceptance before exploration
+
+Define "done" before exploring "how" — at every layer:
+
+| Layer | Define first | Then explore |
+|-------|-------------|--------------|
+| Requirements | Success criteria | Features and workflows |
+| Specification | Observable behavior | Design and rationale |
+| Roadmap | Spec gap to close | Workstream breakdown |
+| Code | Failing test | Implementation |
+
+This is TDD applied recursively. At the requirements level, the
+"test" is a success criterion. At the spec level, it's observable
+behavior. At the code level, it's a literal test. The principle is
+the same: the acceptance condition scopes the solution space and
+prevents drift.
+
 References:
 
 - Nuseibeh, "Weaving Together Requirements and Architectures" (2001)

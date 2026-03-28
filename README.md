@@ -16,6 +16,10 @@ confidently, flexible enough to handle real codebases.
 
 The goals that shape every decision in symphonize.
 
+- **Acceptance before exploration** — define "done" before exploring
+  "how," at every layer. Success criteria before features, observable
+  behavior before design, failing tests before code. TDD applied
+  recursively from requirements through implementation.
 - **Depth-first by section** — context coherence, testable PRs, early
   bug detection
 - **Worktree isolation** — never touches the user's main checkout
