@@ -56,17 +56,21 @@ in to prose linting by having these files. Depends on
 
 ## Requirements frameworks
 
-Optional structured frameworks for `/symphonize:discover`.
+Interview prompts drawn from established frameworks for
+`/symphonize:discover`. Frameworks guide conversation — output
+is prose, not structured forms.
 
 ### §road:yc-problem-types
-Add YC Problem Types classification (Popular, Frequent,
-Expensive, Mandatory, Growing, Urgent, Distant) to the discover
-command's Phase 1 (Discovery). Offer as an optional
-classification table in the problem statement section of
-REQUIREMENTS.md. Document the taxonomy in CONVENTIONS.md.
+Add YC Problem Types (Popular, Frequent, Expensive, Mandatory,
+Growing, Urgent, Distant) as interview prompts in the discover
+command's Phase 1 (Discovery). Use the taxonomy to prompt wider
+thinking about why the problem matters — output is prose, not a
+structured table. Document the taxonomy in CONVENTIONS.md as a
+reference for interviewers.
 
 ### §road:ice-scoring
-Add ICE prioritization scoring (Impact, Confidence, Ease — each
-1-10, averaged) to the discover command's priorities section.
-Offer when the user has more than 3-4 competing priorities.
-Document the scoring method in CONVENTIONS.md.
+Add ICE framework (Impact, Confidence, Ease) as interview
+prompts in the discover command's Phase 2 (Validation) for
+surfacing priority tradeoffs. Use to prompt the user about
+competing priorities — output is prose rationale, not numeric
+scores. Document the framework in CONVENTIONS.md as a reference.

@@ -173,36 +173,41 @@ and "it should be noted that..." (filler) before review.
 ## Requirements frameworks §spec:requirements-frameworks
 *Status: not started*
 
-`/symphonize:discover` offers optional frameworks during the
-interview to add structure where it helps without imposing it
-where it doesn't.
+`/symphonize:discover` uses established frameworks as interview
+prompts to broaden the user's thinking. The frameworks guide
+conversation — they do not impose structured output. The user's
+natural-language answers flow into REQUIREMENTS.md as prose, not
+form fields.
 
-### Problem classification
+### Problem classification prompts
 
-The problem statement section supports an optional classification
-table using the YC Problem Types taxonomy (Popular, Frequent,
-Expensive, Mandatory, Growing, Urgent, Distant). Each type
-describes why the problem matters — not what to build. The
-classification appears as frontmatter in the problem statement
-section, with a weight (high/medium/low) per type.
+During Discovery, the interview draws on the YC Problem Types
+taxonomy (Popular, Frequent, Expensive, Mandatory, Growing,
+Urgent, Distant) as prompts. Questions like "How many people
+have this problem?" (Popular) or "Do people *have* to solve
+this?" (Mandatory) help the user articulate why the problem
+matters — not what to build.
 
-**Why:** "We have a problem" is not enough. "We have a problem
-that is frequent, growing, and mandatory" tells the spec author
-which constraints matter. An urgent problem gets a different
-solution shape than a distant one.
+**Why:** users often describe *what* they want without
+explaining *why* it matters. The problem types prompt wider
+thinking — is this urgent or distant? growing or stable? The
+answers shape the spec author's understanding of which
+constraints matter, without requiring a classification table
+in the output.
 
-### Prioritization scoring
+### Prioritization prompts
 
-The priorities section supports optional ICE scoring (Impact,
-Confidence, Ease — each 1-10, averaged). ICE replaces gut-feel
-ordering with a repeatable, comparable score. The discover
-command offers ICE when the user has more than 3-4 competing
-priorities.
+During Validation, the interview draws on the ICE framework
+(Impact, Confidence, Ease) to prompt the user about competing
+priorities. Questions like "Which of these would have the
+biggest impact?" or "How confident are you this is the right
+approach?" surface tradeoffs that "must-have vs. nice-to-have"
+misses.
 
-**Why:** "Must-have vs. nice-to-have" is binary. Real priority
-decisions involve tradeoffs between high-impact/hard and
-low-impact/easy. ICE makes those tradeoffs explicit and
-auditable.
+**Why:** binary priority labels hide real tradeoffs. Prompting
+the user to think about impact, confidence, and ease produces
+richer priority rationale in the requirements — even when the
+output is prose, not scores.
 
 ## Governance consistency §spec:governance-consistency
 *Status: not started*
