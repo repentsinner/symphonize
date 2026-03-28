@@ -10,14 +10,12 @@ Extend `governance-lint.yml` to validate cross-document
 references. Every `§spec:foo` reference must resolve to a
 heading with that slug in SPEC.md. Every `§req:foo` to
 REQUIREMENTS.md. Every `§road:foo` to ROADMAP.md. Report
-dangling references as CI errors. Depends on
-§road:slug-prefixes.
+dangling references as CI errors.
 
 ### §road:traceability-convention
 Document the traceability chain in CONVENTIONS.md —
 requirements → spec → roadmap. Spec sections cite `§req:`
-sources. Roadmap workstreams cite `§spec:` targets. Depends
-on §road:slug-prefixes.
+sources. Roadmap workstreams cite `§spec:` targets.
 
 ### §road:per-file-lint
 Refactor `governance-lint.yml` to apply different rules per
@@ -25,7 +23,7 @@ governance file. SPEC.md: status lines on `##`, defines
 `§spec:`, references `§req:`. ROADMAP.md: `###` workstream
 headings with `§road:`, references `§spec:`. REQUIREMENTS.md:
 defines `§req:`. CHANGELOG.md: Keep a Changelog structure only.
-Depends on §road:slug-prefixes, §road:reference-validation.
+Depends on §road:reference-validation.
 
 ## Requirements discovery
 
