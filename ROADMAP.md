@@ -30,8 +30,8 @@ Reference CONVENTIONS.md instead. Depends on §road:update-commands.
 Replace numbered `## N.` sections in SPEC.md with unnumbered
 slug-style headings (`## Plugin commands` not
 `## 1. Plugin commands`). Update `governance-lint.yml` status-line
-validator to match all `## ` sections in SPEC.md instead of
-`^## [0-9]+\.`. Convention: every `## ` section in SPEC.md
+validator to match all `##` sections in SPEC.md instead of
+`^## [0-9]+\.`. Convention: every `##` section in SPEC.md
 requires a status line; `###` subsections do not. Update this
 repo's own SPEC.md to remove numbers. Depends on
 §road:extract-conventions (new format documented there).
@@ -44,8 +44,8 @@ validation. Depends on §road:slug-sections.
 ### §road:slug-prefixes
 Define namespaced slug convention — `§req:` (REQUIREMENTS.md),
 `§spec:` (SPEC.md), `§road:` (ROADMAP.md). Document in
-CONVENTIONS.md. SPEC.md and REQUIREMENTS.md: `## ` headings
-carry `§prefix:slug` suffix. ROADMAP.md: `### ` workstream
+CONVENTIONS.md. SPEC.md and REQUIREMENTS.md: `##` headings
+carry `§prefix:slug` suffix. ROADMAP.md: `###` workstream
 headings carry `§road:slug`. Every document both defines its
 own slugs and references other documents' slugs. Depends on
 §road:slug-sections.
