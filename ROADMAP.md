@@ -1,17 +1,5 @@
 # symphonize — Roadmap
 
-## Cross-document traceability
-
-Namespaced slug references across governance files, with lint
-validation.
-
-### §road:per-file-lint
-Refactor `governance-lint.yml` to apply different rules per
-governance file. SPEC.md: status lines on `##`, defines
-`§spec:`, references `§req:`. ROADMAP.md: `###` workstream
-headings with `§road:`, references `§spec:`. REQUIREMENTS.md:
-defines `§req:`. CHANGELOG.md: Keep a Changelog structure only.
-
 ## Requirements discovery
 
 Add REQUIREMENTS.md to the governance file loop as the entry
