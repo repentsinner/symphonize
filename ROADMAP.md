@@ -30,6 +30,26 @@ and workflow rules. The plugin ships its own conventions.
   repo's own SPEC.md to remove numbers. Depends on
   extract-conventions (new format documented there).
 
+## Cross-document traceability
+
+Namespaced slug references across governance files, with lint
+validation. Depends on slug-sections.
+
+- **slug-prefixes**: Define namespaced slug convention —
+  `§req:` (REQUIREMENTS.md), `§spec:` (SPEC.md),
+  `§road:` (ROADMAP.md). Document in CONVENTIONS.md.
+  Every `## ` section carries a `§prefix:slug` suffix.
+  Depends on slug-sections.
+- **reference-validation**: Extend `governance-lint.yml` to
+  validate cross-document references. Every `§spec:foo`
+  reference must resolve to a heading with that slug in
+  SPEC.md. Every `§req:foo` to REQUIREMENTS.md. Report
+  dangling references as CI errors. Depends on slug-prefixes.
+- **traceability-convention**: Document the traceability
+  chain in CONVENTIONS.md — requirements → spec → roadmap.
+  Spec sections cite `§req:` sources. Roadmap workstreams
+  cite `§spec:` targets. Depends on slug-prefixes.
+
 ## Requirements discovery
 
 Add REQUIREMENTS.md to the governance file loop as the entry
