@@ -41,6 +41,12 @@ README lags behind the codebase in several areas:
   structured interview prompts is enough — detail lives in
   CONVENTIONS.md.
 
+- **Discovery is optional but recommended:** technical users can
+  skip `/symphonize:discover` and jump straight to `/symphonize:plan`
+  with a hand-written SPEC.md. Note this path exists but frame
+  discovery as the encouraged default — it produces richer problem
+  context that improves downstream spec and implementation quality.
+
 Do not over-document. README is an orientation doc, not a reference
 manual. Point readers to CONVENTIONS.md for format rules and
 BATCH_AGENT.md for the execution protocol.
