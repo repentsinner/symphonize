@@ -144,6 +144,46 @@ Rules:
 - Create from `origin/main`. Merge or abandon within the session when
   possible. Long-lived branches accumulate merge pain.
 
+## Cross-document traceability
+
+Governance files use namespaced slug prefixes for grep-friendly
+cross-document references.
+
+| Prefix | File | Heading level |
+|--------|------|---------------|
+| `§req:` | REQUIREMENTS.md | `##` |
+| `§spec:` | SPEC.md | `##` |
+| `§road:` | ROADMAP.md | `###` |
+
+Slugs are lowercase, hyphenated, and appended as a suffix on the
+heading line:
+
+```markdown
+## Plugin commands §spec:plugin-commands
+*Status: in progress*
+
+### §road:slug-prefixes
+Define namespaced slug convention…
+```
+
+SPEC.md and REQUIREMENTS.md carry `§prefix:slug` as a suffix on
+each `##` heading. ROADMAP.md carries `§road:slug` on each `###`
+workstream heading (existing convention).
+
+Every document both defines its own slugs and references other
+documents' slugs inline. References use the same `§prefix:slug`
+syntax in body text:
+
+```markdown
+Depends on §road:extract-core.
+Implements §req:batch-execution.
+```
+
+**Why namespaced prefixes:** plain slugs are ambiguous across files.
+The `§prefix:` namespace makes references unambiguous and
+machine-validatable — a linter can resolve each reference to
+exactly one file and heading.
+
 ## Quality gate
 
 A branch is not ready to merge until analysis and tests pass with
