@@ -2,6 +2,39 @@
 
 Rules that symphonize enforces on projects using its governance loop.
 
+## Governance file loop
+
+Four documents form a directed chain from problem to shipped code:
+
+| Document | Voice | Question | Layer |
+|----------|-------|----------|-------|
+| REQUIREMENTS.md | User's | What do we need? | Problem space |
+| SPEC.md | System's | What does the system do? | Solution space |
+| ROADMAP.md | Work queue | What remains to build? | Work planning |
+| CHANGELOG.md | History | What shipped? | Release record |
+
+Each layer provides context to the next. Implementation agents read
+all three upstream documents — requirements, spec, and roadmap — not
+just the workstream description. Requirements supply the "why behind
+the why": when the spec says "do X because Y," the requirement says
+"Y matters because user Z needs it for W." That context helps agents
+make judgment calls at the edges of a workstream's scope.
+
+Requirements and specification co-evolve. You need enough design to
+validate requirements feasibility, and enough requirements to
+constrain design. The boundary between them is where design decisions
+happen — keep it explicit.
+
+References:
+
+- Nuseibeh, "Weaving Together Requirements and Architectures" (2001)
+  — the Twin Peaks model: requirements and architecture co-evolve
+- Mavin et al., "EARS" (2009) — structured natural-language
+  requirements templates
+- Singer, *Shape Up* (2019) — shaping and scoping before building
+- ISO/IEC/IEEE 29148:2018 — separates stakeholder requirements
+  (user language) from system requirements (system language)
+
 ## Spec format
 
 SPEC.md is declarative: it describes the desired end state of the system,

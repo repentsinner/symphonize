@@ -22,7 +22,9 @@ does not mean unchecked.
 
 ## Phase 1: Plan (in plan mode)
 
-1. Read SPEC.md, ROADMAP.md, and project rules.
+1. Read REQUIREMENTS.md (if present), SPEC.md, ROADMAP.md, and
+   project rules. All three upstream documents provide layered
+   context for implementation decisions.
 2. Identify the target workstream(s). If a specific workstream was
    passed, scope to that. Otherwise, identify unblocked workstreams
    and skip anything marked blocked.
