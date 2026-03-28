@@ -1,6 +1,6 @@
 # symphonize — Specification
 
-## Plugin commands
+## Plugin commands §spec:plugin-commands
 *Status: in progress*
 
 Symphonize provides Claude Code plugin commands that operate on
@@ -20,7 +20,7 @@ The command pipeline:
 6. `/symphonize:lint` — governance file validation
 7. `/symphonize:init` — project scaffolding
 
-## Governance lint command
+## Governance lint command §spec:governance-lint
 *Status: complete*
 
 The plugin provides a `/symphonize:lint` command that runs
@@ -35,7 +35,7 @@ not in the plugin command.
 **Why a plugin command:** agents can catch markdownlint violations
 before pushing, avoiding a CI round-trip for formatting errors.
 
-## Project scaffolding command
+## Project scaffolding command §spec:project-scaffolding
 *Status: complete*
 
 The plugin provides a `/symphonize:init` command that scaffolds
@@ -69,7 +69,7 @@ warns rather than overwrites.
 in the governance loop. Scaffolding reduces setup from "read the
 docs and copy-paste" to one command.
 
-## Reusable CI workflows
+## Reusable CI workflows §spec:reusable-ci
 *Status: complete*
 
 Symphonize ships reusable GitHub Actions workflows under
@@ -100,7 +100,7 @@ github-actions[bot] with the `autorelease: pending` label.
 Template workflow that moves a floating major version tag
 (e.g., `v1`) on each release.
 
-## Dogfooding
+## Dogfooding §spec:dogfooding
 *Status: complete*
 
 Symphonize's own CI calls its own `governance-lint.yml` reusable
@@ -108,7 +108,7 @@ workflow. The repo's `.github/workflows/ci.yml` uses
 `./.github/workflows/governance-lint.yml` with
 `readme-type: library`.
 
-## Self-contained conventions
+## Self-contained conventions §spec:self-contained-conventions
 *Status: complete*
 
 The plugin ships `CONVENTIONS.md` defining governance file formats,
@@ -121,7 +121,7 @@ installs symphonize and runs `/symphonize:init` gets a working
 governance loop without needing symphonize-specific content in
 their CLAUDE.md.
 
-## Requirements discovery command
+## Requirements discovery command §spec:requirements-discovery
 *Status: not started*
 
 The plugin provides a `/symphonize:discover` command that

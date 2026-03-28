@@ -5,14 +5,6 @@
 Namespaced slug references across governance files, with lint
 validation.
 
-### §road:slug-prefixes
-Define namespaced slug convention — `§req:` (REQUIREMENTS.md),
-`§spec:` (SPEC.md), `§road:` (ROADMAP.md). Document in
-CONVENTIONS.md. SPEC.md and REQUIREMENTS.md: `##` headings
-carry `§prefix:slug` suffix. ROADMAP.md: `###` workstream
-headings carry `§road:slug`. Every document both defines its
-own slugs and references other documents' slugs.
-
 ### §road:reference-validation
 Extend `governance-lint.yml` to validate cross-document
 references. Every `§spec:foo` reference must resolve to a
