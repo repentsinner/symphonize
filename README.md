@@ -48,18 +48,19 @@ without them.
 
 ## Governance files
 
-Symphonize assumes — and enforces — a three-file state loop at the
+Symphonize assumes — and enforces — a four-file governance loop at the
 repo root:
 
 | File | Role |
 |------|------|
+| `REQUIREMENTS.md` | Problem-space requirements. What users need and why. |
 | `SPEC.md` | Declarative target state. What the system does and why. |
 | `ROADMAP.md` | Imperative work queue. What remains to close the gap. |
 | `CHANGELOG.md` | Release history. What shipped, in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. |
 
-The loop works like this: **SPEC.md** defines the destination,
-**ROADMAP.md** tracks the remaining work, and **CHANGELOG.md** records
-what landed. Each `/next` batch advances the roadmap, produces
+The loop works like this: **REQUIREMENTS.md** captures what users need,
+**SPEC.md** defines the destination, **ROADMAP.md** tracks the remaining
+work, and **CHANGELOG.md** records what landed. Each `/next` batch advances the roadmap, produces
 conventional commits, and opens a PR. A downstream
 [release-please](https://github.com/googleapis/release-please)
 workflow (or [melos](https://melos.invertase.dev/) for monorepos)
@@ -172,8 +173,8 @@ claude --plugin-dir /path/to/symphonize
 ### Prerequisites
 
 - `git`, `gh` (authenticated), and `npx` (Node.js) on `PATH`
-- A project with `SPEC.md` and `ROADMAP.md` (run `/symphonize:init` to
-  scaffold them — format conventions are in `CONVENTIONS.md`)
+- A project with governance files (run `/symphonize:init` to scaffold
+  them — format conventions are in `CONVENTIONS.md`)
 - [ralph-loop](https://github.com/anthropics/claude-plugins-public/tree/main/plugins/ralph-loop)
   plugin (for unattended `/orchestrate` mode)
 
