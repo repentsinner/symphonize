@@ -28,6 +28,13 @@ Create at the repo root:
   <!-- Sections in build-dependency order. -->
   <!-- Workstreams as `- **slug**: description` bullets. -->
   ```
+- **REQUIREMENTS.md** — skeleton:
+  ```markdown
+  # <project-name> — Requirements
+
+  <!-- Problem-space document. Each ## section carries a §req:slug suffix. -->
+  <!-- Run /symphonize:discover to populate through a structured interview. -->
+  ```
 - **CHANGELOG.md** — skeleton:
   ```markdown
   # Changelog
