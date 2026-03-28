@@ -1,12 +1,14 @@
 ---
 argument-hint: [app idea or problem area]
-description: Interview the user to produce REQUIREMENTS.md
+description: Interview the user to produce or update REQUIREMENTS.md
 ---
 Read CONVENTIONS.md for governance file formats (§ Cross-document traceability).
 If CONVENTIONS.md exists in the target project, read it before producing output.
 
 Conduct a structured interview to understand the user's problem space and
-produce REQUIREMENTS.md — a problem-space document in the user's language.
+produce, expand, or update REQUIREMENTS.md — a problem-space document in the
+user's language. If REQUIREMENTS.md already exists, read it first, then focus
+the interview on gaps, changes, or new feature areas.
 
 ## Interview Workflow
 
