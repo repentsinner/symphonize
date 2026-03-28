@@ -119,3 +119,107 @@ jobs:
           fi
 
           echo "All required README headings present for type '$readme_type'"
+
+      - name: Validate cross-document references
+        run: |
+          errors=0
+          slugs_file=$(mktemp)
+
+          # Extract §prefix:slug from heading lines and write to slugs file.
+          # §spec: from ## headings in SPEC.md
+          if [ -f SPEC.md ]; then
+            grep -E '^## ' SPEC.md | grep -oE '§spec:[a-z0-9-]+' >> "$slugs_file" || true
+          fi
+
+          # §road: from ### headings in ROADMAP.md
+          if [ -f ROADMAP.md ]; then
+            grep -E '^### ' ROADMAP.md | grep -oE '§road:[a-z0-9-]+' >> "$slugs_file" || true
+          fi
+
+          # §req: from ## headings in REQUIREMENTS.md
+          if [ -f REQUIREMENTS.md ]; then
+            grep -E '^## ' REQUIREMENTS.md | grep -oE '§req:[a-z0-9-]+' >> "$slugs_file" || true
+          fi
+
+          echo "Defined slugs:"
+          cat "$slugs_file"
+
+          # Scan governance files for references and validate them
+          for govfile in SPEC.md ROADMAP.md CONVENTIONS.md REQUIREMENTS.md; do
+            if [ ! -f "$govfile" ]; then
+              continue
+            fi
+
+            lineno=0
+            in_fenced_block=false
+            while IFS= read -r line; do
+              lineno=$((lineno + 1))
+
+              # Track fenced code blocks
+              if echo "$line" | grep -qE '^```'; then
+                if $in_fenced_block; then
+                  in_fenced_block=false
+                else
+                  in_fenced_block=true
+                fi
+                continue
+              fi
+
+              # Skip lines inside fenced code blocks
+              if $in_fenced_block; then
+                continue
+              fi
+
+              # Strip inline code spans before scanning for references
+              stripped=$(echo "$line" | sed 's/`[^`]*`//g')
+
+              # Find all §prefix:slug references on the stripped line
+              refs=$(echo "$stripped" | grep -oE '§(spec|req|road):[a-z0-9-]+' || true)
+              if [ -z "$refs" ]; then
+                continue
+              fi
+
+              for ref in $refs; do
+                prefix="${ref%%:*}"
+                prefix="${prefix#§}"
+
+                # Skip heading definitions (not references)
+                case "$prefix" in
+                  spec)
+                    if [ "$govfile" = "SPEC.md" ] && echo "$line" | grep -q '^## '; then
+                      continue
+                    fi ;;
+                  road)
+                    if [ "$govfile" = "ROADMAP.md" ] && echo "$line" | grep -q '^### '; then
+                      continue
+                    fi ;;
+                  req)
+                    if [ "$govfile" = "REQUIREMENTS.md" ] && echo "$line" | grep -q '^## '; then
+                      continue
+                    fi ;;
+                esac
+
+                # §req: references require REQUIREMENTS.md to exist
+                if [ "$prefix" = "req" ] && [ ! -f REQUIREMENTS.md ]; then
+                  echo "::error file=${govfile},line=${lineno}::Dangling reference ${ref} — REQUIREMENTS.md does not exist"
+                  errors=$((errors + 1))
+                  continue
+                fi
+
+                # Check that the reference resolves to a defined slug
+                if ! grep -qxF "$ref" "$slugs_file"; then
+                  echo "::error file=${govfile},line=${lineno}::Dangling reference ${ref} — no matching heading found"
+                  errors=$((errors + 1))
+                fi
+              done
+            done < <(tr -d '\r' < "$govfile")
+          done
+
+          rm -f "$slugs_file"
+
+          if [ "$errors" -gt 0 ]; then
+            echo "$errors cross-document reference error(s) found"
+            exit 1
+          fi
+
+          echo "All cross-document references resolved"

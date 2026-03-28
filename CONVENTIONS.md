@@ -102,7 +102,7 @@ Rules:
 - Blocked workstreams stay under the section they belong to, annotated
   inline ("Blocked — reason. Unblocked when condition.").
 - Dependencies between workstreams are stated inline
-  ("Depends on §road:extract-core").
+  (e.g., `Depends on §road:extract-core`).
 - Update the roadmap when work starts and when it finishes. Stale
   entries erode trust in the document.
 - Lives at repo root alongside SPEC.md.
@@ -183,6 +183,39 @@ Implements §req:batch-execution.
 The `§prefix:` namespace makes references unambiguous and
 machine-validatable — a linter can resolve each reference to
 exactly one file and heading.
+
+### Traceability chain
+
+The governance files form a directed traceability chain:
+
+```text
+REQUIREMENTS.md → SPEC.md → ROADMAP.md → CHANGELOG.md
+  (problem)       (design)    (work)       (history)
+```
+
+Each document links forward to its successor:
+
+- **SPEC.md sections cite `§req:` sources.** Every spec section
+  traces back to the requirement that motivated it. This answers
+  "why does this spec section exist?" and ensures no spec section
+  is invented without a stated need.
+- **ROADMAP.md workstreams cite `§spec:` targets.** Every
+  workstream traces to the spec section it implements. This
+  answers "what does this work deliver?" and ensures no work is
+  planned without a design.
+
+Backward tracing works by searching references. To find all spec
+sections that implement a requirement, search for `§req:slug` in
+SPEC.md. To find all workstreams that implement a spec section,
+search for `§spec:slug` in ROADMAP.md.
+
+**Why a chain:** traceability creates a bidirectional audit trail
+from user need to shipped code and back. When a requirement
+changes, the chain identifies which spec sections and workstreams
+are affected. When code ships, the chain traces it back to the
+requirement it satisfies. CI validates the chain by checking that
+every reference resolves — dangling references indicate gaps in
+the trail.
 
 ## Quality gate
 
