@@ -62,6 +62,19 @@ Define what success looks like *before* exploring features:
 scope the deep dive. Features explored in Phase 3 must trace back to
 a success criterion defined here.
 
+### Prioritization prompts
+
+When discussing competing priorities, use ICE to surface tradeoffs:
+
+- Which of these would have the biggest impact on the user? (Impact)
+- How confident are you this is the right approach? (Confidence)
+- How easy or hard is this to deliver? (Ease)
+
+These are conversation prompts, not a scoring system. The value is
+getting the user to think about tradeoffs — the answers flow into the
+priorities section of REQUIREMENTS.md as prose rationale, not numeric
+scores.
+
 ## Phase 3: Deep Dive
 
 Explore each area systematically, scoped by the success criteria

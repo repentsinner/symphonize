@@ -289,6 +289,20 @@ Taxonomy for classifying why a problem matters. Used in Discovery
 
 Reference: Y Combinator startup school — problem evaluation criteria.
 
+### ICE framework
+
+Prioritization lens for surfacing tradeoffs. Used in Validation
+(Phase 2) to prompt the user about competing priorities.
+
+| Dimension | One-line prompt |
+|-----------|-----------------|
+| Impact | Which option has the biggest effect on the user? |
+| Confidence | How sure are you this is the right approach? |
+| Ease | How easy or hard is this to deliver? |
+
+Reference: Sean Ellis, *Hacking Growth* (2017) — ICE scoring for
+growth experiments, adapted here as conversation prompts.
+
 ## Quality gate
 
 A branch is not ready to merge until analysis and tests pass with
