@@ -171,43 +171,24 @@ Mechanical enforcement catches "the system will..." (deprecated)
 and "it should be noted that..." (filler) before review.
 
 ## Requirements frameworks §spec:requirements-frameworks
-*Status: not started*
+*Status: complete*
 
 `/symphonize:discover` uses established frameworks as interview
-prompts to broaden the user's thinking. The frameworks guide
-conversation — they do not impose structured output. The user's
-natural-language answers flow into REQUIREMENTS.md as prose, not
-form fields.
+prompts to broaden the user's thinking. Frameworks guide
+conversation — they do not impose structured output. Answers
+flow into REQUIREMENTS.md as prose.
 
-### Problem classification prompts
+- **Discovery (Phase 1):** YC Problem Types (Popular, Frequent,
+  Expensive, Mandatory, Growing, Urgent, Distant) prompt the user
+  to articulate *why* the problem matters.
+- **Validation (Phase 2):** ICE framework (Impact, Confidence,
+  Ease) surfaces priority tradeoffs beyond binary must/nice-to-have.
 
-During Discovery, the interview draws on the YC Problem Types
-taxonomy (Popular, Frequent, Expensive, Mandatory, Growing,
-Urgent, Distant) as prompts. Questions like "How many people
-have this problem?" (Popular) or "Do people *have* to solve
-this?" (Mandatory) help the user articulate why the problem
-matters — not what to build.
-
-**Why:** users often describe *what* they want without
-explaining *why* it matters. The problem types prompt wider
-thinking — is this urgent or distant? growing or stable? The
-answers shape the spec author's understanding of which
-constraints matter, without requiring a classification table
-in the output.
-
-### Prioritization prompts
-
-During Validation, the interview draws on the ICE framework
-(Impact, Confidence, Ease) to prompt the user about competing
-priorities. Questions like "Which of these would have the
-biggest impact?" or "How confident are you this is the right
-approach?" surface tradeoffs that "must-have vs. nice-to-have"
-misses.
-
-**Why:** binary priority labels hide real tradeoffs. Prompting
-the user to think about impact, confidence, and ease produces
-richer priority rationale in the requirements — even when the
-output is prose, not scores.
+**Why frameworks as prompts:** users describe *what* they want
+without explaining *why*. Framework-derived questions produce
+richer problem statements and priority rationale without imposing
+structured output forms. CONVENTIONS.md documents both taxonomies
+as interviewer references.
 
 ## Governance consistency §spec:governance-consistency
 *Status: not started*
