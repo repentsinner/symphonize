@@ -123,9 +123,10 @@ needing any symphonize-specific content in their CLAUDE.md.
 
 CONVENTIONS.md contains:
 
-- **Spec format** — declarative style, numbered sections, status
-  lines (`*Status: not started|in progress|complete*`), EARS
-  reference, rationale requirements
+- **Spec format** — declarative style, slug-style `##` headings
+  (unnumbered), status lines (`*Status: not started|in progress|
+  complete*`) required on every `##` section, EARS reference,
+  rationale requirements
 - **Spec compression** — rules for compressing completed sections
   (retain rationale and observable behavior, remove protocol
   detail and pseudocode)
