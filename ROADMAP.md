@@ -38,8 +38,11 @@ validation. Depends on slug-sections.
 - **slug-prefixes**: Define namespaced slug convention —
   `§req:` (REQUIREMENTS.md), `§spec:` (SPEC.md),
   `§road:` (ROADMAP.md). Document in CONVENTIONS.md.
-  Every `## ` section carries a `§prefix:slug` suffix.
-  Depends on slug-sections.
+  SPEC.md and REQUIREMENTS.md: `## ` headings carry
+  `§prefix:slug` suffix. ROADMAP.md: workstream bullets
+  use `§road:slug` instead of `**slug**`. Every document
+  both defines its own slugs and references other
+  documents' slugs. Depends on slug-sections.
 - **reference-validation**: Extend `governance-lint.yml` to
   validate cross-document references. Every `§spec:foo`
   reference must resolve to a heading with that slug in
@@ -49,6 +52,13 @@ validation. Depends on slug-sections.
   chain in CONVENTIONS.md — requirements → spec → roadmap.
   Spec sections cite `§req:` sources. Roadmap workstreams
   cite `§spec:` targets. Depends on slug-prefixes.
+- **per-file-lint**: Refactor `governance-lint.yml` to apply
+  different rules per governance file. SPEC.md: status lines
+  on `##`, defines `§spec:`, references `§req:`. ROADMAP.md:
+  workstream bullet format with `§road:`, references `§spec:`.
+  REQUIREMENTS.md: defines `§req:`. CHANGELOG.md: Keep a
+  Changelog structure only. Depends on slug-prefixes,
+  reference-validation.
 
 ## Requirements discovery
 
