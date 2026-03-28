@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.15](https://github.com/repentsinner/symphonize/compare/v0.1.14...v0.1.15) (2026-03-28)
+
+
+### Features
+
+* **discover:** use product-neutral language in discovery interview ([#43](https://github.com/repentsinner/symphonize/issues/43)) ([73cbc24](https://github.com/repentsinner/symphonize/commit/73cbc24907346c895de5e6bbb5d264b09864f998))
+* **init:** scaffold Vale prose-linting config ([#44](https://github.com/repentsinner/symphonize/issues/44)) ([7beabe7](https://github.com/repentsinner/symphonize/commit/7beabe76b2f9433103b67c744a25f5efd26487b8))
+
 ## [0.1.14](https://github.com/repentsinner/symphonize/compare/v0.1.13...v0.1.14) (2026-03-28)
 
 
