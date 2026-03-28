@@ -2,11 +2,11 @@
 
 Plan-to-implementation execution engine for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
 
-Symphonize turns plain-language specifications into shipped PRs with
-minimal user interaction. You define what to build (SPEC.md) and
-how to sequence it (ROADMAP.md). Agents handle implementation
-autonomously — branching, coding, testing, and opening PRs. You
-review the results.
+Symphonize turns plain-language requirements into auditable specs into
+shipped PRs with minimal user interaction. You describe the problem
+(`/symphonize:discover`), define what to build (SPEC.md), and sequence
+the work (ROADMAP.md). Agents handle implementation autonomously —
+branching, coding, testing, and opening PRs. You review the results.
 
 The governance files constrain agent behavior at each stage, making
 output loosely deterministic: predictable enough to review
@@ -46,9 +46,9 @@ without them.
   branches, `/clean` prunes them. No long-lived branches.
 - **`gh` CLI as the Git-ops interface** — authenticated `gh` handles
   push and PR creation.
-- **Governance files as source of truth** — SPEC.md drives ROADMAP.md
-  drives work, not the other way around. See
-  [Governance files](#governance-files).
+- **Governance files as source of truth** — REQUIREMENTS.md drives
+  SPEC.md drives ROADMAP.md drives work, not the other way around.
+  See [Governance files](#governance-files).
 
 ## Governance files
 
@@ -62,14 +62,27 @@ repo root:
 | `ROADMAP.md` | Imperative work queue. What remains to close the gap. |
 | `CHANGELOG.md` | Release history. What shipped, in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. |
 
-The loop works like this: **REQUIREMENTS.md** captures what users need,
-**SPEC.md** defines the destination, **ROADMAP.md** tracks the remaining
-work, and **CHANGELOG.md** records what landed. Each `/next` batch advances the roadmap, produces
-conventional commits, and opens a PR. A downstream
+The loop: `/symphonize:discover` interviews the user and produces
+**REQUIREMENTS.md**. `/symphonize:plan` translates requirements into
+**SPEC.md** sections and **ROADMAP.md** workstreams. Each `/next`
+batch advances the roadmap, produces conventional commits, and opens
+a PR. A downstream
 [release-please](https://github.com/googleapis/release-please)
 workflow (or [melos](https://melos.invertase.dev/) for monorepos)
-consumes those conventional commits to cut versioned releases and
-update the changelog automatically.
+consumes those commits to cut versioned releases and update
+**CHANGELOG.md** automatically.
+
+Technical users can skip `/symphonize:discover` and jump straight to
+`/symphonize:plan` with a hand-written SPEC.md. Discovery is the
+encouraged default — it produces richer problem context that improves
+downstream spec and implementation quality.
+
+### Cross-document traceability
+
+Governance files use namespaced slug prefixes (`§req:`, `§spec:`,
+`§road:`) for grep-friendly cross-document references. Every spec
+section traces to a requirement; every roadmap workstream traces to a
+spec section. See `CONVENTIONS.md` for the full traceability chain.
 
 ### Why in-repo?
 
@@ -89,9 +102,19 @@ with the code wins.
 
 ### Governance lint
 
-Symphonize ships a reusable GitHub Actions workflow that validates
-governance files on every push and PR — markdownlint, SPEC.md
-status-line checks, and optional README heading enforcement.
+Symphonize validates governance files at two levels:
+
+- **Local** (`/symphonize:lint`): runs `npx markdownlint-cli2` against
+  SPEC.md, ROADMAP.md, and README.md. Catches formatting errors before
+  pushing.
+- **CI** (`governance-lint.yml`): runs markdownlint plus SPEC.md
+  status-line checks, slug cross-reference validation, optional README
+  heading enforcement, and [Vale](https://vale.sh) prose linting (when
+  `.vale.ini` exists). Vale enforces modal verb compliance (IEEE
+  shall/should/may), flags passive voice, and catches filler phrases.
+
+The local command is a subset of CI — it covers formatting but not
+structural or prose checks.
 
 In CI, add a caller workflow:
 
@@ -110,37 +133,22 @@ jobs:
       readme-type: library  # or "application", or "" to skip
 ```
 
-Locally, run `/symphonize:lint` for the same checks without
-waiting for CI.
-
 ## Usage
 
-1. **`/symphonize:plan`** scopes the spec gap and breaks it into
-   sized workstreams
-2. **`/symphonize:next`** selects the active section, dispatches a
-   batch agent in a worktree, cherry-picks results, runs CI, opens
-   a single PR
-3. **`/symphonize:orchestrate`** wraps `/next` in ralph-loop for
-   unattended multi-batch execution
-4. **`/symphonize:clean`** prunes branches, worktrees, and updates
-   governance docs after PRs merge
-5. **`/symphonize:lint`** validates governance files locally
-6. **`/symphonize:init`** scaffolds governance files and CI workflows
-   into a new project
+| Command | Description |
+|---|---|
+| `/symphonize:init` | Scaffold governance files and CI workflows into a project (one-time setup) |
+| `/symphonize:discover` | Structured interview that produces REQUIREMENTS.md — uses YC Problem Types and ICE frameworks as prompts (see `CONVENTIONS.md`) |
+| `/symphonize:plan [task]` | Translate requirements into SPEC.md sections and ROADMAP.md workstreams |
+| `/symphonize:next [target]` | Execute next unblocked workstreams (depth-first by section) |
+| `/symphonize:orchestrate` | Start ralph-loop to work through ROADMAP.md unattended |
+| `/symphonize:clean [--lite\|--full]` | Clean up after batch execution |
+| `/symphonize:lint [type]` | Validate governance files (markdownlint) |
 
 The batch agent protocol (`BATCH_AGENT.md`) manages sub-agent
 dispatch, merge conflict resolution, and CI verification.
 
 ## API
-
-| Command | Description |
-|---|---|
-| `/symphonize:plan [task]` | Plan spec and roadmap entries for a new task |
-| `/symphonize:next [target]` | Execute next unblocked workstreams (depth-first by section) |
-| `/symphonize:orchestrate` | Start ralph-loop to work through ROADMAP.md unattended |
-| `/symphonize:clean [--lite\|--full]` | Clean up after batch execution |
-| `/symphonize:lint [type]` | Validate governance files (markdownlint, status lines, headings) |
-| `/symphonize:init` | Scaffold governance files and CI workflows into a project |
 
 ### Reusable workflows
 
@@ -148,7 +156,7 @@ Target projects reference these via `workflow_call`:
 
 | Workflow | Description |
 |---|---|
-| `governance-lint.yml` | Markdownlint + SPEC.md status lines + README heading checks |
+| `governance-lint.yml` | Markdownlint + SPEC.md status lines + slug cross-refs + Vale prose linting + README heading checks |
 
 Template workflows (copied by `/symphonize:init`, not called
 cross-repo):
@@ -177,6 +185,7 @@ claude --plugin-dir /path/to/symphonize
 ### Prerequisites
 
 - `git`, `gh` (authenticated), and `npx` (Node.js) on `PATH`
+- `vale` (optional — needed when `.vale.ini` exists for prose linting)
 - A project with governance files (run `/symphonize:init` to scaffold
   them — format conventions are in `CONVENTIONS.md`)
 - [ralph-loop](https://github.com/anthropics/claude-plugins-public/tree/main/plugins/ralph-loop)
