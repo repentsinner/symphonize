@@ -36,7 +36,7 @@ jobs:
           expect_status=false
 
           while IFS= read -r line; do
-            if [[ "$line" =~ ^##\ [0-9]+\. ]]; then
+            if [[ "$line" =~ ^##\ [^#] ]]; then
               if $expect_status; then
                 echo "::error::Section '$section' has no *Status: line"
                 errors=$((errors + 1))
@@ -71,7 +71,7 @@ jobs:
             exit 1
           fi
 
-          echo "All numbered sections have valid status lines"
+          echo "All sections have valid status lines"
 
       - name: Validate README.md headings
         if: inputs.readme-type != ''
