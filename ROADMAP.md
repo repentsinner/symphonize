@@ -41,6 +41,11 @@ README lags behind the codebase in several areas:
   structured interview prompts is enough — detail lives in
   CONVENTIONS.md.
 
+- **Consolidate Usage and API sections:** both list the same
+  commands — Usage as a numbered narrative, API as a table. Merge
+  into one section. A table with brief descriptions is sufficient;
+  the narrative framing ("you define, agents implement, you review")
+  belongs in the intro, not repeated per-command.
 - **Discovery is optional but recommended:** technical users can
   skip `/symphonize:discover` and jump straight to `/symphonize:plan`
   with a hand-written SPEC.md. Note this path exists but frame
