@@ -46,24 +46,3 @@ Update init.md to scaffold `.vale.ini` and
 `styles/Requirements/` with the modal verb rules. Projects opt
 in to prose linting by having these files. Depends on
 §road:vale-integration.
-
-## Requirements frameworks
-
-Interview prompts drawn from established frameworks for
-`/symphonize:discover`. Frameworks guide conversation — output
-is prose, not structured forms.
-
-### §road:yc-problem-types
-Add YC Problem Types (Popular, Frequent, Expensive, Mandatory,
-Growing, Urgent, Distant) as interview prompts in the discover
-command's Phase 1 (Discovery). Use the taxonomy to prompt wider
-thinking about why the problem matters — output is prose, not a
-structured table. Document the taxonomy in CONVENTIONS.md as a
-reference for interviewers.
-
-### §road:ice-scoring
-Add ICE framework (Impact, Confidence, Ease) as interview
-prompts in the discover command's Phase 2 (Validation) for
-surfacing priority tradeoffs. Use to prompt the user about
-competing priorities — output is prose rationale, not numeric
-scores. Document the framework in CONVENTIONS.md as a reference.

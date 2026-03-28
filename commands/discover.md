@@ -32,6 +32,23 @@ Open with these questions (adapt based on responses):
 **Goal:** Establish clear understanding of the problem space and user needs
 before defining success.
 
+### Problem classification prompts
+
+After the opening questions, use the YC Problem Types to prompt wider
+thinking about *why* the problem matters:
+
+- How many people have this problem? (Popular)
+- How often do people encounter it? (Frequent)
+- What does it cost people today — in money, time, or frustration? (Expensive)
+- Do people *have* to solve this, or is it optional? (Mandatory)
+- Is the problem growing — more people, faster? (Growing)
+- Is there urgency — a deadline, a spike, a regulatory change? (Urgent)
+- Is this a distant problem — important but not yet painful enough to act on? (Distant)
+
+These are conversation prompts, not a classification form. The user's
+answers flow into the problem statement section of REQUIREMENTS.md as
+prose. Skip prompts that don't apply; linger on those that spark insight.
+
 ## Phase 2: Validation
 
 Define what success looks like *before* exploring features:
@@ -44,6 +61,19 @@ Define what success looks like *before* exploring features:
 **Goal:** Establish observable, measurable acceptance conditions that
 scope the deep dive. Features explored in Phase 3 must trace back to
 a success criterion defined here.
+
+### Prioritization prompts
+
+When discussing competing priorities, use ICE to surface tradeoffs:
+
+- Which of these would have the biggest impact on the user? (Impact)
+- How confident are you this is the right approach? (Confidence)
+- How easy or hard is this to deliver? (Ease)
+
+These are conversation prompts, not a scoring system. The value is
+getting the user to think about tradeoffs — the answers flow into the
+priorities section of REQUIREMENTS.md as prose rationale, not numeric
+scores.
 
 ## Phase 3: Deep Dive
 
