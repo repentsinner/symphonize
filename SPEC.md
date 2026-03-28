@@ -190,6 +190,42 @@ richer problem statements and priority rationale without imposing
 structured output forms. CONVENTIONS.md documents both taxonomies
 as interviewer references.
 
+## Product-type-agnostic discovery §spec:product-type-agnostic-discovery
+*Status: not started*
+
+The `/symphonize:discover` command assumes consumer-facing applications.
+Terms like "app," "user journey," and "onboarding" exclude libraries,
+SDKs, platforms, CLI tools, hardware devices, and internal components.
+Users building these product types encounter questions that don't apply
+and miss questions that do.
+
+The discover command uses product-neutral language throughout. Specific
+changes:
+
+- **Early classifier.** Phase 1 opens with "What kind of thing is
+  this?" (application, library/SDK, platform/service, CLI tool,
+  hardware device, other). The answer gates which subsequent prompts
+  are relevant — a library doesn't need onboarding-discovery
+  questions; hardware doesn't need integrations the same way.
+- **Terminology.** "App" becomes "product" or is dropped where the
+  sentence works without a noun. "User journey" becomes "workflow"
+  or "usage scenario." "Abandon your app" becomes "stop using this
+  or switch to an alternative." "Discovering and onboarding" becomes
+  "first encounter this, and what does getting started look like."
+- **Deep Dive table.** "User Experience" becomes "Usage & Workflow"
+  (covers CLI ergonomics, API surface, operator runbooks, physical
+  interaction). "Core Features" becomes "Capabilities." "Data &
+  Content" broadens to include state and signals for
+  hardware/embedded contexts.
+- **Argument hint.** `[app idea or problem area]` becomes
+  `[product idea or problem area]`.
+
+**Why:** symphonize targets any software product, not just consumer
+apps. Narrow language biases the interview toward GUI applications
+and produces requirements that miss concerns specific to other
+product types (API ergonomics, operator workflows, physical
+constraints).
+
 ## Governance consistency §spec:governance-consistency
 *Status: in progress*
 
