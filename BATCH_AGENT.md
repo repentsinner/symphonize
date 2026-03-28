@@ -69,6 +69,12 @@ does not mean unchecked.
   touch shared files or depend on earlier results.
 - Each sub-agent receives: the workstream slug, its ROADMAP.md
   description, and the project rules.
+- When `--unattended` was passed to the batch agent, pass
+  `--unattended` to every sub-agent spawned.
+- Sub-agents operating in `--unattended` mode shall not surface
+  interactive prompts, approval gates, or questions. When
+  encountering ambiguity, make a conservative choice and document
+  the decision in the commit message.
 - Sub-agents follow the project's standard workflow (test-first
   for code tasks, verify for operational tasks).
 
