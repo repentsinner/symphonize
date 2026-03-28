@@ -1,12 +1,24 @@
 # symphonize — Specification
 
 ## 1. Plugin commands
-*Status: complete*
+*Status: in progress*
 
-Symphonize provides four Claude Code plugin commands: `/plan`,
-`/next`, `/orchestrate`, and `/clean`. Each command operates on
-the governance file loop (SPEC.md → ROADMAP.md → CHANGELOG.md)
-and produces conventional commits suitable for release-please.
+Symphonize provides Claude Code plugin commands that operate on
+the governance file loop (REQUIREMENTS.md → SPEC.md → ROADMAP.md
+→ CHANGELOG.md) and produce conventional commits suitable for
+release-please.
+
+The command pipeline:
+
+1. `/symphonize:discover` — interviews the user, produces
+   REQUIREMENTS.md
+2. `/symphonize:plan` — translates requirements into SPEC.md
+   sections and ROADMAP.md workstreams
+3. `/symphonize:next` — executes workstreams
+4. `/symphonize:orchestrate` — unattended multi-batch execution
+5. `/symphonize:clean` — post-merge cleanup
+6. `/symphonize:lint` — governance file validation
+7. `/symphonize:init` — project scaffolding
 
 ## 2. Governance lint command
 *Status: complete*
@@ -88,6 +100,14 @@ github-actions[bot] with the `autorelease: pending` label.
 Template workflow that moves a floating major version tag
 (e.g., `v1`) on each release.
 
+## 5. Dogfooding
+*Status: complete*
+
+Symphonize's own CI calls its own `governance-lint.yml` reusable
+workflow. The repo's `.github/workflows/ci.yml` uses
+`./.github/workflows/governance-lint.yml` with
+`readme-type: library`.
+
 ## 6. Self-contained conventions
 *Status: not started*
 
@@ -126,10 +146,38 @@ having specific sections in their CLAUDE.md. This works for the
 author but fails for any other user. The conventions are part of
 the plugin's contract, not the user's personal configuration.
 
-## 5. Dogfooding
-*Status: complete*
+## 7. Requirements discovery command
+*Status: not started*
 
-Symphonize's own CI calls its own `governance-lint.yml` reusable
-workflow. The repo's `.github/workflows/ci.yml` uses
-`./.github/workflows/governance-lint.yml` with
-`readme-type: library`.
+The plugin provides a `/symphonize:discover` command that
+conducts a structured interview with the user to produce
+REQUIREMENTS.md — a problem-space document in the user's
+language.
+
+REQUIREMENTS.md captures:
+
+- Problem statement and target users
+- User stories and workflows
+- Constraints (technical, business, regulatory)
+- Success criteria
+- Priorities (must-have vs. nice-to-have)
+
+REQUIREMENTS.md is the fourth governance file. The pipeline:
+
+| Document | Voice | Question |
+|----------|-------|----------|
+| REQUIREMENTS.md | User's | What do we need? |
+| SPEC.md | System's | What does the system do? |
+| ROADMAP.md | Work queue | What remains to build? |
+| CHANGELOG.md | History | What shipped? |
+
+`/symphonize:plan` reads REQUIREMENTS.md (if present) as input
+when drafting SPEC.md sections. If REQUIREMENTS.md does not exist,
+`/plan` falls back to clarifying requirements directly with the
+user (current behavior).
+
+**Why a separate document:** requirements live in the user's
+problem space. Specs live in the system's solution space. Mixing
+them produces documents that serve neither audience well. The
+translation from requirements to spec is where design decisions
+happen — that boundary should be explicit.
