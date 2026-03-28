@@ -78,14 +78,45 @@ Create under `.github/workflows/`:
 
 - **update-major-tag.yml** — copy from symphonize's template.
 
+### Git hooks
+
+Create `.githooks/pre-commit`:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Only lint when governance files are staged
+staged=$(git diff --cached --name-only)
+if echo "$staged" | grep -qE '^(SPEC|ROADMAP|README)\.md$'; then
+  npx markdownlint-cli2 SPEC.md ROADMAP.md README.md
+fi
+```
+
+Then activate hooks for this checkout:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The hook scripts live in `.githooks/` (tracked). Activation is
+per-checkout via `core.hooksPath` — git intentionally does not
+auto-run hooks on clone. Consumers who fork the repo opt in by
+running `/symphonize:init` in their checkout.
+
+CI remains the backstop for contributors who haven't activated
+hooks.
+
 ## Behavior
 
 1. Read the project name from the repo directory name or manifest.
 2. For each file above, check if it exists. If it does, print
    `skip: <path> (already exists)` and move on.
 3. Create any missing files with the templates above.
-4. Run `/symphonize:lint` to validate the result.
-5. Print a summary of created and skipped files.
+4. Make `.githooks/pre-commit` executable.
+5. Run `git config core.hooksPath .githooks` to activate hooks.
+6. Run `/symphonize:lint` to validate the result.
+7. Print a summary of created and skipped files.
 
 Do NOT commit. Leave the files unstaged so the user can review
 and commit when ready.

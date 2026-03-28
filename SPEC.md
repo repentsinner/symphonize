@@ -41,6 +41,14 @@ The command creates:
   with config and manifest files
 - `.github/workflows/auto-merge-release.yml` — auto-merge for
   release PRs
+- `.githooks/pre-commit` — runs markdownlint on staged governance
+  files
+
+The command activates hooks for the current checkout via
+`git config core.hooksPath .githooks`. Hook scripts are tracked;
+activation is per-checkout. Consumers opt in by running
+`/symphonize:init` — upstream repos do not push hooks on
+contributors. CI is the backstop.
 
 The command is idempotent: it skips files that already exist and
 warns rather than overwrites.
