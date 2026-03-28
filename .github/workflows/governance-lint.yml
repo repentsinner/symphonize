@@ -23,6 +23,8 @@ jobs:
             SPEC.md
             ROADMAP.md
             README.md
+            REQUIREMENTS.md
+            CHANGELOG.md
 
       - name: Validate SPEC.md status lines
         run: |
