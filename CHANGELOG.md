@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8](https://github.com/repentsinner/symphonize/compare/v0.1.7...v0.1.8) (2026-03-28)
+
+
+### Features
+
+* cross-document reference validation and traceability convention ([#23](https://github.com/repentsinner/symphonize/issues/23)) ([8b347d3](https://github.com/repentsinner/symphonize/commit/8b347d35d6772eb041293f20502a860c2311b2b0))
+
 ## [0.1.7](https://github.com/repentsinner/symphonize/compare/v0.1.6...v0.1.7) (2026-03-28)
 
 
