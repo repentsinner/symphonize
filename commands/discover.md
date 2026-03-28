@@ -1,5 +1,5 @@
 ---
-argument-hint: [app idea or problem area]
+argument-hint: [product idea or problem area]
 description: Interview the user to produce or update REQUIREMENTS.md
 ---
 Read CONVENTIONS.md for governance file formats (§ Cross-document traceability).
@@ -24,10 +24,16 @@ applied at the requirements level.
 
 Open with these questions (adapt based on responses):
 
-- What problem does your app solve?
-- Who is your target user and what's their current workflow?
-- What's your vision for the final product?
-- What similar apps inspire you or compete with your idea?
+- What kind of thing is this? (application, library/SDK, platform/service,
+  CLI tool, hardware device, other)
+- What problem does it solve?
+- Who uses it and what's their current workflow?
+- What's your vision for the finished product?
+- What similar products inspire you or compete with your idea?
+
+The product-type answer gates subsequent prompts. A library doesn't need
+onboarding-discovery questions; hardware doesn't need integrations the
+same way. Adapt the interview accordingly.
 
 **Goal:** Establish clear understanding of the problem space and user needs
 before defining success.
@@ -53,9 +59,9 @@ prose. Skip prompts that don't apply; linger on those that spark insight.
 
 Define what success looks like *before* exploring features:
 
-- How would you measure success for this app?
-- What would make a user abandon your app?
-- How do you envision users discovering and onboarding?
+- How would you measure success for this product?
+- What would make someone stop using this or switch to an alternative?
+- How do people first encounter this, and what does getting started look like?
 - What must be true for this to be worth building?
 
 **Goal:** Establish observable, measurable acceptance conditions that
@@ -82,12 +88,12 @@ from Phase 2:
 
 | Area | Key Questions |
 |------|---------------|
-| **User Experience** | Walk through a typical user journey step-by-step |
-| **Core Features** | What are must-have vs. nice-to-have features? |
-| **Data & Content** | What information does the app store, display, or process? |
-| **Integrations** | External services or APIs needed? |
-| **Technical Constraints** | Platform preferences, performance requirements? |
-| **Business Logic** | Rules governing app behavior in different scenarios? |
+| **Usage & Workflow** | Walk through a typical usage scenario step-by-step |
+| **Capabilities** | What are must-have vs. nice-to-have capabilities? |
+| **Data, Content & State** | What information does the product store, display, process, or signal? |
+| **Integrations** | External services, APIs, or systems needed? |
+| **Technical Constraints** | Platform, environment, or performance requirements? |
+| **Business Logic** | Rules governing behavior in different scenarios? |
 
 **Pacing:** Ask 2-3 questions at a time. Don't overwhelm non-technical users.
 
