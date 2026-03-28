@@ -122,7 +122,7 @@ governance loop without needing symphonize-specific content in
 their CLAUDE.md.
 
 ## Requirements discovery command §spec:requirements-discovery
-*Status: not started*
+*Status: in progress*
 
 The plugin provides a `/symphonize:discover` command that
 conducts a structured interview with the user to produce
