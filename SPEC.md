@@ -145,3 +145,87 @@ problem space. Specs live in the system's solution space. Mixing
 them produces documents that serve neither audience well. The
 translation from requirements to spec is where design decisions
 happen — that boundary should be explicit.
+
+## Prose linting §spec:prose-linting
+*Status: not started*
+
+The governance-lint workflow validates structure (markdownlint) and
+cross-references (slug resolution), but not prose quality. SPEC.md
+and REQUIREMENTS.md use IEEE modal verbs — "shall" for mandatory
+requirements, "should" for recommendations, "may" for permission.
+"Must" and "will" are deprecated per IEEE SA Standards Style Manual.
+
+Vale (<https://vale.sh>) enforces prose rules via custom YAML
+styles. A `Requirements` style checks modal verb compliance, flags
+passive voice in requirements, and catches ambiguous language. Vale
+complements markdownlint — structure vs. prose.
+
+The governance-lint workflow runs Vale against SPEC.md and
+REQUIREMENTS.md when a `.vale.ini` config exists. Projects opt in
+by adding `.vale.ini` and a `styles/` directory via
+`/symphonize:init`.
+
+**Why prose linting:** agents generate requirements and spec text
+that drifts toward vague, passive, non-testable language.
+Mechanical enforcement catches "the system will..." (deprecated)
+and "it should be noted that..." (filler) before review.
+
+## Requirements frameworks §spec:requirements-frameworks
+*Status: not started*
+
+`/symphonize:discover` uses established frameworks as interview
+prompts to broaden the user's thinking. The frameworks guide
+conversation — they do not impose structured output. The user's
+natural-language answers flow into REQUIREMENTS.md as prose, not
+form fields.
+
+### Problem classification prompts
+
+During Discovery, the interview draws on the YC Problem Types
+taxonomy (Popular, Frequent, Expensive, Mandatory, Growing,
+Urgent, Distant) as prompts. Questions like "How many people
+have this problem?" (Popular) or "Do people *have* to solve
+this?" (Mandatory) help the user articulate why the problem
+matters — not what to build.
+
+**Why:** users often describe *what* they want without
+explaining *why* it matters. The problem types prompt wider
+thinking — is this urgent or distant? growing or stable? The
+answers shape the spec author's understanding of which
+constraints matter, without requiring a classification table
+in the output.
+
+### Prioritization prompts
+
+During Validation, the interview draws on the ICE framework
+(Impact, Confidence, Ease) to prompt the user about competing
+priorities. Questions like "Which of these would have the
+biggest impact?" or "How confident are you this is the right
+approach?" surface tradeoffs that "must-have vs. nice-to-have"
+misses.
+
+**Why:** binary priority labels hide real tradeoffs. Prompting
+the user to think about impact, confidence, and ease produces
+richer priority rationale in the requirements — even when the
+output is prose, not scores.
+
+## Governance consistency §spec:governance-consistency
+*Status: not started*
+
+Governance files, commands, and scaffolding templates are
+internally consistent. Specifically:
+
+- init.md scaffolding templates match CONVENTIONS.md format
+  rules (slug-style headings, status lines, `§prefix:slug`
+  suffixes)
+- CONVENTIONS.md documents the standard REQUIREMENTS.md
+  sections (not just the discover command)
+- The lint command documents which checks it runs vs. which
+  checks CI runs (lint is a subset of governance-lint.yml)
+- The governance files table is consistent across README.md,
+  SPEC.md, and CONVENTIONS.md (four files, same descriptions)
+- markdownlint globs include REQUIREMENTS.md and CHANGELOG.md
+
+**Why:** inconsistencies between documents erode trust. An agent
+that reads init.md and CONVENTIONS.md should not get conflicting
+instructions.
