@@ -109,7 +109,7 @@ workflow. The repo's `.github/workflows/ci.yml` uses
 `readme-type: library`.
 
 ## Self-contained conventions
-*Status: not started*
+*Status: in progress*
 
 The plugin ships its own `CONVENTIONS.md` defining the governance
 file formats, commit conventions, and quality gate rules. Commands
