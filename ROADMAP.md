@@ -32,15 +32,14 @@ README.md are linted for markdown formatting.
 ## Prose linting
 
 Add Vale-based prose quality checks to the governance-lint
-workflow. Depends on §road:document-requirements-sections
-(modal verb rules reference the conventions).
+workflow.
 
 ### §road:vale-integration
 Add Vale to governance-lint.yml. Create a `Requirements` style
 with rules for IEEE modal verbs (flag deprecated "must"/"will",
 require "shall" for mandatory requirements), passive voice in
 requirements, and filler phrases. Run against SPEC.md and
-REQUIREMENTS.md. Depends on §road:document-requirements-sections.
+REQUIREMENTS.md.
 
 ### §road:init-scaffolds-vale
 Update init.md to scaffold `.vale.ini` and

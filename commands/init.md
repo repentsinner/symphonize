@@ -16,7 +16,7 @@ Create at the repo root:
   ```markdown
   # <project-name> — Specification
 
-  ## 1. <first section>
+  ## <first section> §spec:<slug>
   *Status: not started*
 
   <!-- Describe the desired behavior of this section. -->
