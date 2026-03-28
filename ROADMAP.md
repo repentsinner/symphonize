@@ -29,12 +29,6 @@ Add REQUIREMENTS.md and CHANGELOG.md to markdownlint globs in
 governance-lint.yml. Currently only SPEC.md, ROADMAP.md, and
 README.md are linted for markdown formatting.
 
-### §road:governance-table-consistency
-Ensure the governance files table is consistent across README.md,
-SPEC.md, and CONVENTIONS.md — four files, same descriptions.
-README.md still shows the three-file model in the governance
-section body text.
-
 ## Prose linting
 
 Add Vale-based prose quality checks to the governance-lint
