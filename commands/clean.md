@@ -64,8 +64,7 @@ Read SPEC.md, ROADMAP.md, CHANGELOG.md, and recent commit history
 - **CHANGELOG.md**: `[Unreleased]` section reflects what merged
   since the last release. If release-please manages this, verify
   it will pick up the new commits.
-- Run `npx markdownlint-cli2 SPEC.md ROADMAP.md README.md` and
-  fix any violations before committing.
+- Run `/symphonize:lint` and fix any violations before committing.
 
 Commit governance doc changes to a `docs/post-merge-cleanup` branch
 and open a PR (or push directly to main if the project allows).

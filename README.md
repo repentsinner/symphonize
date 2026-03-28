@@ -1,11 +1,16 @@
 # symphonize
 
-Depth-first roadmap execution engine for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+Plan-to-implementation execution engine for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
 
-Turns `ROADMAP.md` workstreams into batched PRs via worktree-isolated
-agents. Completes all unblocked workstreams within one roadmap section
-before moving to the next — producing testable vertical slices instead
-of scattered plumbing PRs.
+Symphonize turns plain-language specifications into shipped PRs with
+minimal user interaction. You define what to build (SPEC.md) and
+how to sequence it (ROADMAP.md). Agents handle implementation
+autonomously — branching, coding, testing, and opening PRs. You
+review the results.
+
+The governance files constrain agent behavior at each stage, making
+output loosely deterministic: predictable enough to review
+confidently, flexible enough to handle real codebases.
 
 ## Design principles
 
@@ -79,14 +84,15 @@ with the code wins.
 
 ### Governance lint
 
-[bug-free-happiness](https://github.com/repentsinner/bug-free-happiness)
-provides a reusable GitHub Actions workflow that validates governance
-files on every push and PR — markdownlint, SPEC.md status-line
-checks, and optional README heading enforcement. Add it to your repo:
+Symphonize ships a reusable GitHub Actions workflow that validates
+governance files on every push and PR — markdownlint, SPEC.md
+status-line checks, and optional README heading enforcement.
+
+In CI, add a caller workflow:
 
 ```yaml
-# .github/workflows/spec-lint.yml
-name: Spec Lint
+# .github/workflows/governance-lint.yml
+name: Governance Lint
 on:
   push:
     branches: [main]
@@ -94,36 +100,65 @@ on:
 
 jobs:
   lint:
-    uses: repentsinner/bug-free-happiness/.github/workflows/spec-lint.yml@v1
+    uses: repentsinner/symphonize/.github/workflows/governance-lint.yml@v1
+    with:
+      readme-type: library  # or "application", or "" to skip
 ```
 
-## How it works
+Locally, run `/symphonize:lint` for the same checks without
+waiting for CI.
 
-1. **`/plan`** scopes the spec gap and breaks it into sized workstreams
-2. **`/next`** selects the active section, dispatches a batch agent in
-   a worktree, cherry-picks results, runs CI, opens a single PR
-3. **`/orchestrate`** wraps `/next` in ralph-loop for unattended
-   multi-batch execution
-4. **`/clean`** prunes branches, worktrees, and updates governance docs
-   after PRs merge
+## Usage
+
+1. **`/symphonize:plan`** scopes the spec gap and breaks it into
+   sized workstreams
+2. **`/symphonize:next`** selects the active section, dispatches a
+   batch agent in a worktree, cherry-picks results, runs CI, opens
+   a single PR
+3. **`/symphonize:orchestrate`** wraps `/next` in ralph-loop for
+   unattended multi-batch execution
+4. **`/symphonize:clean`** prunes branches, worktrees, and updates
+   governance docs after PRs merge
+5. **`/symphonize:lint`** validates governance files locally
+6. **`/symphonize:init`** scaffolds governance files and CI workflows
+   into a new project
 
 The batch agent protocol (`BATCH_AGENT.md`) manages sub-agent
 dispatch, merge conflict resolution, and CI verification.
 
-## Commands
+## API
 
 | Command | Description |
 |---|---|
+| `/symphonize:plan [task]` | Plan spec and roadmap entries for a new task |
 | `/symphonize:next [target]` | Execute next unblocked workstreams (depth-first by section) |
 | `/symphonize:orchestrate` | Start ralph-loop to work through ROADMAP.md unattended |
 | `/symphonize:clean [--lite\|--full]` | Clean up after batch execution |
-| `/symphonize:plan [task]` | Plan spec and roadmap entries for a new task |
+| `/symphonize:lint [type]` | Validate governance files (markdownlint, status lines, headings) |
+| `/symphonize:init` | Scaffold governance files and CI workflows into a project |
 
-## Install
+### Reusable workflows
+
+Target projects reference these via `workflow_call`:
+
+| Workflow | Description |
+|---|---|
+| `governance-lint.yml` | Markdownlint + SPEC.md status lines + README heading checks |
+
+Template workflows (copied by `/symphonize:init`, not called
+cross-repo):
+
+| Workflow | Description |
+|---|---|
+| `release-please.yml` | Conventional commits → semver releases |
+| `auto-merge-release.yml` | Auto-merge release PRs |
+| `update-major-tag.yml` | Float `vN` tag on each release |
+
+## Installation
 
 Add the marketplace, then install:
 
-```
+```shell
 /plugin marketplace add repentsinner/symphonize
 /plugin install symphonize@repentsinner-symphonize
 ```
@@ -134,10 +169,14 @@ Or from source during development:
 claude --plugin-dir /path/to/symphonize
 ```
 
-## Prerequisites
+### Prerequisites
 
 - A project with `SPEC.md` and `ROADMAP.md` following the conventions
   in your `CLAUDE.md`
 - [ralph-loop](https://github.com/anthropics/claude-plugins-public/tree/main/plugins/ralph-loop)
   plugin (for unattended `/orchestrate` mode)
 - `gh` CLI authenticated
+
+## License
+
+MIT
