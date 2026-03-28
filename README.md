@@ -172,8 +172,8 @@ claude --plugin-dir /path/to/symphonize
 ### Prerequisites
 
 - `git`, `gh` (authenticated), and `npx` (Node.js) on `PATH`
-- A project with `SPEC.md` and `ROADMAP.md` following the conventions
-  in your `CLAUDE.md` (or run `/symphonize:init` to scaffold them)
+- A project with `SPEC.md` and `ROADMAP.md` (run `/symphonize:init` to
+  scaffold them — format conventions are in `CONVENTIONS.md`)
 - [ralph-loop](https://github.com/anthropics/claude-plugins-public/tree/main/plugins/ralph-loop)
   plugin (for unattended `/orchestrate` mode)
 
