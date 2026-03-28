@@ -45,7 +45,9 @@ README lags behind the codebase in several areas:
   commands — Usage as a numbered narrative, API as a table. Merge
   into one section. A table with brief descriptions is sufficient;
   the narrative framing ("you define, agents implement, you review")
-  belongs in the intro, not repeated per-command.
+  belongs in the intro, not repeated per-command. Lead with
+  `/symphonize:init` (one-time project setup), then the recurring
+  loop commands in pipeline order.
 - **Discovery is optional but recommended:** technical users can
   skip `/symphonize:discover` and jump straight to `/symphonize:plan`
   with a hand-written SPEC.md. Note this path exists but frame
