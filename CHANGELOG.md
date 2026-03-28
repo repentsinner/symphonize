@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4](https://github.com/repentsinner/symphonize/compare/v0.1.3...v0.1.4) (2026-03-28)
+
+
+### Bug Fixes
+
+* run clean --lite before starting orchestrate loop ([#14](https://github.com/repentsinner/symphonize/issues/14)) ([0cabd3b](https://github.com/repentsinner/symphonize/commit/0cabd3bc04b3f1f8ba38f9ef90e06392aa98f5a3))
+
 ## [0.1.3](https://github.com/repentsinner/symphonize/compare/v0.1.2...v0.1.3) (2026-03-28)
 
 
