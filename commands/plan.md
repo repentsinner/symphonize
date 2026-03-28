@@ -2,8 +2,7 @@
 argument-hint: [task or workstream]
 description: Plan spec and roadmap entries for a new task
 ---
-Read the project's CLAUDE.md for roadmap format rules (§ Roadmap Format
-if using the standard convention).
+Read CONVENTIONS.md for roadmap format rules (§ Roadmap format).
 
 1. Create a planning worktree. Fetch origin and start from tip of main.
 2. Read SPEC.md and ROADMAP.md to understand current state.
