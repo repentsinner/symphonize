@@ -1,14 +1,5 @@
 # symphonize — Roadmap
 
-## Self-contained conventions
-
-Remove dependency on user's CLAUDE.md for governance file formats
-and workflow rules. The plugin ships its own conventions.
-
-### §road:update-readme-prerequisites
-Remove "following the conventions in your CLAUDE.md" prerequisite.
-Reference CONVENTIONS.md instead.
-
 ## Cross-document traceability
 
 Namespaced slug references across governance files, with lint

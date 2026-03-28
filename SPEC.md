@@ -109,43 +109,17 @@ workflow. The repo's `.github/workflows/ci.yml` uses
 `readme-type: library`.
 
 ## Self-contained conventions
-*Status: in progress*
+*Status: complete*
 
-The plugin ships its own `CONVENTIONS.md` defining the governance
-file formats, commit conventions, and quality gate rules. Commands
-and BATCH_AGENT.md reference this file via
-`!`cat ${CLAUDE_SKILL_DIR}/../CONVENTIONS.md`` instead of
-deferring to the user's CLAUDE.md.
+The plugin ships `CONVENTIONS.md` defining governance file formats,
+commit conventions, and quality gate rules. Commands reference this
+file instead of deferring to the user's CLAUDE.md.
 
-The plugin is self-contained: a user who installs symphonize and
-runs `/symphonize:init` gets a working governance loop without
-needing any symphonize-specific content in their CLAUDE.md.
-
-CONVENTIONS.md contains:
-
-- **Spec format** — declarative style, slug-style `##` headings
-  (unnumbered), status lines (`*Status: not started|in progress|
-  complete*`) required on every `##` section, EARS reference,
-  rationale requirements
-- **Spec compression** — rules for compressing completed sections
-  (retain rationale and observable behavior, remove protocol
-  detail and pseudocode)
-- **Roadmap format** — imperative work queue, build-dependency
-  order, workstream slug format, sizing to ~200k tokens, delete
-  completed work
-- **Changelog format** — Keep a Changelog, `[Unreleased]` section,
-  reverse chronological
-- **Commit conventions** — conventional commits, one logical
-  change per commit, semver mapping
-- **Branching** — feature branches, `<type>/<short-description>`
-  naming, create from `origin/main`
-- **Quality gate** — zero failures, zero warnings from new code,
-  never skip failing tests
-
-**Why self-contained:** the plugin currently depends on the user
-having specific sections in their CLAUDE.md. This works for the
-author but fails for any other user. The conventions are part of
-the plugin's contract, not the user's personal configuration.
+**Why self-contained:** conventions are part of the plugin's
+contract, not the user's personal configuration. Any user who
+installs symphonize and runs `/symphonize:init` gets a working
+governance loop without needing symphonize-specific content in
+their CLAUDE.md.
 
 ## Requirements discovery command
 *Status: not started*
