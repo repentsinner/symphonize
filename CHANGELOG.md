@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.20](https://github.com/repentsinner/symphonize/compare/v0.1.19...v0.1.20) (2026-03-28)
+
+
+### Features
+
+* **next:** pass --unattended explicitly through agent hierarchy ([#58](https://github.com/repentsinner/symphonize/issues/58)) ([d276c2e](https://github.com/repentsinner/symphonize/commit/d276c2e79998aa21a6a60f71d85f5c213ba57531))
+
 ## [0.1.19](https://github.com/repentsinner/symphonize/compare/v0.1.18...v0.1.19) (2026-03-28)
 
 
