@@ -231,6 +231,51 @@ directives. Workaround: `/clear` and manually remove the flag
 file before planning. A proper fix requires the stop hook (in
 ralph-loop, not symphonize) to check active skill context.
 
+## Unattended flag passthrough §spec:unattended-flag-passthrough
+*Status: not started*
+
+When `/symphonize:orchestrate` starts a ralph-loop, every agent in
+the execution hierarchy runs unattended. The `--unattended` flag
+propagates explicitly through each layer — no agent infers
+unattended mode from file existence or ambient state.
+
+### Propagation chain
+
+1. `/symphonize:orchestrate` passes `--unattended` in the
+   ralph-loop prompt that invokes `/symphonize:next`.
+2. `/symphonize:next` reads `--unattended` from its arguments
+   (not from `.claude/ralph-loop.local.md`). Passes
+   `--unattended` to the batch agent it spawns.
+3. The batch agent (BATCH_AGENT.md) passes `--unattended` to
+   every sub-agent it spawns in Phase 3.
+4. Sub-agents operating in `--unattended` mode shall not surface
+   interactive prompts, approval gates, or questions to the user.
+   When a sub-agent encounters ambiguity it would normally ask
+   about, it makes a conservative choice and documents the
+   decision in its commit message.
+
+### Detection in `/next`
+
+When `--unattended` is present in `/next`'s arguments, the command
+sets `unattended = true`. When absent, `unattended = false`. The
+`.claude/ralph-loop.local.md` file check is removed from `/next`.
+
+### `/clean` unchanged
+
+`/symphonize:clean` checks `.claude/ralph-loop.local.md` to
+auto-detect cleanup mode. That check remains — `clean` runs in the
+main working tree where the file is visible, and mode auto-detect
+is a convenience, not a correctness concern.
+
+**Why:** the file-based detection couples symphonize to
+ralph-loop's internal file layout. The file is not git-tracked, so
+agents in worktrees cannot see it. More critically, even when the
+batch agent correctly receives `--unattended`, it does not
+propagate the flag to sub-agent workers. Those workers can surface
+interactive prompts that block the orchestration loop indefinitely
+with no user present. Explicit passthrough at every layer ensures
+the entire tree runs non-interactively.
+
 ## Governance consistency §spec:governance-consistency
 *Status: in progress*
 
