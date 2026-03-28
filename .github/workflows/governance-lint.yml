@@ -120,6 +120,102 @@ jobs:
 
           echo "All required README headings present for type '$readme_type'"
 
+      - name: Validate SPEC.md heading slugs
+        run: |
+          if [ ! -f SPEC.md ]; then
+            echo "No SPEC.md found — skipping slug check"
+            exit 0
+          fi
+
+          errors=0
+          while IFS= read -r line; do
+            if ! echo "$line" | grep -qE '§spec:[a-z0-9-]+'; then
+              echo "::error::SPEC.md heading missing §spec: slug: $line"
+              errors=$((errors + 1))
+            fi
+          done < <(grep -E '^## ' SPEC.md | tr -d '\r')
+
+          if [ "$errors" -gt 0 ]; then
+            echo "$errors SPEC.md heading slug error(s) found"
+            exit 1
+          fi
+
+          echo "All SPEC.md headings have §spec: slugs"
+
+      - name: Validate ROADMAP.md heading slugs
+        run: |
+          if [ ! -f ROADMAP.md ]; then
+            echo "No ROADMAP.md found — skipping slug check"
+            exit 0
+          fi
+
+          errors=0
+          while IFS= read -r line; do
+            if ! echo "$line" | grep -qE '^### §road:[a-z0-9-]+'; then
+              echo "::error::ROADMAP.md heading missing §road: slug pattern: $line"
+              errors=$((errors + 1))
+            fi
+          done < <(grep -E '^### ' ROADMAP.md | tr -d '\r')
+
+          if [ "$errors" -gt 0 ]; then
+            echo "$errors ROADMAP.md heading slug error(s) found"
+            exit 1
+          fi
+
+          echo "All ROADMAP.md headings have §road: slugs"
+
+      - name: Validate REQUIREMENTS.md heading slugs
+        run: |
+          if [ ! -f REQUIREMENTS.md ]; then
+            echo "No REQUIREMENTS.md found — skipping"
+            exit 0
+          fi
+
+          errors=0
+          while IFS= read -r line; do
+            if ! echo "$line" | grep -qE '§req:[a-z0-9-]+'; then
+              echo "::error::REQUIREMENTS.md heading missing §req: slug: $line"
+              errors=$((errors + 1))
+            fi
+          done < <(grep -E '^## ' REQUIREMENTS.md | tr -d '\r')
+
+          if [ "$errors" -gt 0 ]; then
+            echo "$errors REQUIREMENTS.md heading slug error(s) found"
+            exit 1
+          fi
+
+          echo "All REQUIREMENTS.md headings have §req: slugs"
+
+      - name: Validate CHANGELOG.md structure
+        run: |
+          if [ ! -f CHANGELOG.md ]; then
+            echo "No CHANGELOG.md found — skipping"
+            exit 0
+          fi
+
+          errors=0
+
+          # Must have an [Unreleased] section
+          if ! grep -qE '^## \[Unreleased\]' CHANGELOG.md; then
+            echo "::error::CHANGELOG.md missing ## [Unreleased] section"
+            errors=$((errors + 1))
+          fi
+
+          # Every ## heading must match [Unreleased] or [N.N.N] (with optional link)
+          while IFS= read -r line; do
+            if ! echo "$line" | grep -qE '^## \[(Unreleased|[0-9]+\.[0-9]+\.[0-9]+)\]'; then
+              echo "::error::CHANGELOG.md has invalid version heading: $line"
+              errors=$((errors + 1))
+            fi
+          done < <(grep -E '^## ' CHANGELOG.md | tr -d '\r')
+
+          if [ "$errors" -gt 0 ]; then
+            echo "$errors CHANGELOG.md structure error(s) found"
+            exit 1
+          fi
+
+          echo "CHANGELOG.md structure is valid"
+
       - name: Validate cross-document references
         run: |
           errors=0
