@@ -46,7 +46,7 @@ reviewing all ralph-loop PRs.
 
 ### 2. Progress file cleanup
 
-If `.claude/.ralph-progress.local.md` exists, delete it. The loop
+If `.symphonize-progress.local.md` exists, delete it. The loop
 is over — progress state is no longer needed.
 
 ### 3. Governance docs

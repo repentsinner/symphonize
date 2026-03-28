@@ -205,7 +205,7 @@ product types (API ergonomics, operator workflows, physical
 constraints).
 
 ## Progress file location §spec:progress-file-location
-*Status: not started*
+*Status: complete*
 
 The `/symphonize:next` command tracks attempted workstreams in
 `.symphonize-progress.local.md` at the project root. The file was

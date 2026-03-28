@@ -25,7 +25,7 @@ Ensure local state is current before selecting work.
 Check if `.claude/ralph-loop.local.md` exists. If it does, set
 `unattended = true`. Otherwise `unattended = false`.
 
-If `unattended`, read `.claude/.ralph-progress.local.md` (if it exists)
+If `unattended`, read `.symphonize-progress.local.md` (if it exists)
 to get the list of workstreams already attempted this loop. Also run
 `gh pr list --state open --author @me --json headRefBranch,title,url`
 to cross-check.
@@ -46,7 +46,7 @@ from step 1.4, select workstreams **depth-first by section**:
    A smaller batch within one section is better than a larger batch
    spanning unrelated sections — it keeps context coherent, PRs
    reviewable, and results integration-testable.
-4. Cross-reference `.claude/.ralph-progress.local.md` to skip
+4. Cross-reference `.symphonize-progress.local.md` to skip
    workstreams already attempted this loop.
 
 **When to advance sections:** only when every workstream in the
@@ -79,7 +79,7 @@ Wait for the agent to complete.
 ## 5. Record progress
 
 If the agent returned a PR URL:
-- Append a line to `.claude/.ralph-progress.local.md`:
+- Append a line to `.symphonize-progress.local.md`:
   `- <workstream-slug>: <PR-URL>`
 - Create the file if it doesn't exist.
 
