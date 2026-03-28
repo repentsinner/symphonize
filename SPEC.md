@@ -147,13 +147,13 @@ translation from requirements to spec is where design decisions
 happen — that boundary should be explicit.
 
 ## Prose linting §spec:prose-linting
-*Status: not started*
+*Status: in progress*
 
 The governance-lint workflow validates structure (markdownlint) and
 cross-references (slug resolution), but not prose quality. SPEC.md
 and REQUIREMENTS.md use IEEE modal verbs — "shall" for mandatory
 requirements, "should" for recommendations, "may" for permission.
-"Must" and "will" are deprecated per IEEE SA Standards Style Manual.
+`Must` and `will` are deprecated per IEEE SA Standards Style Manual.
 
 Vale (<https://vale.sh>) enforces prose rules via custom YAML
 styles. A `Requirements` style checks modal verb compliance, flags
@@ -167,8 +167,8 @@ by adding `.vale.ini` and a `styles/` directory via
 
 **Why prose linting:** agents generate requirements and spec text
 that drifts toward vague, passive, non-testable language.
-Mechanical enforcement catches "the system will..." (deprecated)
-and "it should be noted that..." (filler) before review.
+Mechanical enforcement catches `the system will...` (deprecated)
+and `it should be noted that...` (filler) before review.
 
 ## Requirements frameworks §spec:requirements-frameworks
 *Status: complete*
