@@ -204,6 +204,33 @@ and produces requirements that miss concerns specific to other
 product types (API ergonomics, operator workflows, physical
 constraints).
 
+## Progress file location §spec:progress-file-location
+*Status: not started*
+
+The `/symphonize:next` command tracks attempted workstreams in
+`.symphonize-progress.local.md` at the project root. The file was
+previously at `.claude/.ralph-progress.local.md`, which has two
+problems: it lives inside Claude Code's managed `.claude/` directory
+(permissions conflicts), and its name implies ralph-loop ownership
+when symphonize's own commands write and delete it.
+
+The file is symphonize state — it belongs alongside other
+project-root dotfiles, named after the tool that owns it.
+`/symphonize:clean` deletes it when the loop ends.
+
+**Why:** Claude Code controls `.claude/` and may restrict writes
+from plugin commands. Symphonize state belongs to symphonize, not
+to the host tool's config directory.
+
+**Known issue:** the ralph-loop stop hook fires based on the
+presence of `.claude/ralph-loop.local.md`, not on which skill is
+active. If an orchestrate loop is blocked on review and the user
+runs `/symphonize:plan` or `/symphonize:discover` in the same
+project, the stop hook interrupts planning with orchestration
+directives. Workaround: `/clear` and manually remove the flag
+file before planning. A proper fix requires the stop hook (in
+ralph-loop, not symphonize) to check active skill context.
+
 ## Governance consistency §spec:governance-consistency
 *Status: in progress*
 
