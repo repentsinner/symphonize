@@ -122,22 +122,11 @@ governance loop without needing symphonize-specific content in
 their CLAUDE.md.
 
 ## Requirements discovery command §spec:requirements-discovery
-*Status: in progress*
+*Status: complete*
 
-The plugin provides a `/symphonize:discover` command that
-conducts a structured interview with the user to produce
-REQUIREMENTS.md — a problem-space document in the user's
-language.
-
-REQUIREMENTS.md captures:
-
-- Problem statement and target users
-- User stories and workflows
-- Constraints (technical, business, regulatory)
-- Success criteria
-- Priorities (must-have vs. nice-to-have)
-
-REQUIREMENTS.md is the fourth governance file. The pipeline:
+REQUIREMENTS.md is the fourth governance file — a problem-space
+document in the user's language. `/symphonize:discover` populates
+it through a structured interview.
 
 | Document | Voice | Question |
 |----------|-------|----------|
@@ -147,9 +136,9 @@ REQUIREMENTS.md is the fourth governance file. The pipeline:
 | CHANGELOG.md | History | What shipped? |
 
 `/symphonize:plan` reads REQUIREMENTS.md (if present) as input
-when drafting SPEC.md sections. If REQUIREMENTS.md does not exist,
-`/plan` falls back to clarifying requirements directly with the
-user (current behavior).
+when drafting SPEC.md sections. Falls back to direct user
+clarification when absent. `/symphonize:init` scaffolds an empty
+REQUIREMENTS.md skeleton.
 
 **Why a separate document:** requirements live in the user's
 problem space. Specs live in the system's solution space. Mixing
