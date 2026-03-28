@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3](https://github.com/repentsinner/symphonize/compare/v0.1.2...v0.1.3) (2026-03-28)
+
+
+### Bug Fixes
+
+* switch release workflows to GitHub App token ([0200935](https://github.com/repentsinner/symphonize/commit/020093529b9c6fcfbcb32c30e6fc029f5f34a80e))
+* switch release workflows to GitHub App token ([fab227e](https://github.com/repentsinner/symphonize/commit/fab227edb9f003ac6a695e191d58f2fd374c406a))
+* use pull_request_target for auto-merge trigger ([43eda2f](https://github.com/repentsinner/symphonize/commit/43eda2f3646a510cdfbce3a55f730baa79241908))
+* use pull_request_target for auto-merge trigger ([d80df10](https://github.com/repentsinner/symphonize/commit/d80df10821195f4f0af5962551a983d04f36d90f))
+
 ## [0.1.2](https://github.com/repentsinner/symphonize/compare/v0.1.1...v0.1.2) (2026-03-28)
 
 
