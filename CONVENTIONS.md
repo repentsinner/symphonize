@@ -267,6 +267,28 @@ requirement it satisfies. CI validates the chain by checking that
 every reference resolves — dangling references indicate gaps in
 the trail.
 
+## Interview frameworks
+
+Frameworks used as conversation prompts in `/symphonize:discover`.
+They guide the interview — output is prose, not structured forms.
+
+### YC Problem Types
+
+Taxonomy for classifying why a problem matters. Used in Discovery
+(Phase 1) to prompt wider thinking about the problem space.
+
+| Type | One-line prompt |
+|------|-----------------|
+| Popular | How many people have this problem? |
+| Frequent | How often do they encounter it? |
+| Expensive | What does it cost — money, time, frustration? |
+| Mandatory | Do people *have* to solve this? |
+| Growing | Is the problem getting bigger? |
+| Urgent | Is there a deadline or forcing function? |
+| Distant | Important but not yet painful enough to act on? |
+
+Reference: Y Combinator startup school — problem evaluation criteria.
+
 ## Quality gate
 
 A branch is not ready to merge until analysis and tests pass with
