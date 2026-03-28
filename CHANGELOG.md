@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2](https://github.com/repentsinner/symphonize/compare/v0.1.1...v0.1.2) (2026-03-28)
+
+
+### Bug Fixes
+
+* configure release-please to update plugin.json version ([914aeec](https://github.com/repentsinner/symphonize/commit/914aeec09949e4daa27631bb69ab7e0b960efbd0))
+* release-please updates plugin.json version ([411e1e9](https://github.com/repentsinner/symphonize/commit/411e1e95138d6c63293b9b1f317749921f27f0bf))
+* restore RELEASE_PLEASE_PAT token ([ab44a61](https://github.com/repentsinner/symphonize/commit/ab44a61daeabed576922aab2bdc4396a803b229f))
+
 ## [0.1.1](https://github.com/repentsinner/symphonize/compare/v0.1.0...v0.1.1) (2026-03-28)
 
 
