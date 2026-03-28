@@ -4,15 +4,14 @@ Agent-level instructions for executing a batch of ROADMAP.md
 workstreams. The batch agent receives workstreams from the dispatch
 layer (`/next`), manages sub-agent workers, merges their results,
 and delivers a single PR. Project-agnostic — depends on projects
-following the SPEC.md/ROADMAP.md convention defined in CLAUDE.md.
+following the SPEC.md/ROADMAP.md convention defined in CONVENTIONS.md.
 
 ## Prerequisite
 
 The batch agent MUST be running in a worktree created by the dispatch
 layer (`next.md` spawns it with `isolation: "worktree"`). If
-`git rev-parse --show-toplevel` matches the project root from
-CLAUDE.md, STOP — you are in the user's main checkout. Do not
-proceed.
+`git rev-parse --show-toplevel` matches the project root, STOP — you
+are in the user's main checkout. Do not proceed.
 
 ## Unattended Mode
 
@@ -23,7 +22,7 @@ does not mean unchecked.
 
 ## Phase 1: Plan (in plan mode)
 
-1. Read SPEC.md, ROADMAP.md, and project CLAUDE.md.
+1. Read SPEC.md, ROADMAP.md, and project rules.
 2. Identify the target workstream(s). If a specific workstream was
    passed, scope to that. Otherwise, identify unblocked workstreams
    and skip anything marked blocked.
@@ -54,7 +53,7 @@ does not mean unchecked.
    `npm test`). Record it — this is the command you run in Phases
    4 and 5. If the workflow delegates to a script, use the script
    directly. If no CI workflow exists, fall back to whatever
-   analysis/test commands the project's CLAUDE.md specifies.
+   analysis/test commands the project rules specify.
 4. Record your worktree path, branch name, and CI command. After
    context compaction, re-read this file and the plan before
    continuing.
@@ -67,7 +66,7 @@ does not mean unchecked.
   workstreams with no file overlap. Serial for workstreams that
   touch shared files or depend on earlier results.
 - Each sub-agent receives: the workstream slug, its ROADMAP.md
-  description, and the project's CLAUDE.md rules.
+  description, and the project rules.
 - Sub-agents follow the project's standard workflow (test-first
   for code tasks, verify for operational tasks).
 
@@ -101,8 +100,8 @@ When all workstreams are merged:
 4. Remove completed workstreams from ROADMAP.md.
 5. Update SPEC.md status lines for any sections now complete or
    newly in progress.
-6. Compress newly completed spec sections per CLAUDE.md § Spec
-   Compression.
+6. Compress newly completed spec sections per CONVENTIONS.md §
+   Spec compression.
 
 ## Phase 6: Deliver
 
@@ -146,8 +145,8 @@ When all workstreams are merged:
 
 ## Quality Gate
 
-See CLAUDE.md § Quality Gate: Zero Failures. The same rules apply
-to batch work with two additions:
+See CONVENTIONS.md § Quality gate. The same rules apply to batch
+work with two additions:
 
 - After each cherry-pick during Phase 4, run the CI command. Fix
   failures before merging the next workstream. Do not accumulate
