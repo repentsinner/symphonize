@@ -174,6 +174,31 @@ Rules:
 - Automation via release-please is preferred where available. Manual
   maintenance is acceptable until automation is configured.
 
+## Requirements format
+
+REQUIREMENTS.md is a problem-space document in the user's language.
+`/symphonize:discover` populates it through a structured interview,
+but any tool or manual edit must produce conformant output.
+
+Standard sections, each carrying a `§req:slug` suffix:
+
+| Section | Slug | Purpose |
+|---------|------|---------|
+| Problem statement | `§req:problem-statement` | Target users, their problem, and why current solutions fall short |
+| Success criteria | `§req:success-criteria` | Observable, measurable outcomes that define product success |
+| User stories | `§req:user-stories` | Concrete workflows in the user's language |
+| Constraints | `§req:constraints` | Technical, business, and regulatory bounds on the solution space |
+| Priorities | `§req:priorities` | Must-have vs. nice-to-have, ordered by user impact |
+
+Order matters: success criteria come before user stories. Define "done"
+before exploring "how" — the acceptance-before-exploration principle
+applied at the requirements level.
+
+Adapt slugs and add subsections as needed. The document stays in the
+user's problem space — no solution design, no architecture, no
+implementation details. Translation to solution space happens in
+`/symphonize:plan`.
+
 ## Commit conventions
 
 - One logical change per commit. If a commit message needs "and," split
