@@ -5,41 +5,14 @@
 Remove dependency on user's CLAUDE.md for governance file formats
 and workflow rules. The plugin ships its own conventions.
 
-### §road:extract-conventions
-Create `CONVENTIONS.md` at repo root with spec format, spec
-compression, roadmap format, changelog format, commit conventions,
-branching rules, and quality gate. Extract from the author's
-CLAUDE.md §§ Spec Format, Roadmap Format, Changelog Format,
-Commits and Versioning, Branching, Quality Gate.
-
-### §road:update-batch-agent
-Replace all `CLAUDE.md §` references in `BATCH_AGENT.md` with
-inline rules or `!`cat ${CLAUDE_SKILL_DIR}/../CONVENTIONS.md``
-references. Depends on §road:extract-conventions.
-
-### §road:update-commands
-Replace CLAUDE.md references in `plan.md`, `clean.md`, and
-`next.md` with conventions file references. Depends on
-§road:extract-conventions.
-
 ### §road:update-readme-prerequisites
 Remove "following the conventions in your CLAUDE.md" prerequisite.
-Reference CONVENTIONS.md instead. Depends on §road:update-commands.
-
-### §road:slug-sections
-Replace numbered `## N.` sections in SPEC.md with unnumbered
-slug-style headings (`## Plugin commands` not
-`## 1. Plugin commands`). Update `governance-lint.yml` status-line
-validator to match all `##` sections in SPEC.md instead of
-`^## [0-9]+\.`. Convention: every `##` section in SPEC.md
-requires a status line; `###` subsections do not. Update this
-repo's own SPEC.md to remove numbers. Depends on
-§road:extract-conventions (new format documented there).
+Reference CONVENTIONS.md instead.
 
 ## Cross-document traceability
 
 Namespaced slug references across governance files, with lint
-validation. Depends on §road:slug-sections.
+validation.
 
 ### §road:slug-prefixes
 Define namespaced slug convention — `§req:` (REQUIREMENTS.md),
@@ -47,8 +20,7 @@ Define namespaced slug convention — `§req:` (REQUIREMENTS.md),
 CONVENTIONS.md. SPEC.md and REQUIREMENTS.md: `##` headings
 carry `§prefix:slug` suffix. ROADMAP.md: `###` workstream
 headings carry `§road:slug`. Every document both defines its
-own slugs and references other documents' slugs. Depends on
-§road:slug-sections.
+own slugs and references other documents' slugs.
 
 ### §road:reference-validation
 Extend `governance-lint.yml` to validate cross-document
@@ -95,6 +67,6 @@ skeleton alongside the other governance files. Depends on
 §road:discover-command.
 
 ### §road:update-governance-docs
-Update README.md governance files table and SPEC.md section 1
+Update README.md governance files table and SPEC.md Plugin commands
 pipeline to include REQUIREMENTS.md as the fourth governance
 file. Depends on §road:discover-command.

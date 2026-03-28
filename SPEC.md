@@ -1,6 +1,6 @@
 # symphonize — Specification
 
-## 1. Plugin commands
+## Plugin commands
 *Status: in progress*
 
 Symphonize provides Claude Code plugin commands that operate on
@@ -20,7 +20,7 @@ The command pipeline:
 6. `/symphonize:lint` — governance file validation
 7. `/symphonize:init` — project scaffolding
 
-## 2. Governance lint command
+## Governance lint command
 *Status: complete*
 
 The plugin provides a `/symphonize:lint` command that runs
@@ -35,7 +35,7 @@ not in the plugin command.
 **Why a plugin command:** agents can catch markdownlint violations
 before pushing, avoiding a CI round-trip for formatting errors.
 
-## 3. Project scaffolding command
+## Project scaffolding command
 *Status: complete*
 
 The plugin provides a `/symphonize:init` command that scaffolds
@@ -69,7 +69,7 @@ warns rather than overwrites.
 in the governance loop. Scaffolding reduces setup from "read the
 docs and copy-paste" to one command.
 
-## 4. Reusable CI workflows
+## Reusable CI workflows
 *Status: complete*
 
 Symphonize ships reusable GitHub Actions workflows under
@@ -100,7 +100,7 @@ github-actions[bot] with the `autorelease: pending` label.
 Template workflow that moves a floating major version tag
 (e.g., `v1`) on each release.
 
-## 5. Dogfooding
+## Dogfooding
 *Status: complete*
 
 Symphonize's own CI calls its own `governance-lint.yml` reusable
@@ -108,8 +108,8 @@ workflow. The repo's `.github/workflows/ci.yml` uses
 `./.github/workflows/governance-lint.yml` with
 `readme-type: library`.
 
-## 6. Self-contained conventions
-*Status: not started*
+## Self-contained conventions
+*Status: in progress*
 
 The plugin ships its own `CONVENTIONS.md` defining the governance
 file formats, commit conventions, and quality gate rules. Commands
@@ -147,7 +147,7 @@ having specific sections in their CLAUDE.md. This works for the
 author but fails for any other user. The conventions are part of
 the plugin's contract, not the user's personal configuration.
 
-## 7. Requirements discovery command
+## Requirements discovery command
 *Status: not started*
 
 The plugin provides a `/symphonize:discover` command that
