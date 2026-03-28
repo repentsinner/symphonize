@@ -8,11 +8,15 @@ Read CONVENTIONS.md for roadmap format rules (§ Roadmap format).
 2. Read SPEC.md and ROADMAP.md to understand current state.
 3. If REQUIREMENTS.md exists, read it and use it as input for
    understanding the user's intent, constraints, and priorities. If it
-   does not exist, clarify requirements directly with the user in the
-   next step.
+   does not exist, recommend running `/symphonize:discover` first to
+   capture requirements. If the user declines, clarify requirements
+   directly and proceed — but note that problem-space rationale will
+   live only in the spec's "why" sections, not in a dedicated
+   requirements document.
 4. If the task lacks a supporting spec section, clarify with the user
    (informed by REQUIREMENTS.md when available) and draft one in
-   SPEC.md before proceeding.
+   SPEC.md before proceeding. Cite `§req:` sources in the spec
+   section when requirements exist.
 5. Explore the codebase to understand where the work lands — affected
    files, existing patterns, integration points. Use agents to
    parallelize exploration where useful.
