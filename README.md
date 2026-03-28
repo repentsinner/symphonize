@@ -133,7 +133,7 @@ jobs:
       readme-type: library  # or "application", or "" to skip
 ```
 
-## Commands
+## Usage
 
 | Command | Description |
 |---|---|
@@ -147,6 +147,8 @@ jobs:
 
 The batch agent protocol (`BATCH_AGENT.md`) manages sub-agent
 dispatch, merge conflict resolution, and CI verification.
+
+## API
 
 ### Reusable workflows
 
