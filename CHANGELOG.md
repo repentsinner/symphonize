@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.10](https://github.com/repentsinner/symphonize/compare/v0.1.9...v0.1.10) (2026-03-28)
+
+
+### Features
+
+* integrate REQUIREMENTS.md into governance loop ([#28](https://github.com/repentsinner/symphonize/issues/28)) ([8560d72](https://github.com/repentsinner/symphonize/commit/8560d72bdbc7e347a422483a650d910203fd9550))
+
+
+### Bug Fixes
+
+* **discover:** support updating existing REQUIREMENTS.md ([#29](https://github.com/repentsinner/symphonize/issues/29)) ([472a97a](https://github.com/repentsinner/symphonize/commit/472a97a2b3353b7029f24366b4040d53bcee4cc9))
+
 ## [0.1.9](https://github.com/repentsinner/symphonize/compare/v0.1.8...v0.1.9) (2026-03-28)
 
 
