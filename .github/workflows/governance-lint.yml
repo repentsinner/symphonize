@@ -19,12 +19,9 @@ jobs:
 
       - name: Run Vale prose linter
         if: hashFiles('.vale.ini') != ''
-        run: |
-          wget -qO- https://github.com/errata-ai/vale/releases/download/v3.13.1/vale_3.13.1_Linux_64-bit.tar.gz | tar xz -C /usr/local/bin vale
-          vale SPEC.md
-          if [ -f REQUIREMENTS.md ]; then
-            vale REQUIREMENTS.md
-          fi
+        uses: vale-cli/vale-action@v2
+        with:
+          fail_on_error: true
 
       - uses: DavidAnson/markdownlint-cli2-action@v19
         with:
