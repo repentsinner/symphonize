@@ -11,12 +11,3 @@ terms, add early product-type classifier question in Phase 1,
 generalize Deep Dive table headings (Usage & Workflow, Capabilities,
 broaden Data & Content), and reframe onboarding/abandonment
 questions to cover libraries, platforms, CLI tools, and hardware.
-## Prose linting
-
-Add Vale-based prose quality checks to the governance-lint
-workflow.
-
-### §road:init-scaffolds-vale
-Update init.md to scaffold `.vale.ini` and
-`styles/Requirements/` with the modal verb rules. Projects opt
-in to prose linting by having these files.

@@ -54,6 +54,58 @@ Create at the repo root:
   {"MD013": false, "MD024": false, "MD036": false}
   ```
 
+### Prose linting (Vale)
+
+- **.vale.ini** — Vale config targeting governance files:
+  ```ini
+  StylesPath = styles
+  MinAlertLevel = warning
+
+  [SPEC.md]
+  BasedOnStyles = Requirements
+
+  [REQUIREMENTS.md]
+  BasedOnStyles = Requirements
+  ```
+
+- **styles/Requirements/MustDeprecated.yml** — flags `must` (deprecated by IEEE):
+  ```yaml
+  extends: existence
+  message: "'%s' is deprecated by IEEE. Use 'shall' for mandatory requirements."
+  ignorecase: true
+  level: error
+  scope: sentence
+  tokens:
+    - '\bmust\b'
+  ```
+
+- **styles/Requirements/WillDeprecated.yml** — flags `will` (deprecated by IEEE):
+  ```yaml
+  extends: existence
+  message: "'%s' is deprecated by IEEE for requirements. Use 'shall' for mandatory, 'should' for recommended."
+  ignorecase: true
+  level: warning
+  scope: sentence
+  tokens:
+    - '\bwill\b'
+  ```
+
+- **styles/Requirements/FillerPhrases.yml** — flags filler phrases:
+  ```yaml
+  extends: existence
+  message: "Filler phrase '%s' — cut it."
+  ignorecase: true
+  level: warning
+  scope: sentence
+  tokens:
+    - 'it should be noted that'
+    - 'in order to'
+    - 'due to the fact that'
+    - 'it is important to note'
+    - 'at this point in time'
+    - 'for the purpose of'
+  ```
+
 ### CI workflows
 
 Create under `.github/workflows/`:

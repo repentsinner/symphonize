@@ -147,7 +147,7 @@ translation from requirements to spec is where design decisions
 happen — that boundary should be explicit.
 
 ## Prose linting §spec:prose-linting
-*Status: in progress*
+*Status: complete*
 
 The governance-lint workflow validates structure (markdownlint) and
 cross-references (slug resolution), but not prose quality. SPEC.md
