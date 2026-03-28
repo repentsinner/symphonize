@@ -11,27 +11,17 @@ and produces conventional commits suitable for release-please.
 ## 2. Governance lint command
 *Status: complete*
 
-The plugin provides a `/symphonize:lint` command that validates
-governance files locally without requiring CI.
+The plugin provides a `/symphonize:lint` command that runs
+`npx markdownlint-cli2` against SPEC.md, ROADMAP.md, and
+README.md. It uses the project's `.markdownlint.json` if present.
 
-The command runs three checks:
+The command delegates entirely to the mechanical linter — it does
+not interpret or reimplement lint rules. Status-line validation
+and README heading checks run in CI via `governance-lint.yml`,
+not in the plugin command.
 
-1. **Markdownlint** on SPEC.md, ROADMAP.md, and README.md using
-   the project's `.markdownlint.json` (falls back to sensible
-   defaults: MD013 off, MD024 off, MD036 off).
-2. **SPEC.md status-line validation** — every numbered section
-   (`## N.`) has a `*Status: not started|in progress|complete*`
-   line immediately after the heading.
-3. **README heading validation** (opt-in) — required H2 headings
-   per project type (`library` or `application`).
-
-`/symphonize:clean --full` calls `/symphonize:lint` before
-committing governance doc changes. The command is also usable
-standalone for pre-push validation.
-
-**Why a plugin command, not just CI:** agents can validate
-governance files before pushing, catching errors in seconds
-instead of waiting for a CI round-trip.
+**Why a plugin command:** agents can catch markdownlint violations
+before pushing, avoiding a CI round-trip for formatting errors.
 
 ## 3. Project scaffolding command
 *Status: complete*
@@ -51,6 +41,14 @@ The command creates:
   with config and manifest files
 - `.github/workflows/auto-merge-release.yml` — auto-merge for
   release PRs
+- `.githooks/pre-commit` — runs markdownlint on staged governance
+  files
+
+The command activates hooks for the current checkout via
+`git config core.hooksPath .githooks`. Hook scripts are tracked;
+activation is per-checkout. Consumers opt in by running
+`/symphonize:init` — upstream repos do not push hooks on
+contributors. CI is the backstop.
 
 The command is idempotent: it skips files that already exist and
 warns rather than overwrites.
