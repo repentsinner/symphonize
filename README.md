@@ -145,8 +145,8 @@ jobs:
 | `/symphonize:clean [--lite\|--full]` | Clean up after batch execution |
 | `/symphonize:lint [type]` | Validate governance files (markdownlint) |
 
-The batch agent protocol (`BATCH_AGENT.md`) manages sub-agent
-dispatch, merge conflict resolution, and CI verification.
+The batch agent protocol (`protocols/batch-agent.md`) manages
+sub-agent dispatch, merge conflict resolution, and CI verification.
 
 ## API
 

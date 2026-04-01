@@ -48,6 +48,17 @@ from step 1.4, select workstreams **depth-first by section**:
    reviewable, and results integration-testable.
 4. Cross-reference `.symphonize-progress.local.md` to skip
    workstreams already attempted this loop.
+5. **Check for integration surface.** Scan the selected workstreams
+   (and the full section they belong to) for at least one workstream
+   that wires into the product's visible surface (UI, API, CLI,
+   config). If the section contains only internal plumbing with no
+   surface workstream, warn the user:
+   "Section '<name>' has no workstream touching a user-facing
+   surface. PRs from this section will ship unintegrated code.
+   Consider running `/symphonize:plan` to add an integration
+   workstream."
+   If `unattended`, log the warning and continue — do not block
+   the loop, but include the warning in the agent's result.
 
 **When to advance sections:** only when every workstream in the
 active section is either completed (removed from ROADMAP.md),
@@ -65,14 +76,21 @@ If `unattended`, also output:
 ## 4. Dispatch
 
 Read the batch agent protocol:
-`!cat ${CLAUDE_SKILL_DIR}/../BATCH_AGENT.md`
+!`cat ${CLAUDE_SKILL_DIR}/../protocols/batch-agent.md`
 
 Spawn a single Agent with `isolation: "worktree"` and pass it:
 - The full contents of the batch agent protocol above
 - The workstream target(s) selected in step 3
 - If `unattended`: the flag `--unattended`
 - Instruction: "Follow the orchestrator protocol to implement this
-  workstream from ROADMAP.md."
+  workstream from ROADMAP.md. Deliver thin vertical slices — every
+  batch must wire its code into the product's visible surface (UI,
+  API, CLI, or other user-facing entry point). Code unreachable
+  from any user-facing path is a horizontal layer, not a vertical
+  slice — do not ship it. If you encounter orphaned horizontal
+  layers from prior work (dead code, unintegrated plumbing,
+  unused imports/registrations) in files you are already modifying,
+  clean them up — leave the code better than you found it."
 
 Wait for the agent to complete.
 
