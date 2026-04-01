@@ -3,8 +3,10 @@
 Agent-level instructions for executing a batch of ROADMAP.md
 workstreams. The batch agent receives workstreams from the dispatch
 layer (`/next`), manages sub-agent workers, merges their results,
-and delivers a single PR. Project-agnostic — depends on projects
-following the SPEC.md/ROADMAP.md convention defined in CONVENTIONS.md.
+and delivers a single PR as a **thin vertical slice** — a complete
+path from internal logic through to a user-facing surface.
+Project-agnostic — depends on projects following the SPEC.md/
+ROADMAP.md convention defined in CONVENTIONS.md.
 
 ## Prerequisite
 
@@ -33,14 +35,28 @@ does not mean unchecked.
    the same section. Do not pull in workstreams from other sections
    to fill capacity. A smaller, cohesive batch is better than a
    larger, scattered one.
-4. Determine dependency order — workstreams that change shared
-   interfaces go first; pure additions and UI last.
-5. Group workstreams into parallelizable sets where files don't
+4. **Order for vertical integration.** Workstreams that change
+   shared interfaces go first; surface-touching workstreams (UI,
+   API endpoints, CLI commands) go last. The surface workstream is
+   the integration point that consumes the layers beneath it — it
+   wires the batch into a testable vertical slice. If the batch
+   has no surface workstream, it is a horizontal layer — flag this
+   to the dispatch layer and request guidance.
+5. **Identify integration surface.** For each workstream, state
+   where the new code connects to the product's visible surface
+   (UI component, API endpoint, CLI command, configuration option,
+   etc.). If a workstream produces only internal plumbing with no
+   path to a user-facing surface in *this* batch, either wire it
+   into a consuming surface or defer it until the consuming
+   workstream is ready. Horizontal layers cannot be
+   integration-tested and their fitness against the spec is
+   unverifiable.
+6. Group workstreams into parallelizable sets where files don't
    overlap. Serial otherwise.
-6. Write the execution plan as an ordered list of workstreams with
-   their dispatch strategy (parallel or serial) and expected
-   file-touch overlap.
-7. If `--unattended`, proceed immediately. Otherwise, wait for user
+7. Write the execution plan as an ordered list of workstreams with
+   their dispatch strategy (parallel or serial), expected
+   file-touch overlap, and integration surface for each.
+8. If `--unattended`, proceed immediately. Otherwise, wait for user
    approval before proceeding.
 
 ## Phase 2: Setup
@@ -69,12 +85,6 @@ does not mean unchecked.
   touch shared files or depend on earlier results.
 - Each sub-agent receives: the workstream slug, its ROADMAP.md
   description, and the project rules.
-- When `--unattended` was passed to the batch agent, pass
-  `--unattended` to every sub-agent spawned.
-- Sub-agents operating in `--unattended` mode shall not surface
-  interactive prompts, approval gates, or questions. When
-  encountering ambiguity, make a conservative choice and document
-  the decision in the commit message.
 - Sub-agents follow the project's standard workflow (test-first
   for code tasks, verify for operational tasks).
 
@@ -105,10 +115,28 @@ When all workstreams are merged:
 2. Check for DDD/Clean Architecture compliance if the project
    requires it.
 3. Review lints and static analysis — tighten where appropriate.
-4. Remove completed workstreams from ROADMAP.md.
-5. Update SPEC.md status lines for any sections now complete or
+4. **Verify vertical integration.** For each ROADMAP section in
+   the batch, check for `**Verify:**` criteria written by
+   `/decompose`. If present, execute or validate each criterion
+   — these are the pre-defined acceptance tests for the vertical
+   slice. If absent, confirm that new code is reachable from the
+   product's visible surface identified in Phase 1 by describing
+   a concrete user-level test path (e.g., "invoke CLI command X,
+   observe output Y"). Code that passes unit tests but is
+   unreachable from any user-facing entry point is a horizontal
+   layer, not a vertical slice — do not ship it. If the project
+   has an existing integration test suite, add a test exercising
+   the new surface.
+5. **Boy Scout Rule — clean up orphaned layers.** If, during
+   implementation, you encountered dead code, unintegrated plumbing,
+   unused imports, or orphaned registrations in files you modified,
+   clean them up in a separate commit. Scope cleanup to files the
+   batch already touches — do not audit the entire codebase. Leave
+   the code better than you found it.
+6. Remove completed workstreams from ROADMAP.md.
+7. Update SPEC.md status lines for any sections now complete or
    newly in progress.
-6. Compress newly completed spec sections per CONVENTIONS.md §
+8. Compress newly completed spec sections per CONVENTIONS.md §
    Spec compression.
 
 ## Phase 6: Deliver
@@ -126,6 +154,22 @@ When all workstreams are merged:
 
 ## Principles
 
+- **Thin vertical slices.** Every PR delivers a complete path
+  from internal logic through to the product's user-facing
+  surface. Each slice is independently deployable, testable from
+  the outside, and validates its spec section end-to-end. A
+  horizontal layer (database schema, service class, utility
+  module) is none of these — it ships inventory, not value.
+  If a workstream is pure infrastructure, batch it with the
+  workstream that consumes it so the PR ships a vertical slice.
+  (Cockburn, *Crystal Clear* — walking skeleton; Wake, "INVEST"
+  — the "V" is Valuable.)
+- **Boy Scout Rule.** Leave the code better than you found it.
+  When modifying a file, clean up orphaned horizontal layers
+  (dead code, unintegrated plumbing, unused imports) encountered
+  in that file. Scope cleanup to files the batch already
+  touches — this is continuous improvement, not a codebase audit.
+  (Martin, *Clean Code* — Boy Scout Rule.)
 - **Depth-first by section.** Each batch completes workstreams
   within one ROADMAP section before moving on. This keeps agent
   context coherent (one subsystem per batch), produces PRs the
@@ -144,7 +188,7 @@ When all workstreams are merged:
   the end. A conflict caught after 2 merges costs less than one
   caught after 9.
 - **Durable state.** The plan lives in plan mode's built-in
-  storage. ROADMAP.md and BATCH_AGENT.md survive compaction via
+  storage. ROADMAP.md and batch-agent.md survive compaction via
   Context Protection. Don't rely on conversation memory for
   execution state.
 - **Sub-agent isolation.** Every sub-agent works in its own

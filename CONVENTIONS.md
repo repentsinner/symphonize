@@ -187,6 +187,7 @@ Standard sections, each carrying a `§req:slug` suffix:
 | Problem statement | `§req:problem-statement` | Target users, their problem, and why current solutions fall short |
 | Success criteria | `§req:success-criteria` | Observable, measurable outcomes that define product success |
 | User stories | `§req:user-stories` | Concrete workflows in the user's language |
+| Quality attributes | `§req:quality-attributes` | Non-functional expectations: performance, security, reliability, accessibility, scalability |
 | Constraints | `§req:constraints` | Technical, business, and regulatory bounds on the solution space |
 | Priorities | `§req:priorities` | Must-have vs. nice-to-have, ordered by user impact |
 
@@ -197,7 +198,8 @@ applied at the requirements level.
 Adapt slugs and add subsections as needed. The document stays in the
 user's problem space — no solution design, no architecture, no
 implementation details. Translation to solution space happens in
-`/symphonize:plan`.
+`/symphonize:plan` (architecture → SPEC.md) and
+`/symphonize:decompose` (workstreams → ROADMAP.md).
 
 ## Commit conventions
 
