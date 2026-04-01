@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.21](https://github.com/repentsinner/symphonize/compare/v0.1.20...v0.1.21) (2026-04-01)
+
+
+### Features
+
+* **commands:** add /feedback for structured issue submission ([#62](https://github.com/repentsinner/symphonize/issues/62)) ([7b45ce7](https://github.com/repentsinner/symphonize/commit/7b45ce7c89f05f739d35c0bb2349eca4403df9ce))
+* **commands:** vertical slices, single-responsibility pipeline, quality gates ([#60](https://github.com/repentsinner/symphonize/issues/60)) ([a16bdbb](https://github.com/repentsinner/symphonize/commit/a16bdbbff271871d664bc4f5c1fbde1c0451363f))
+
 ## [0.1.20](https://github.com/repentsinner/symphonize/compare/v0.1.19...v0.1.20) (2026-03-28)
 
 
