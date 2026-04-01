@@ -4,7 +4,7 @@ Plan-to-implementation execution engine for [Claude Code](https://docs.anthropic
 
 Symphonize turns plain-language requirements into auditable specs into
 shipped PRs with minimal user interaction. You describe the problem
-(`/discover`), explore architecture (`/plan`), decompose into
+(`/discover`), make technical decisions (`/plan`), decompose into
 workstreams (`/decompose`), and execute (`/next` or `/orchestrate`).
 Agents handle implementation autonomously — branching, coding,
 testing, and opening PRs. You review the results.
@@ -73,8 +73,8 @@ repo root:
 | `CHANGELOG.md` | Release history. What shipped, in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. |
 
 The loop: `/symphonize:discover` interviews the user and produces
-**REQUIREMENTS.md**. `/symphonize:plan` explores architecture and
-produces **SPEC.md** sections. `/symphonize:decompose` breaks spec
+**REQUIREMENTS.md**. `/symphonize:plan` explores technical decisions
+and produces **SPEC.md** sections. `/symphonize:decompose` breaks spec
 sections into **ROADMAP.md** workstreams as thin vertical slices.
 Each `/next` batch advances the roadmap, produces conventional
 commits, and opens a PR. A downstream
@@ -151,7 +151,7 @@ jobs:
 |---|---|
 | `/symphonize:init` | Scaffold governance files and CI workflows into a project (one-time setup) |
 | `/symphonize:discover` | Domain discovery — structured interview that produces REQUIREMENTS.md |
-| `/symphonize:plan [task]` | Technical discovery — explore architecture and produce SPEC.md sections |
+| `/symphonize:plan [task]` | Technical decisions — explore design options and produce SPEC.md sections |
 | `/symphonize:decompose [section]` | Decompose spec sections into ROADMAP.md workstreams (thin vertical slices) |
 | `/symphonize:next [target]` | Execute next unblocked workstreams (depth-first by section) |
 | `/symphonize:orchestrate` | Start ralph-loop to work through ROADMAP.md unattended |

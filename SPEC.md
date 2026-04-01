@@ -12,7 +12,7 @@ The command pipeline:
 
 1. `/symphonize:discover` — domain discovery, produces
    REQUIREMENTS.md
-2. `/symphonize:plan` — technical discovery, produces SPEC.md
+2. `/symphonize:plan` — technical decisions, produces SPEC.md
 3. `/symphonize:decompose` — workstream decomposition, produces
    ROADMAP.md
 4. `/symphonize:next` — executes workstreams
