@@ -21,6 +21,7 @@ governance documents (requirements, spec, roadmap, changelog) and
 shipping thin vertical slices of integrated, testable code.
 
 Current solutions fall short because:
+
 - AI coding agents don't self-organize into lifecycle stages
 - Existing project management tools (Jira, Linear) are designed for
   human teams, not agent-driven execution
@@ -123,6 +124,7 @@ not an active requirement.
 ## Priorities §req:priorities
 
 **Shall** (mandatory — the system does not ship without these):
+
 - Pipeline produces integrated vertical slices, not horizontal
   plumbing (addressed in current release)
 - Each command owns one deliverable and guides the user to the
@@ -132,12 +134,14 @@ not an active requirement.
 - Verification criteria in ROADMAP.md so PRs are reviewable
 
 **Should** (recommended — expected unless there's a justified reason to omit):
+
 - `/review` for guided PR integration testing
 - `/feedback` for structured issue submission from Claude Code
 - Issue templates for GitHub web UI submissions
 - Forward guidance ("run `/plan` next") at each pipeline boundary
 
 **May** (permitted — included if resources allow):
+
 - Automated triage via GitHub Action on issue creation
 - Batch triage for processing multiple issues in one session
 - Stale issue bot for auto-closing unresponsive `needs-info` issues
