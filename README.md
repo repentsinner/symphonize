@@ -155,6 +155,7 @@ jobs:
 | `/symphonize:decompose [section]` | Decompose spec sections into ROADMAP.md workstreams (thin vertical slices) |
 | `/symphonize:next [target]` | Execute next unblocked workstreams (depth-first by section) |
 | `/symphonize:orchestrate` | Start ralph-loop to work through ROADMAP.md unattended |
+| `/symphonize:review [PR]` | Review a PR — resolve conflicts, check out locally, guide integration testing |
 | `/symphonize:clean [--lite\|--full]` | Clean up after batch execution |
 | `/symphonize:lint [type]` | Validate governance files (markdownlint) |
 

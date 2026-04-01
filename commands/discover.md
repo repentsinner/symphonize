@@ -92,6 +92,33 @@ surface-observable. "Clean service layer architecture" is not — it
 belongs in SPEC.md. Features explored in Phase 3 must trace back to
 a success criterion defined here.
 
+### Quality attribute prompts
+
+After success criteria, surface non-functional expectations. These
+are the requirements that drive technical decisions in `/plan` — if
+`/discover` doesn't surface them, `/plan` makes design choices in
+the dark.
+
+Use these prompts (adapted from ISO 25010), skipping any that
+don't apply to the product type:
+
+- How fast does it need to respond? Under what load? (Performance)
+- What happens if it goes down? How long is acceptable? (Reliability)
+- Who should *not* have access? What data is sensitive? (Security)
+- Does it need to work offline, on slow connections, or on old
+  devices? (Compatibility)
+- How many users, how much data, what growth rate? (Scalability)
+- Does it need to be usable by people with disabilities? (Accessibility)
+
+These are conversation prompts, not a checklist. Many users won't
+have thought about these — that's the point. The answers flow into
+the constraints and success criteria sections of REQUIREMENTS.md.
+A user who says "it needs to work offline" has just defined an
+architecture-driving constraint that would otherwise surface as a
+surprise during implementation.
+
+Reference: ISO/IEC 25010:2023 — system and software quality model.
+
 ### Prioritization prompts
 
 When discussing competing priorities, use ICE to surface tradeoffs:
@@ -173,6 +200,15 @@ describes a complete path from user action to visible outcome.
 Format: "As a [user], I want [goal] so that [benefit]."
 Each story traces to a success criterion and implies a testable
 path through the product's surface.
+
+## Quality attributes §req:quality-attributes
+
+Non-functional expectations that drive technical decisions.
+Performance, security, reliability, accessibility, scalability —
+stated in the user's terms ("works offline", "responds in under
+a second", "handles 10k concurrent users"). These are the
+requirements that constrain architecture — if they're missing,
+/plan makes design choices in the dark.
 
 ## Constraints §req:constraints
 

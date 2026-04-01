@@ -115,15 +115,18 @@ When all workstreams are merged:
 2. Check for DDD/Clean Architecture compliance if the project
    requires it.
 3. Review lints and static analysis — tighten where appropriate.
-4. **Verify vertical integration.** For each workstream, confirm
-   that the new code is reachable from the product's visible
-   surface identified in Phase 1. Run or describe a concrete
-   user-level test path (e.g., "invoke CLI command X, observe
-   output Y" or "call API endpoint Z, verify response W"). Code
-   that passes unit tests but is unreachable from any user-facing
-   entry point is a horizontal layer, not a vertical slice — do
-   not ship it. If the project has an existing integration test
-   suite, add a test exercising the new surface.
+4. **Verify vertical integration.** For each ROADMAP section in
+   the batch, check for `**Verify:**` criteria written by
+   `/decompose`. If present, execute or validate each criterion
+   — these are the pre-defined acceptance tests for the vertical
+   slice. If absent, confirm that new code is reachable from the
+   product's visible surface identified in Phase 1 by describing
+   a concrete user-level test path (e.g., "invoke CLI command X,
+   observe output Y"). Code that passes unit tests but is
+   unreachable from any user-facing entry point is a horizontal
+   layer, not a vertical slice — do not ship it. If the project
+   has an existing integration test suite, add a test exercising
+   the new surface.
 5. **Boy Scout Rule — clean up orphaned layers.** If, during
    implementation, you encountered dead code, unintegrated plumbing,
    unused imports, or orphaned registrations in files you modified,

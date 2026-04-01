@@ -97,7 +97,29 @@ backpressure proportional to the gap.
    way to verify it meets the spec. If a section is pure
    infrastructure consumed by a later section, annotate the
    dependency explicitly and ensure the consuming section exists.
-8. Prioritize by: safety/alarm implications first, then
+8. **Write integration test criteria per section.** After the
+   surface workstream, add a `**Verify:**` block that describes
+   how a reviewer exercises the feature end-to-end from the
+   product's visible surface. Be concrete — name the screen, the
+   endpoint, the command, and the expected outcome. Example:
+
+   ```markdown
+   **Verify:** Navigate to Settings → Notifications. Toggle
+   email notifications off. Trigger an event. Confirm no email
+   is sent and the in-app badge still appears.
+   ```
+
+   These criteria serve three audiences:
+   - The **batch agent** uses them during Phase 5 (verify
+     integration) to confirm the slice works before opening a PR.
+   - The **reviewer** uses them during `/review` to know exactly
+     what to validate in the UI/API/CLI.
+   - The **implementation agent** uses them as acceptance tests —
+     the definition of "done" for the surface workstream.
+
+   This is acceptance-before-exploration applied at the workstream
+   level: define what "working" looks like before building it.
+9. Prioritize by: safety/alarm implications first, then
    user-visible features, then internal quality.
 
 ## Phase 4: Review and deliver

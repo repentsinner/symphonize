@@ -102,6 +102,26 @@ offline support, multi-tenancy) does.
    choices that conflict with stated constraints or quality
    attributes. The user decides; the agent informs.
 
+### Security awareness
+
+When a spec section touches authentication, authorization, PII,
+payment, file uploads, external input, or cross-system
+communication, do a lightweight threat check:
+
+- What could an attacker do here? (Abuse cases)
+- What data is exposed if this component is compromised? (Blast radius)
+- What input does this accept from untrusted sources? (Attack surface)
+
+This is not a full threat model — it's proportional awareness.
+A new admin dashboard needs more scrutiny than a color picker.
+Record security-relevant decisions in the spec section's rationale
+("rate-limited because the endpoint accepts unauthenticated
+requests"). `/discover` may have surfaced security constraints —
+check REQUIREMENTS.md § constraints.
+
+Reference: Shostack, *Threat Modeling* (2014) — abuse cases;
+OWASP ASVS — verification levels proportional to risk.
+
 ### Correcting XY problems
 
 When the user prescribes a mechanism ("add a Redis cache," "use

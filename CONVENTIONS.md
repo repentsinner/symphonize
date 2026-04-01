@@ -187,6 +187,7 @@ Standard sections, each carrying a `§req:slug` suffix:
 | Problem statement | `§req:problem-statement` | Target users, their problem, and why current solutions fall short |
 | Success criteria | `§req:success-criteria` | Observable, measurable outcomes that define product success |
 | User stories | `§req:user-stories` | Concrete workflows in the user's language |
+| Quality attributes | `§req:quality-attributes` | Non-functional expectations: performance, security, reliability, accessibility, scalability |
 | Constraints | `§req:constraints` | Technical, business, and regulatory bounds on the solution space |
 | Priorities | `§req:priorities` | Must-have vs. nice-to-have, ordered by user impact |
 

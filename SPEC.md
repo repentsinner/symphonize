@@ -17,9 +17,10 @@ The command pipeline:
    ROADMAP.md
 4. `/symphonize:next` — executes workstreams
 5. `/symphonize:orchestrate` — unattended multi-batch execution
-6. `/symphonize:clean` — post-merge cleanup
-7. `/symphonize:lint` — governance file validation
-7. `/symphonize:init` — project scaffolding
+6. `/symphonize:review` — PR review and integration test guidance
+7. `/symphonize:clean` — post-merge cleanup
+8. `/symphonize:lint` — governance file validation
+9. `/symphonize:init` — project scaffolding
 
 ## Governance lint command §spec:governance-lint
 *Status: complete*
