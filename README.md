@@ -4,9 +4,10 @@ Plan-to-implementation execution engine for [Claude Code](https://docs.anthropic
 
 Symphonize turns plain-language requirements into auditable specs into
 shipped PRs with minimal user interaction. You describe the problem
-(`/symphonize:discover`), define what to build (SPEC.md), and sequence
-the work (ROADMAP.md). Agents handle implementation autonomously —
-branching, coding, testing, and opening PRs. You review the results.
+(`/discover`), explore architecture (`/plan`), decompose into
+workstreams (`/decompose`), and execute (`/next` or `/orchestrate`).
+Agents handle implementation autonomously — branching, coding,
+testing, and opening PRs. You review the results.
 
 The governance files constrain agent behavior at each stage, making
 output loosely deterministic: predictable enough to review
@@ -20,8 +21,17 @@ The goals that shape every decision in symphonize.
   "how," at every layer. Success criteria before features, observable
   behavior before design, failing tests before code. TDD applied
   recursively from requirements through implementation.
+- **Thin vertical slices** — every PR delivers a complete path from
+  internal logic through to a user-facing surface. Horizontal layers
+  (plumbing without a user-visible path) ship inventory, not value.
+- **Single-responsibility commands** — each command reads upstream
+  deliverables but writes exactly one. `/discover` → REQUIREMENTS.md,
+  `/plan` → SPEC.md, `/decompose` → ROADMAP.md. Upstream backpressure
+  fills gaps without blocking progress.
 - **Depth-first by section** — context coherence, testable PRs, early
   bug detection
+- **Boy Scout Rule** — leave the code better than you found it. Agents
+  clean up orphaned horizontal layers in files they touch.
 - **Worktree isolation** — never touches the user's main checkout
 - **Single PR per batch** — one CI run, one review surface
 - **Fail fast** — CI after each cherry-pick, not just at the end
