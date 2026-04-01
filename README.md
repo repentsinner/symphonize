@@ -4,8 +4,8 @@ Plan-to-implementation execution engine for [Claude Code](https://docs.anthropic
 
 Symphonize turns plain-language requirements into auditable specs into
 shipped PRs with minimal user interaction. You describe the problem
-(`/discover`), make technical decisions (`/plan`), decompose into
-workstreams (`/decompose`), and execute (`/next` or `/orchestrate`).
+(`/discover`), make technical decisions (`/plan`), roadmap the work
+(`/roadmap`), and execute (`/next` or `/orchestrate`).
 Agents handle implementation autonomously — branching, coding,
 testing, and opening PRs. You review the results.
 
@@ -26,7 +26,7 @@ The goals that shape every decision in symphonize.
   (plumbing without a user-visible path) ship inventory, not value.
 - **Single-responsibility commands** — each command reads upstream
   deliverables but writes exactly one. `/discover` → REQUIREMENTS.md,
-  `/plan` → SPEC.md, `/decompose` → ROADMAP.md. Upstream backpressure
+  `/plan` → SPEC.md, `/roadmap` → ROADMAP.md. Upstream backpressure
   fills gaps without blocking progress.
 - **Depth-first by section** — context coherence, testable PRs, early
   bug detection
@@ -74,7 +74,7 @@ repo root:
 
 The loop: `/symphonize:discover` interviews the user and produces
 **REQUIREMENTS.md**. `/symphonize:plan` explores technical decisions
-and produces **SPEC.md** sections. `/symphonize:decompose` breaks spec
+and produces **SPEC.md** sections. `/symphonize:roadmap` breaks spec
 sections into **ROADMAP.md** workstreams as thin vertical slices.
 Each `/next` batch advances the roadmap, produces conventional
 commits, and opens a PR. A downstream
@@ -152,7 +152,7 @@ jobs:
 | `/symphonize:init` | Scaffold governance files and CI workflows into a project (one-time setup) |
 | `/symphonize:discover` | Domain discovery — structured interview that produces REQUIREMENTS.md |
 | `/symphonize:plan [task]` | Technical decisions — explore design options and produce SPEC.md sections |
-| `/symphonize:decompose [section]` | Decompose spec sections into ROADMAP.md workstreams (thin vertical slices) |
+| `/symphonize:roadmap [section]` | Break spec sections into ROADMAP.md workstreams (thin vertical slices) |
 | `/symphonize:next [target]` | Execute next unblocked workstreams (depth-first by section) |
 | `/symphonize:orchestrate` | Start ralph-loop to work through ROADMAP.md unattended |
 | `/symphonize:review [PR]` | Review a PR — resolve conflicts, check out locally, guide integration testing |

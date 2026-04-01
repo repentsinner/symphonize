@@ -9,7 +9,7 @@ description: Review a PR — resolve conflicts, check out locally, guide integra
 `/orchestrate`. It resolves conflicts, checks out the branch
 locally, summarizes changes, and guides the user through
 integration testing based on the verification criteria written
-by `/decompose`.
+by `/roadmap`.
 
 ```
 /next → PR → /review → merge → /clean

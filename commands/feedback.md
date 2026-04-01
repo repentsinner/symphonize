@@ -27,7 +27,7 @@ project repo.
    - What happened?
    - What did you expect to happen?
    - What command were you running? (`/discover`, `/plan`,
-     `/decompose`, `/next`, `/orchestrate`, `/review`)
+     `/roadmap`, `/next`, `/orchestrate`, `/review`)
    - Can you reproduce it?
    - What project type? (application, library, CLI, etc.)
 
