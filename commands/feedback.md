@@ -1,5 +1,5 @@
 ---
-argument-hint: [bug, feature, or general feedback]
+argument-hint: [bug | feature | feedback]
 description: Submit feedback or report a bug to the symphonize project
 ---
 
