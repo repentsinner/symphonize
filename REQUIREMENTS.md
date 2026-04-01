@@ -122,7 +122,7 @@ not an active requirement.
 
 ## Priorities §req:priorities
 
-**Required:**
+**Shall** (mandatory — the system does not ship without these):
 - Pipeline produces integrated vertical slices, not horizontal
   plumbing (addressed in current release)
 - Each command owns one deliverable and guides the user to the
@@ -131,13 +131,13 @@ not an active requirement.
   approval at each gate
 - Verification criteria in ROADMAP.md so PRs are reviewable
 
-**Should-have:**
+**Should** (recommended — expected unless there's a justified reason to omit):
 - `/review` for guided PR integration testing
 - `/feedback` for structured issue submission from Claude Code
 - Issue templates for GitHub web UI submissions
 - Forward guidance ("run `/plan` next") at each pipeline boundary
 
-**Nice-to-have (future):**
+**May** (permitted — included if resources allow):
 - Automated triage via GitHub Action on issue creation
 - Batch triage for processing multiple issues in one session
 - Stale issue bot for auto-closing unresponsive `needs-info` issues
