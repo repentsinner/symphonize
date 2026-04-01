@@ -96,7 +96,7 @@ Every spec section traces to a requirement; every workstream traces
 to a spec section; every PR traces to a workstream.
 
 **Safety (future):** When triage becomes automated (GitHub Action),
-issue bodies are untrusted input. The system must not leak secrets,
+issue bodies are untrusted input. The system shall not leak secrets,
 execute injected instructions, or process malicious payloads. For
 now (interactive, human-in-the-loop), this is a noted constraint,
 not an active requirement.
