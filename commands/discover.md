@@ -138,7 +138,8 @@ questions miss.
 mechanism ("it should use X technology"), ask: "What would that
 give you that you don't have today?" Capture the need, not the
 prescription. The translation from need to mechanism happens in
-`/symphonize:plan`.
+`/symphonize:plan` (architecture) and `/symphonize:decompose`
+(workstreams).
 
 Reference: Evans, *Domain-Driven Design* (2003) — knowledge
 crunching; Brandolini, EventStorming (2013) — extracting domain
@@ -185,7 +186,9 @@ Must-have vs. nice-to-have, ordered by user impact.
 
 Adapt slugs and add subsections as the interview warrants. The document
 stays in the user's problem space — no solution design, no architecture,
-no implementation details. That translation happens in `/symphonize:plan`.
+no implementation details. That translation happens in
+`/symphonize:plan` (architecture → SPEC.md) and
+`/symphonize:decompose` (workstreams → ROADMAP.md).
 
 ## Communication Guidelines
 

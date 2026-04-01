@@ -10,14 +10,15 @@ release-please.
 
 The command pipeline:
 
-1. `/symphonize:discover` — interviews the user, produces
+1. `/symphonize:discover` — domain discovery, produces
    REQUIREMENTS.md
-2. `/symphonize:plan` — translates requirements into SPEC.md
-   sections and ROADMAP.md workstreams
-3. `/symphonize:next` — executes workstreams
-4. `/symphonize:orchestrate` — unattended multi-batch execution
-5. `/symphonize:clean` — post-merge cleanup
-6. `/symphonize:lint` — governance file validation
+2. `/symphonize:plan` — technical discovery, produces SPEC.md
+3. `/symphonize:decompose` — workstream decomposition, produces
+   ROADMAP.md
+4. `/symphonize:next` — executes workstreams
+5. `/symphonize:orchestrate` — unattended multi-batch execution
+6. `/symphonize:clean` — post-merge cleanup
+7. `/symphonize:lint` — governance file validation
 7. `/symphonize:init` — project scaffolding
 
 ## Governance lint command §spec:governance-lint
@@ -136,8 +137,11 @@ it through a structured interview.
 | CHANGELOG.md | History | What shipped? |
 
 `/symphonize:plan` reads REQUIREMENTS.md (if present) as input
-when drafting SPEC.md sections. Falls back to direct user
-clarification when absent. `/symphonize:init` scaffolds an empty
+when drafting SPEC.md sections. `/symphonize:decompose` reads
+SPEC.md to produce ROADMAP.md workstreams. Each command applies
+backpressure when upstream documents are absent or thin — filling
+gaps inline for small issues, recommending the upstream command
+for large ones. `/symphonize:init` scaffolds an empty
 REQUIREMENTS.md skeleton.
 
 **Why a separate document:** requirements live in the user's

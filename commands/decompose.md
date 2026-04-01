@@ -1,0 +1,119 @@
+---
+argument-hint: [spec section or feature area]
+description: Decompose spec sections into ROADMAP.md workstreams
+---
+Read CONVENTIONS.md for roadmap format rules (§ Roadmap format).
+
+## Responsibility
+
+`/decompose` owns **ROADMAP.md** — the work queue that describes
+what remains to build. It takes spec sections (from SPEC.md) and
+decomposes them into vertical workstream slices sized for agent
+execution.
+
+`/decompose` does not write SPEC.md. Architecture and design
+decisions are `/plan`'s job. `/decompose` reads the spec and
+translates design into actionable work.
+
+```
+/discover → REQUIREMENTS.md → /plan → SPEC.md → /decompose → ROADMAP.md → /next
+```
+
+Each command reads upstream deliverables but writes exactly one.
+
+## Slicing principle
+
+Decompose into **thin vertical slices**, not horizontal layers.
+Each ROADMAP section should deliver a complete path from internal
+logic through to the product's user-facing surface (UI, API, CLI,
+config). A vertical slice is independently deployable, testable
+from the outside, and validates its spec section end-to-end. A
+horizontal layer (database schema, service class, utility module)
+is none of these — it ships inventory, not value.
+
+References: Cockburn, *Crystal Clear* (2004) — walking skeleton;
+Wake, "INVEST in Good Stories" (2003) — the "V" is Valuable;
+Cockburn, "Elephant Carpaccio" exercise — thin vertical slicing.
+
+## Phase 1: Check upstream
+
+Before decomposing, assess the state of the spec. Apply
+backpressure proportional to the gap.
+
+1. Create a planning worktree. Fetch origin and start from tip of
+   main.
+2. Read REQUIREMENTS.md (if present), SPEC.md, and ROADMAP.md.
+3. **Check SPEC.md quality.**
+   - **Absent:** cannot decompose without a spec. Recommend
+     `/plan` to produce spec sections. If the user insists on
+     proceeding, do a lightweight inline technical discovery —
+     ask about architecture, constraints, and integration surface
+     — and draft minimal spec sections before writing workstreams.
+   - **Thin:** flag specific gaps. Common signs:
+     - Spec sections with no "why" (missing rationale)
+     - Sections describing only internal plumbing (no user-facing
+       behavior)
+     - Missing quality attribute discussion (performance, security)
+     - No alternatives considered
+     Fill small gaps with targeted questions. For large gaps
+     (entire features with no architecture rationale), recommend
+     `/plan` for that section.
+   - **Adequate:** proceed.
+4. Explore the codebase to understand where workstreams land —
+   affected files, existing patterns, integration points. Use
+   agents to parallelize exploration where useful.
+
+## Phase 2: Identify integration surfaces
+
+5. **Map each spec section to a user-facing surface.** For each
+   feature or capability being decomposed, identify where it
+   becomes visible to the user — UI component, API endpoint, CLI
+   command, configuration surface, observable behavior change.
+   If a spec section has no user-facing path, flag it: either the
+   section is a horizontal concern that should be merged into a
+   consuming section, or the spec is missing its surface
+   description (recommend `/plan` to fix).
+
+## Phase 3: Slice into workstreams
+
+6. **Slice vertically.** Write workstream entries in ROADMAP.md
+   under the appropriate section (or create a new section). Each
+   section represents one vertical slice through the architecture
+   — from internal logic up to the user-facing surface identified
+   in step 5. Follow build-dependency order within each section:
+   infrastructure workstreams first, surface workstream last. The
+   surface workstream is the integration point that wires
+   everything beneath it into a testable feature.
+   - Each workstream gets a `### §road:slug` heading, brief
+     description, and explicit dependency annotations.
+   - Size to one agent session (~200k tokens).
+   - Don't write sample code — the implementation team does its
+     own due diligence.
+7. **Every section must end with a surface workstream.** The last
+   workstream in each section wires the section's plumbing into
+   the product's visible surface. A section containing only
+   internal layers is a horizontal slice — the orchestration
+   system will build it, but the result will be dead code with no
+   way to verify it meets the spec. If a section is pure
+   infrastructure consumed by a later section, annotate the
+   dependency explicitly and ensure the consuming section exists.
+8. Prioritize by: safety/alarm implications first, then
+   user-visible features, then internal quality.
+
+## Phase 4: Review and deliver
+
+9. **Review for vertical completeness.** Apply the walking
+   skeleton test to each section: can a reviewer merge this
+   section's PR and exercise the feature end-to-end from the
+   product's UI/API/CLI? If not, the section is a horizontal
+   slice missing its integration point. Fix it now — the
+   orchestration system will not compensate for an incomplete
+   decomposition.
+10. **Cross-check traceability.** Every workstream should cite a
+    `§spec:` target. Every spec section with status `not started`
+    or `in progress` should have at least one workstream. Flag
+    orphans in either direction.
+11. Commit updated ROADMAP.md to a branch, push, and open a PR.
+    Review with the user before merging.
+
+The task goals from the user are: $1

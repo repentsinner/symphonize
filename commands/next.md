@@ -55,7 +55,7 @@ from step 1.4, select workstreams **depth-first by section**:
    surface workstream, warn the user:
    "Section '<name>' has no workstream touching a user-facing
    surface. PRs from this section will ship unintegrated code.
-   Consider running `/symphonize:plan` to add an integration
+   Consider running `/symphonize:decompose` to add an integration
    workstream."
    If `unattended`, log the warning and continue — do not block
    the loop, but include the warning in the agent's result.

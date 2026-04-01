@@ -197,7 +197,8 @@ applied at the requirements level.
 Adapt slugs and add subsections as needed. The document stays in the
 user's problem space — no solution design, no architecture, no
 implementation details. Translation to solution space happens in
-`/symphonize:plan`.
+`/symphonize:plan` (architecture → SPEC.md) and
+`/symphonize:decompose` (workstreams → ROADMAP.md).
 
 ## Commit conventions
 
