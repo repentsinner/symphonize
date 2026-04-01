@@ -21,6 +21,7 @@ The command pipeline:
 7. `/symphonize:clean` — post-merge cleanup
 8. `/symphonize:lint` — governance file validation
 9. `/symphonize:init` — project scaffolding
+10. `/symphonize:feedback` — submit feedback to symphonize
 
 ## Governance lint command §spec:governance-lint
 *Status: complete*
