@@ -12,11 +12,11 @@ REQUIREMENTS.md or the user directly) and produces spec sections with
 architecture rationale, design decisions, and tradeoffs.
 
 `/plan` does not write ROADMAP.md. Workstream decomposition is
-`/decompose`'s job. `/plan` produces the spec that `/decompose`
+`/roadmap`'s job. `/plan` produces the spec that `/roadmap`
 reads.
 
 ```
-/discover → REQUIREMENTS.md → /plan → SPEC.md → /decompose → ROADMAP.md → /next
+/discover → REQUIREMENTS.md → /plan → SPEC.md → /roadmap → ROADMAP.md → /next
 ```
 
 Each command reads upstream deliverables but writes exactly one.

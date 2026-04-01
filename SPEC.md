@@ -13,7 +13,7 @@ The command pipeline:
 1. `/symphonize:discover` — domain discovery, produces
    REQUIREMENTS.md
 2. `/symphonize:plan` — technical decisions, produces SPEC.md
-3. `/symphonize:decompose` — workstream decomposition, produces
+3. `/symphonize:roadmap` — break spec into workstreams, produces
    ROADMAP.md
 4. `/symphonize:next` — executes workstreams
 5. `/symphonize:orchestrate` — unattended multi-batch execution
@@ -139,7 +139,7 @@ it through a structured interview.
 | CHANGELOG.md | History | What shipped? |
 
 `/symphonize:plan` reads REQUIREMENTS.md (if present) as input
-when drafting SPEC.md sections. `/symphonize:decompose` reads
+when drafting SPEC.md sections. `/symphonize:roadmap` reads
 SPEC.md to produce ROADMAP.md workstreams. Each command applies
 backpressure when upstream documents are absent or thin — filling
 gaps inline for small issues, recommending the upstream command

@@ -1,22 +1,22 @@
 ---
 argument-hint: [spec section or feature area]
-description: Decompose spec sections into ROADMAP.md workstreams
+description: Break spec sections into ROADMAP.md workstreams
 ---
 Read CONVENTIONS.md for roadmap format rules (§ Roadmap format).
 
 ## Responsibility
 
-`/decompose` owns **ROADMAP.md** — the work queue that describes
+`/roadmap` owns **ROADMAP.md** — the work queue that describes
 what remains to build. It takes spec sections (from SPEC.md) and
-decomposes them into vertical workstream slices sized for agent
+breaks them into vertical workstream slices sized for agent
 execution.
 
-`/decompose` does not write SPEC.md. Architecture and design
-decisions are `/plan`'s job. `/decompose` reads the spec and
+`/roadmap` does not write SPEC.md. Architecture and design
+decisions are `/plan`'s job. `/roadmap` reads the spec and
 translates design into actionable work.
 
 ```
-/discover → REQUIREMENTS.md → /plan → SPEC.md → /decompose → ROADMAP.md → /next
+/discover → REQUIREMENTS.md → /plan → SPEC.md → /roadmap → ROADMAP.md → /next
 ```
 
 Each command reads upstream deliverables but writes exactly one.
@@ -44,7 +44,7 @@ backpressure proportional to the gap.
    main.
 2. Read REQUIREMENTS.md (if present), SPEC.md, and ROADMAP.md.
 3. **Check SPEC.md quality.**
-   - **Absent:** cannot decompose without a spec. Recommend
+   - **Absent:** cannot roadmap without a spec. Recommend
      `/plan` to produce spec sections. If the user insists on
      proceeding, do a lightweight inline technical discovery —
      ask about architecture, constraints, and integration surface
@@ -66,7 +66,7 @@ backpressure proportional to the gap.
 ## Phase 2: Identify integration surfaces
 
 5. **Map each spec section to a user-facing surface.** For each
-   feature or capability being decomposed, identify where it
+   feature or capability being roadmapped, identify where it
    becomes visible to the user — UI component, API endpoint, CLI
    command, configuration surface, observable behavior change.
    If a spec section has no user-facing path, flag it: either the

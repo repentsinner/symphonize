@@ -117,7 +117,7 @@ When all workstreams are merged:
 3. Review lints and static analysis — tighten where appropriate.
 4. **Verify vertical integration.** For each ROADMAP section in
    the batch, check for `**Verify:**` criteria written by
-   `/decompose`. If present, execute or validate each criterion
+   `/roadmap`. If present, execute or validate each criterion
    — these are the pre-defined acceptance tests for the vertical
    slice. If absent, confirm that new code is reachable from the
    product's visible surface identified in Phase 1 by describing
