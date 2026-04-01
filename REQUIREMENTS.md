@@ -122,7 +122,7 @@ not an active requirement.
 
 ## Priorities §req:priorities
 
-**Must-have:**
+**Required:**
 - Pipeline produces integrated vertical slices, not horizontal
   plumbing (addressed in current release)
 - Each command owns one deliverable and guides the user to the
