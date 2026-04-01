@@ -158,6 +158,7 @@ jobs:
 | `/symphonize:review [PR]` | Review a PR — resolve conflicts, check out locally, guide integration testing |
 | `/symphonize:clean [--lite\|--full]` | Clean up after batch execution |
 | `/symphonize:lint [type]` | Validate governance files (markdownlint) |
+| `/symphonize:feedback` | Submit feedback or report a bug to the symphonize project |
 
 The batch agent protocol (`protocols/batch-agent.md`) manages
 sub-agent dispatch, merge conflict resolution, and CI verification.
