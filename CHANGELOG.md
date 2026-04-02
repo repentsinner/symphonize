@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.23](https://github.com/repentsinner/symphonize/compare/v0.1.22...v0.1.23) (2026-04-02)
+
+
+### Bug Fixes
+
+* **commands:** replace shell expansion with string substitution ([#71](https://github.com/repentsinner/symphonize/issues/71)) ([f46df7e](https://github.com/repentsinner/symphonize/commit/f46df7ea504915d05b1f88acb65e5f731b3a91dd))
+
 ## [0.1.22](https://github.com/repentsinner/symphonize/compare/v0.1.21...v0.1.22) (2026-04-02)
 
 
