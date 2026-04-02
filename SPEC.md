@@ -17,11 +17,12 @@ The command pipeline:
    ROADMAP.md
 4. `/symphonize:next` — executes workstreams
 5. `/symphonize:orchestrate` — unattended multi-batch execution
-6. `/symphonize:review` — PR review and integration test guidance
-7. `/symphonize:clean` — post-merge cleanup
-8. `/symphonize:lint` — governance file validation
-9. `/symphonize:init` — project scaffolding
-10. `/symphonize:feedback` — submit feedback to symphonize
+6. `/symphonize:triage` — classify issues into governance entries
+7. `/symphonize:review` — PR review and integration test guidance
+8. `/symphonize:clean` — post-merge cleanup
+9. `/symphonize:lint` — governance file validation
+10. `/symphonize:init` — project scaffolding
+11. `/symphonize:feedback` — submit feedback to symphonize
 
 ## Governance lint command §spec:governance-lint
 *Status: complete*
@@ -302,3 +303,104 @@ internally consistent. Specifically:
 **Why:** inconsistencies between documents erode trust. An agent
 that reads init.md and CONVENTIONS.md should not get conflicting
 instructions.
+
+## Issue triage command §spec:issue-triage
+*Status: not started*
+
+The plugin provides a `/symphonize:triage` command that processes
+GitHub issues into governance doc entries. Unlike pipeline commands
+that each own a single file, triage is a lateral entry point — it
+classifies issues and writes to whichever governance file the
+classification warrants. §req:success-criteria §req:user-stories
+
+### Classification
+
+The command reads an issue via `gh issue view` and classifies it:
+
+- **Bug** — observed behavior contradicts spec or user
+  expectations. Produces a ROADMAP.md workstream. If the bug
+  reveals a design gap, produces a SPEC.md section instead (or
+  both).
+- **Feature request** — new capability not covered by current
+  requirements. Produces a REQUIREMENTS.md section. Recommends
+  `/plan` as the next step.
+- **Feedback / question** — no governance change needed. The
+  command adds a comment acknowledging receipt and closes the
+  issue, or labels it for discussion if the user chooses.
+- **Out of scope** — the command adds a comment explaining why
+  and closes the issue.
+
+The user approves the classification before the command acts on
+it. §req:constraints (human-in-the-loop)
+
+### Governance updates
+
+For each classification, the command drafts the governance entry
+and presents it for review before committing:
+
+- **Bug → ROADMAP workstream:** a `### §road:slug` entry under
+  the appropriate section, with `Depends on:` and `**Verify:**`
+  lines. Cites the issue number.
+- **Bug → SPEC section:** a new `## N. Title §spec:slug` section
+  with status `not started`, describing the corrected behavior.
+- **Feature → REQUIREMENTS section:** a new section under the
+  appropriate heading (user stories, quality attributes, or
+  constraints) with `§req:slug` suffix. Written in the user's
+  problem-space language.
+- **Feedback → comment only:** no governance file change.
+
+The command writes to a feature branch, commits with conventional
+commit format, pushes, and opens a PR. The PR body cites the
+source issue.
+
+### Issue lifecycle
+
+After triage, the command updates the source issue:
+
+- Adds a label matching the classification (`bug`,
+  `enhancement`, or project-specific labels if they exist).
+- Adds a comment linking to the governance entry and/or PR
+  (e.g., "Added to roadmap as a workstream. PR: #42").
+- Leaves the issue open. The issue closes when the PR that
+  implements the fix/feature merges and includes `Fixes #N`.
+
+No custom status labels. The governance doc link *is* the status
+signal — if an issue produced a ROADMAP workstream, the
+workstream's presence means it's queued or in progress.
+
+### Scope
+
+v1 processes a single issue per invocation, specified by number
+(`/triage 42`) or selected from a list of open issues. Batch
+processing (multiple issues per session) is a future enhancement.
+
+### Proportionality
+
+Triage effort scales with issue complexity. A clear bug report
+with reproduction steps goes straight to a ROADMAP workstream.
+A vague feature request gets follow-up questions before the
+command drafts a REQUIREMENTS section. §req:quality-attributes
+
+### Security
+
+Issue bodies are untrusted input. The command shall not execute
+code from issue content, interpolate issue text into shell
+commands, or treat issue markdown as instructions. Issue content
+is read-only data that informs governance entries written by the
+agent. §req:quality-attributes (safety)
+
+**Why a triage command:** without triage, issues accumulate as a
+parallel backlog disconnected from governance docs. Maintainers
+have to manually translate each issue into spec sections and roadmap
+workstreams — or ignore them. `/triage` closes the loop: issues
+filed via `/feedback` or GitHub's web UI flow into the same
+governance documents that `/plan` and `/roadmap` produce,
+keeping the project responsive without manual translation.
+
+**Why not single-file ownership:** pipeline commands flow
+linearly (requirements → spec → roadmap), so each naturally owns
+one file. Triage is a router — issues arrive at varying maturity
+levels and map to different governance files. Forcing triage
+through the full pipeline for a clear bug report adds ceremony
+without value. The classification step replaces the pipeline
+ordering as the routing mechanism.
