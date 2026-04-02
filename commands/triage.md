@@ -154,10 +154,14 @@ proceeding.
 
 ## Phase 4: Commit and push
 
-1. Create a feature branch from `origin/main`:
+1. Create a feature branch from `origin/main`. Use the conventional
+   commit type matching the classification:
+
+   - Bug → `fix/triage-N-slug`
+   - Feature → `feat/triage-N-slug`
 
    ```bash
-   git checkout -b triage/<issue-number>-<slug> origin/main
+   git checkout -b <type>/triage-<issue-number>-<slug> origin/main
    ```
 
 2. Write the governance file updates.
