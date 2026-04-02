@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.24](https://github.com/repentsinner/symphonize/compare/v0.1.23...v0.1.24) (2026-04-02)
+
+
+### Features
+
+* **triage:** add /symphonize:triage command ([#73](https://github.com/repentsinner/symphonize/issues/73)) ([560caaf](https://github.com/repentsinner/symphonize/commit/560caafd7191a891e3a6689760669c3d717a9a2c))
+
+
+### Bug Fixes
+
+* **triage:** use conventional commit type in branch naming ([#75](https://github.com/repentsinner/symphonize/issues/75)) ([6492e56](https://github.com/repentsinner/symphonize/commit/6492e56d7ebd77b16c47bec2bf4e2eab4fb5ffe5))
+
 ## [0.1.23](https://github.com/repentsinner/symphonize/compare/v0.1.22...v0.1.23) (2026-04-02)
 
 
