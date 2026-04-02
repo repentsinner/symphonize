@@ -6,7 +6,8 @@ layer (`/next`), manages sub-agent workers, merges their results,
 and delivers a single PR as a **thin vertical slice** — a complete
 path from internal logic through to a user-facing surface.
 Project-agnostic — depends on projects following the SPEC.md/
-ROADMAP.md convention defined in CONVENTIONS.md.
+ROADMAP.md convention defined in the symphonize CONVENTIONS.md
+(path provided by the dispatch layer).
 
 ## Prerequisite
 
@@ -136,8 +137,9 @@ When all workstreams are merged:
 6. Remove completed workstreams from ROADMAP.md.
 7. Update SPEC.md status lines for any sections now complete or
    newly in progress.
-8. Compress newly completed spec sections per CONVENTIONS.md §
-   Spec compression.
+8. Compress newly completed spec sections per the symphonize
+   CONVENTIONS.md § Spec compression (path provided by the
+   dispatch layer).
 
 ## Phase 6: Deliver
 
@@ -197,7 +199,7 @@ When all workstreams are merged:
 
 ## Quality Gate
 
-See CONVENTIONS.md § Quality gate. The same rules apply to batch
+See the symphonize CONVENTIONS.md § Quality gate. The same rules apply to batch
 work with two additions:
 
 - After each cherry-pick during Phase 4, run the CI command. Fix

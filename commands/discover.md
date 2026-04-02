@@ -2,7 +2,8 @@
 argument-hint: [product idea or problem area]
 description: Interview the user to produce or update REQUIREMENTS.md
 ---
-Read CONVENTIONS.md for governance file formats (§ Cross-document traceability).
+Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` for governance file formats
+(§ Cross-document traceability).
 If CONVENTIONS.md exists in the target project, read it before producing output.
 
 Conduct a structured interview to understand the user's problem space and

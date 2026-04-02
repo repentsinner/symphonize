@@ -76,10 +76,13 @@ If `unattended`, also output:
 ## 4. Dispatch
 
 Read the batch agent protocol:
-!`cat ${CLAUDE_SKILL_DIR}/../protocols/batch-agent.md`
+!`cat "${CLAUDE_PLUGIN_ROOT}/protocols/batch-agent.md"`
 
 Spawn a single Agent with `isolation: "worktree"` and pass it:
 - The full contents of the batch agent protocol above
+- The symphonize plugin root: `${CLAUDE_PLUGIN_ROOT}` (so the
+  batch agent can read CONVENTIONS.md at
+  `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md`)
 - The workstream target(s) selected in step 3
 - If `unattended`: the flag `--unattended`
 - Instruction: "Follow the orchestrator protocol to implement this

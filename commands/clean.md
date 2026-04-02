@@ -59,8 +59,9 @@ Read SPEC.md, ROADMAP.md, CHANGELOG.md, and recent commit history
   that shipped.
 - **SPEC.md**: status lines match reality. Sections whose last
   workstream just merged should move to `complete` or
-  `in progress`. Apply spec compression per CONVENTIONS.md §
-  Spec compression for any newly completed sections.
+  `in progress`. Apply spec compression per
+  `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` § Spec compression for
+  any newly completed sections.
 - **CHANGELOG.md**: `[Unreleased]` section reflects what merged
   since the last release. If release-please manages this, verify
   it will pick up the new commits.

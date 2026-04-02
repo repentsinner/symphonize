@@ -2,7 +2,7 @@
 argument-hint: [spec section or feature area]
 description: Break spec sections into ROADMAP.md workstreams
 ---
-Read CONVENTIONS.md for roadmap format rules (§ Roadmap format).
+Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` for roadmap format rules (§ Roadmap format).
 
 ## Responsibility
 
