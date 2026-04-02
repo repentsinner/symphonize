@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.22](https://github.com/repentsinner/symphonize/compare/v0.1.21...v0.1.22) (2026-04-02)
+
+
+### Bug Fixes
+
+* **commands:** use CLAUDE_PLUGIN_ROOT for plugin file references ([#69](https://github.com/repentsinner/symphonize/issues/69)) ([3226044](https://github.com/repentsinner/symphonize/commit/3226044e74549ac42d52977f8d0d02084e45d9e7))
+
 ## [0.1.21](https://github.com/repentsinner/symphonize/compare/v0.1.20...v0.1.21) (2026-04-01)
 
 

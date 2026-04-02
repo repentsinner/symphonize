@@ -1,6 +1,6 @@
 {
   "name": "symphonize",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "Depth-first roadmap execution engine. Turns ROADMAP.md workstreams into batched PRs via worktree-isolated agents.",
   "author": {
     "name": "repentsinner"
