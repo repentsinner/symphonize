@@ -360,8 +360,7 @@ After triage, the command updates the source issue:
 - Adds a label matching the classification (`bug`,
   `enhancement`, or project-specific labels if they exist).
 - Adds a comment linking to the governance entry and/or PR
-  (e.g., "Added to roadmap: §road:fix-parser-null-check.
-  PR: #42").
+  (e.g., "Added to roadmap as a workstream. PR: #42").
 - Leaves the issue open. The issue closes when the PR that
   implements the fix/feature merges and includes `Fixes #N`.
 
