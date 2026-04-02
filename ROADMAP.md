@@ -32,8 +32,9 @@ Phases:
    linking to governance entry and PR. Leave issue open (auto-closes
    via `Fixes #N` when implementing PR merges).
 
-Follow existing command patterns: read CONVENTIONS.md for format
-rules, read SPEC.md and ROADMAP.md for current state before
+Follow existing command patterns: read
+`${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` for format rules, read
+SPEC.md and ROADMAP.md for current state before
 writing, apply proportionality (clear bug → fast path, vague
 feature → follow-up questions).
 

@@ -2,7 +2,7 @@
 argument-hint: [task or feature area]
 description: Technical decisions — explore design options and produce SPEC.md sections
 ---
-Read CONVENTIONS.md for spec format rules (§ Spec format).
+Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` for spec format rules (§ Spec format).
 
 ## Responsibility
 
