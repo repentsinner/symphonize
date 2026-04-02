@@ -75,11 +75,11 @@ If `unattended`, also output:
 
 ## 4. Dispatch
 
-Read the batch agent protocol:
-!`cat "${CLAUDE_PLUGIN_ROOT}/protocols/batch-agent.md"`
+Read the batch agent protocol at
+`${CLAUDE_PLUGIN_ROOT}/protocols/batch-agent.md`.
 
 Spawn a single Agent with `isolation: "worktree"` and pass it:
-- The full contents of the batch agent protocol above
+- The full contents of the batch agent protocol you just read
 - The symphonize plugin root: `${CLAUDE_PLUGIN_ROOT}` (so the
   batch agent can read CONVENTIONS.md at
   `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md`)
