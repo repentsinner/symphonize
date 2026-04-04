@@ -499,9 +499,13 @@ not both simultaneously.
 Every command that reads or writes governance files resolves a
 governance root before operating. The resolution order:
 
-1. Explicit argument (e.g., `--package packages/auth`) if provided
-2. Current working directory walk-up (nearest SPEC.md ancestor)
-3. Repository root (fallback — preserves single-repo behavior)
+1. Current working directory walk-up (nearest SPEC.md ancestor)
+2. Repository root (fallback — preserves single-repo behavior)
+
+No `--package` or `--scope` flag exists. CWD is the scoping
+mechanism — the user `cd`s into the package directory (or invokes
+`claude` from there). This mirrors Claude Code itself, which
+scopes by invocation directory with no restriction flag.
 
 Single-repo projects (no nested SPEC.md files) are unaffected.
 The fallback to repository root preserves current behavior with
@@ -513,8 +517,8 @@ All commands reference governance files by name at the repo root.
 Each needs to resolve paths relative to the governance root
 instead:
 
-- **init** — `init --package <path>` scaffolds governance files in
-  a subdirectory
+- **init** — when run from a subdirectory, scaffolds governance
+  files there instead of at repo root
 - **lint** — globs `**/SPEC.md` etc. instead of hardcoded root
   paths
 - **discover, plan, roadmap** — resolve governance root, read/write
