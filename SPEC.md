@@ -334,7 +334,7 @@ levels and map to different governance files. The classification
 step replaces the pipeline ordering as the routing mechanism.
 
 ## Clean command supersession safety §spec:clean-supersession-safety
-*Status: not started*
+*Status: complete*
 
 The `/symphonize:clean` command (full mode) closes open sub-agent
 PRs and deletes remote branches during post-merge cleanup. These
