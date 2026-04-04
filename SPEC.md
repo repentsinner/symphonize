@@ -397,3 +397,148 @@ the section level. The `### §road:slug` heading format is retained.
 diverge when the spec is updated. The batch agent reads SPEC.md
 in Phase 1 — duplicating design context in the roadmap wastes
 tokens and creates a second source of truth.
+
+## Directory-scoped governance §spec:directory-scoped-governance
+*Status: not started*
+
+Governance files scope to the directory subtree they live in. A
+SPEC.md in `packages/auth/` governs `packages/auth/` and its
+descendants. A SPEC.md at the repo root governs the project as a
+whole. This enables monorepo support without configuration files
+or package manifests.
+
+### Discovery
+
+Commands discover governance files by directory position, not by
+manifest. Any directory containing a SPEC.md is a governance root.
+No `.symphonize.yml` or package registry exists.
+
+When a command operates on a path, it resolves the governance root
+by walking up from that path to find the nearest ancestor directory
+containing a SPEC.md. This mirrors how `git` finds `.git/`, how
+Node resolves `node_modules`, and how Claude Code scopes CLAUDE.md
+files.
+
+### Scoping model
+
+The directory hierarchy defines scope:
+
+- **Root governance** describes the composed system — how packages
+  integrate, cross-cutting architectural decisions, system-level
+  behavior.
+- **Package governance** describes the package — its own spec,
+  roadmap, changelog, scoped to that subtree.
+- **Siblings are invisible to each other.** A package does not
+  read sibling packages' governance files. If two packages need
+  shared context, that context belongs in the root.
+
+### Context loading: pull, not push
+
+When operating on a package, commands read root governance as
+upstream architectural context. The package implementer pulls
+what they need from root. Root does not push constraints into
+packages and does not enumerate which packages exist.
+
+Root governance is always available (ancestor walk-up). Package
+governance loads only when operating in that subtree. This
+matches CLAUDE.md's behavior: ancestor files load at session
+start; descendant files load lazily when accessed.
+
+The relationship between root and package governance is the same
+as between separate repos that share an architectural style guide
+— loosely coupled, consulted by convention, not enforced by
+tooling. The monorepo structure implies a weak bidirectional bond
+(otherwise the packages would be separate repos), but the
+governance tooling models this as a pull relationship, not
+inheritance.
+
+**Why pull, not push:** push requires root to know about packages
+(enumeration, rule distribution, conformance checking). That
+creates coupling that the monorepo structure doesn't mandate. A
+package that diverges from root architectural patterns surfaces
+in review, not in automated enforcement. This keeps symphonize
+ecosystem-agnostic — it doesn't need to understand pubspec.yaml,
+package.json, or Cargo.toml.
+
+### Lint
+
+Symphonize's lint command globs for governance files across the
+directory tree instead of hardcoding root paths. Lint rule
+inheritance (e.g., a `.markdownlint.json` at root applying to
+subdirectories) is handled by the linter's native directory
+scoping — symphonize does not reimplement it.
+
+CI validation (governance-lint.yml) globs for `**/SPEC.md`,
+`**/ROADMAP.md`, etc., filtered to directories that contain
+governance files. Structural checks (status lines, slug formats,
+cross-references) apply uniformly — the rules don't change per
+directory depth.
+
+**Why no symphonize-specific lint inheritance:** markdownlint,
+Vale, and similar tools already resolve config by walking up the
+directory tree. Reimplementing that logic in symphonize would
+duplicate existing behavior and diverge from the tools' actual
+resolution rules.
+
+### Progress tracking
+
+`.symphonize-progress.local.md` becomes directory-scoped. When
+`/next` operates on a package, the progress file lives in the
+package's governance root, not the project root.
+
+### Orchestration
+
+Root ROADMAP.md can reference package-level work for cross-cutting
+coordination. Package ROADMAP.md files are self-contained work
+queues for that package. `/next` operates on one governance root
+at a time — the root roadmap or a specific package's roadmap,
+not both simultaneously.
+
+### Command resolution
+
+Every command that reads or writes governance files resolves a
+governance root before operating. The resolution order:
+
+1. Current working directory walk-up (nearest SPEC.md ancestor)
+2. Repository root (fallback — preserves single-repo behavior)
+
+No `--package` or `--scope` flag exists. CWD is the scoping
+mechanism — the user `cd`s into the package directory (or invokes
+`claude` from there). This mirrors Claude Code itself, which
+scopes by invocation directory with no restriction flag.
+
+Single-repo projects (no nested SPEC.md files) are unaffected.
+The fallback to repository root preserves current behavior with
+zero configuration.
+
+### Affected commands and documents
+
+All commands reference governance files by name at the repo root.
+Each needs to resolve paths relative to the governance root
+instead:
+
+- **init** — when run from a subdirectory, scaffolds governance
+  files there instead of at repo root
+- **lint** — globs `**/SPEC.md` etc. instead of hardcoded root
+  paths
+- **discover, plan, roadmap** — resolve governance root, read/write
+  files there; read root governance as upstream context when
+  operating on a package
+- **next, orchestrate** — resolve governance root for the target
+  roadmap; progress file is directory-scoped
+- **triage** — route issues to a specific package's governance
+  files when classification indicates package scope
+- **clean** — find and clean progress files across governance roots
+- **review** — resolve governance root from the PR's changed files
+
+CONVENTIONS.md rules that say "Lives at repo root" generalize to
+"Lives at the governance root."
+
+CI workflows (governance-lint.yml) switch from explicit file lists
+to glob patterns that discover governance files across the tree.
+
+**Why not a manifest:** the filesystem is the configuration.
+Adding a package means dropping governance files in a directory.
+Removing means deleting them. No registry to maintain, no sync
+to drift. This mirrors how CLAUDE.md, .gitignore, and
+pubspec.yaml all scope by directory position.
