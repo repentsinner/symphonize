@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.25](https://github.com/repentsinner/symphonize/compare/v0.1.24...v0.1.25) (2026-04-04)
+
+
+### Bug Fixes
+
+* **clean:** replace heuristic PR supersession with diff-level verification ([#78](https://github.com/repentsinner/symphonize/issues/78)) ([6c70476](https://github.com/repentsinner/symphonize/commit/6c70476c2379642080398aba7ea8f53b9f41ef92))
+
 ## [0.1.24](https://github.com/repentsinner/symphonize/compare/v0.1.23...v0.1.24) (2026-04-02)
 
 
