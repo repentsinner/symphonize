@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.30](https://github.com/repentsinner/symphonize/compare/v0.1.29...v0.1.30) (2026-04-04)
+
+
+### Features
+
+* **spec:** add clean working tree hygiene section ([#90](https://github.com/repentsinner/symphonize/issues/90)) ([b678148](https://github.com/repentsinner/symphonize/commit/b678148fa4f41fb5a4462ea4f9e9ddaa45905423))
+* **spec:** transitive unblocking in batch workstream selection ([#91](https://github.com/repentsinner/symphonize/issues/91)) ([32f0813](https://github.com/repentsinner/symphonize/commit/32f0813e9ce1311712d6c0b8afbd5d5f715b9143))
+
 ## [0.1.29](https://github.com/repentsinner/symphonize/compare/v0.1.28...v0.1.29) (2026-04-04)
 
 
