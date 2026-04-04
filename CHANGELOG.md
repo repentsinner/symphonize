@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.26](https://github.com/repentsinner/symphonize/compare/v0.1.25...v0.1.26) (2026-04-04)
+
+
+### Features
+
+* **batch-agent:** add pre-PR security review gate ([#82](https://github.com/repentsinner/symphonize/issues/82)) ([2a09f27](https://github.com/repentsinner/symphonize/commit/2a09f27e17028c3bf8756eedcb813c961dbf0cdd))
+
 ## [0.1.25](https://github.com/repentsinner/symphonize/compare/v0.1.24...v0.1.25) (2026-04-04)
 
 
