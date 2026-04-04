@@ -332,3 +332,72 @@ linearly (requirements → spec → roadmap), so each naturally owns
 one file. Triage is a router — issues arrive at varying maturity
 levels and map to different governance files. The classification
 step replaces the pipeline ordering as the routing mechanism.
+
+## Clean command supersession safety §spec:clean-supersession-safety
+*Status: not started*
+
+The `/symphonize:clean` command (full mode) closes open sub-agent
+PRs and deletes remote branches during post-merge cleanup. These
+are destructive, hard-to-reverse operations — a closed PR with a
+deleted remote branch cannot be reopened.
+
+The clean command shall not close a PR or delete its remote branch
+based on title similarity, topic overlap, or heuristic matching.
+A PR is superseded only when every file it touches exists in main
+with equivalent changes. Verification procedure:
+
+1. For each open sub-agent PR, list unmerged commits
+   (`git log --oneline main..<branch>`).
+2. For each unmerged commit, inspect the diff and confirm the
+   classes, functions, and files introduced exist in main.
+3. If any introduced symbol or file does not exist in main, the
+   PR is not superseded — leave it open.
+4. Only after all changes are confirmed present in main, close
+   the PR with a comment citing the merge commit or batch PR
+   that landed the work.
+
+Remote branch deletion shall occur only for PRs that are already
+merged or confirmed superseded and closed by the procedure above.
+Open PRs shall never have their remote branches deleted.
+
+**Why:** an instance of `/clean` closed an unmerged PR solely
+because its title overlapped with a preceding PR's title. Related
+work often spans multiple PRs — title similarity does not imply
+duplication. Closing unverified PRs destroys in-progress work.
+The verification cost (diffing a few commits) is trivial compared
+to the cost of losing a valid PR.
+
+## Pre-PR review gates §spec:pre-pr-review-gates
+*Status: not started*
+
+The batch agent protocol includes automated review gates between
+Phase 5 (Verify) and Phase 6 (Deliver). These gates catch
+security vulnerabilities and code quality issues before the PR
+reaches a human reviewer.
+
+### Security review (mandatory gate)
+
+The batch agent runs `/security-review` after Phase 5 verification
+passes and before pushing. If `/security-review` reports findings,
+the batch agent resolves them before proceeding. A PR shall not be
+created with known security findings.
+
+### Code review (recommended)
+
+The batch agent includes a recommendation in the PR body for the
+reviewer to run `/review --comment` to post code-quality findings
+as PR comments. This is a recommendation, not a gate — the human
+reviewer decides whether to run it.
+
+**Why security is mandatory:** security vulnerabilities in merged
+code are expensive to remediate and may ship to users before
+review. A local `/security-review` pass costs seconds and catches
+common issues (injection, credential exposure, insecure defaults)
+mechanically.
+
+**Why code review is recommended, not mandatory:** `/review` runs
+multiple parallel agents and produces nuanced findings that
+benefit from human judgment. Gating on it would either block
+unattended loops on false positives or require the batch agent
+to auto-dismiss findings — defeating the purpose. Posting findings
+as PR comments preserves the signal for the reviewer.
