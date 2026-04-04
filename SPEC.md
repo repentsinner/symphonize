@@ -367,6 +367,151 @@ duplication. Closing unverified PRs destroys in-progress work.
 The verification cost (diffing a few commits) is trivial compared
 to the cost of losing a valid PR.
 
+## Vertical-first batch selection §spec:vertical-first-batch-selection
+*Status: not started*
+
+The `/symphonize:next` dispatch layer selects workstreams for a
+batch from the active roadmap section. The selection algorithm
+determines whether the system ships vertical slices or horizontal
+layers. This section specifies the goals of batch selection, the
+failure mode of the current algorithm, and the replacement.
+
+### Goals
+
+Batch selection serves five goals, in priority order:
+
+1. **Vertical slices.** Every batch should ship something
+   observable from the product's user-facing surface (UI, API,
+   CLI, config). A batch of only foundation workstreams ships dead
+   code — it cannot be integration-tested, reviewed against user
+   intent, or demonstrated.
+2. **Walking skeleton.** Early batches should prioritize end-to-end
+   connectivity over feature depth. The thinnest possible path from
+   input to output, touching all architectural layers, is more
+   valuable than a deep implementation of one layer. Subsequent
+   batches add flesh to the skeleton.
+3. **Dependency correctness.** A batch shall not ship code that
+   depends on unshipped code. Dependencies within the batch are
+   built in order; dependencies outside the batch must already be
+   completed.
+4. **Batch coherence.** Workstreams in a batch belong to the same
+   roadmap section. A section represents one vertical capability —
+   mixing sections produces unrelated changes in a single PR,
+   making review harder and integration testing impossible.
+5. **Forward progress.** Complete dependency chains rather than
+   starting many. A batch that finishes a 3-workstream chain is
+   better than one that starts 4 independent workstreams.
+
+Reference: Cockburn, *Crystal Clear* (2004) — walking skeleton;
+Wake, "INVEST in Good Stories" (2003); Cockburn, "Elephant
+Carpaccio" exercise.
+
+### Failure mode of the current algorithm
+
+The current algorithm defines "unblocked" as "not depending on a
+workstream still present in ROADMAP.md." This static check ignores
+the batch being assembled. A workstream whose only dependency is
+another workstream *in the same batch* is classified as blocked.
+
+`/roadmap` structures sections as vertical slices: infrastructure
+workstreams first, surface workstream last (per roadmap.md Phase 3,
+step 7: "every section must end with a surface workstream"). The
+surface workstream depends on the infrastructure workstreams. Under
+the current algorithm, the surface workstream is always excluded as
+"blocked" — its dependencies are "still in ROADMAP.md." The batch
+ships only the foundation layer.
+
+This defeats goals 1 (vertical slices), 2 (walking skeleton), and
+5 (forward progress). The integration surface check (next.md
+step 5) detects the problem and warns, but warning doesn't fix the
+selection — it just documents the failure.
+
+Concrete example: section has workstreams A → B → C where C
+touches the user surface. A is unblocked. B depends on A (blocked).
+C depends on B (blocked). Current algorithm selects only A. The
+batch ships dead plumbing. Next iteration selects B (A is now
+done). Third iteration finally ships C. Three batches for one
+vertical slice that could have shipped in one.
+
+### Replacement: chain-preferring selection
+
+The dispatch layer selects workstreams by building dependency
+chains that reach the user-facing surface, not by collecting
+independent unblocked workstreams.
+
+Algorithm:
+
+1. **Build the within-section dependency graph.** For each
+   un-attempted workstream in the active section, resolve its
+   dependencies. Ignore dependencies outside the section (those
+   are blocking constraints, handled separately). Ignore
+   dependencies on workstreams already completed (removed from
+   roadmap or in progress file).
+2. **Identify surface-reaching chains.** A chain is a sequence
+   of workstreams connected by dependencies that terminates at a
+   workstream touching the user-facing surface (as identified by
+   `/roadmap` Phase 2). Enumerate all maximal chains from roots
+   (no unmet in-section dependencies) to surface workstreams.
+3. **Select the shortest surface-reaching chain that fits the
+   batch cap.** Prefer shorter chains — they deliver a vertical
+   slice with less work, consistent with walking skeleton
+   methodology. If multiple chains have the same length, prefer
+   the one appearing first in document order.
+4. **Fill remaining capacity.** If the selected chain leaves room
+   under the batch cap, add un-attempted workstreams from the same
+   section that are independent (no dependency relationship with
+   the selected chain), preferring those that form their own
+   surface-reaching chains. Do not add workstreams that would
+   create a partial chain (dependency without its dependent, or
+   dependent without its dependency).
+5. **Fallback.** If no surface-reaching chain exists (all surface
+   workstreams depend on incomplete cross-section work), fall back
+   to the current behavior: select unblocked workstreams in
+   document order, up to the batch cap. The integration surface
+   warning still fires.
+
+### Ordering within the batch
+
+Workstreams in the batch are passed to the batch agent in
+dependency order (topological sort): dependencies before
+dependents. The batch agent protocol already handles multiple
+workstreams — this ensures it builds the foundation before the
+integration layer.
+
+### Interaction with existing mechanisms
+
+- **Integration surface check** (next.md step 5) remains as a
+  safety net. Under chain-preferring selection it should rarely
+  fire — but if it does (fallback case), the warning is still
+  valuable.
+- **Section advancement** rule is unchanged: advance only when
+  every workstream in the active section is completed, attempted,
+  or blocked on cross-section work.
+- **Batch cap** (currently 4) applies to the final selected set
+  after chain construction, not during chain enumeration.
+- **Progress file** cross-reference occurs before chain building —
+  attempted workstreams are excluded from the graph.
+
+**Why prefer chains over independent workstreams:** independent
+unblocked workstreams are typically all at the same architectural
+layer (they have no dependencies because they're all foundation
+work). Selecting them produces a wide horizontal batch. A chain,
+by definition, crosses layers — it connects foundation to surface.
+Preferring chains aligns batch selection with the vertical slice
+structure that `/roadmap` already imposes on sections.
+
+**Why shortest chain:** walking skeleton methodology. The first
+slice through a capability should be the thinnest end-to-end path,
+proving the architecture works. Deeper implementation comes in
+subsequent batches. A longer chain means more work before the
+first verifiable result.
+
+**Why not topological sort of the whole section:** the dispatch
+layer selects one batch, not a build plan. Topological sort of the
+entire section would reason about future batches — outside the
+dispatch layer's scope. Chain selection answers "what is the
+smallest batch that ships a vertical slice?"
+
 ## Pre-PR review gates §spec:pre-pr-review-gates
 *Status: complete*
 
