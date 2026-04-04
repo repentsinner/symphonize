@@ -34,12 +34,22 @@ reviewing all ralph-loop PRs.
   then delete local branches tracking pruned remotes).
 - Delete remote branches for merged PRs that weren't auto-deleted
   (`gh pr list --state merged --author @me`, then
-  `git push origin --delete <branch>` for each).
+  `git push origin --delete <branch>` for each). Never delete a
+  remote branch whose PR is still open.
 - Delete any remaining `.claude/worktrees/` worktree directories
   and their backing git worktrees (`git worktree list`, `git worktree
   remove`).
-- Close any open PRs from sub-agent branches that were superseded
-  by the batch PR (check with `gh pr list --author @me`).
+- Close open sub-agent PRs only after diff-level supersession
+  verification. Do not close based on title similarity or topic
+  overlap. For each open sub-agent PR (`gh pr list --author @me`):
+  1. List unmerged commits (`git log --oneline main..<branch>`).
+  2. For each unmerged commit, inspect the diff and confirm the
+     classes, functions, and files introduced exist in main.
+  3. If any introduced symbol or file does not exist in main, the
+     PR is not superseded — leave it open.
+  4. Only after all changes are confirmed present in main, close
+     the PR with a comment citing the merge commit or batch PR
+     that landed the work.
 - Leave the working tree on `main` at the tip of `origin/main`.
 - Verify `git status` is clean. If not, warn — do not discard
   uncommitted work.
