@@ -156,6 +156,13 @@ Rules:
 - Update the roadmap when work starts and when it finishes. Stale
   entries erode trust in the document.
 - Lives at repo root alongside SPEC.md.
+- Workstream descriptions are one sentence stating the deliverable and
+  the affected file(s), plus a `§spec:` citation. Rationale, procedures,
+  constraints, and implementation detail live in the cited spec section —
+  not in the roadmap. The batch agent reads SPEC.md in Phase 1;
+  duplicating context in the roadmap wastes tokens and creates divergence
+  risk.
+- `**Verify:**` blocks remain at the section level, not per-workstream.
 
 Reference: CNCF open source roadmap best practices;
 Mozilla Open Science "Intro to Roadmapping."

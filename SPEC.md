@@ -403,7 +403,7 @@ to auto-dismiss findings — defeating the purpose. Posting findings
 as PR comments preserves the signal for the reviewer.
 
 ## Thin roadmap workstreams §spec:thin-roadmap-workstreams
-*Status: not started*
+*Status: in progress*
 
 Roadmap workstreams are thin pointers into SPEC.md, not
 self-contained design documents. The spec owns the "what and why";
