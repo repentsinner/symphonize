@@ -28,7 +28,6 @@ PR body includes the `/review --comment` recommendation.
 Update `commands/roadmap.md` Phase 3 output format to produce thin
 workstreams — one sentence plus `§spec:` citation, no design
 context. Per §spec:thin-roadmap-workstreams.
-Depends on §road:thin-roadmap-conventions.
 
 **Verify:** Run `/symphonize:roadmap` against a spec section with
 detailed rationale. Confirm the generated workstream is one sentence
