@@ -141,11 +141,22 @@ When all workstreams are merged:
    CONVENTIONS.md § Spec compression (path provided by the
    dispatch layer).
 
+## Phase 5b: Security Review (mandatory gate)
+
+After Phase 5 verification passes and before pushing:
+
+1. Run `/security-review`.
+2. If `/security-review` reports findings, resolve them before
+   proceeding. Iterate until the review passes clean.
+3. A PR shall not be created with known security findings.
+
 ## Phase 6: Deliver
 
 1. Push the batch branch to origin.
 2. Open a single PR. Title: `feat: batch — <summary>`.
    Body lists each workstream as a bullet with its commit message.
+   Include a recommendation for the reviewer:
+   `> Run `/review --comment` to post code-quality findings as PR comments.`
 3. If `--unattended`, return the PR URL and workstream slug(s) to
    the dispatch layer. Do not wait for review.
    Otherwise, ask the user to review. If the project has a live-test
