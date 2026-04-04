@@ -368,39 +368,22 @@ The verification cost (diffing a few commits) is trivial compared
 to the cost of losing a valid PR.
 
 ## Pre-PR review gates §spec:pre-pr-review-gates
-*Status: not started*
+*Status: complete*
 
-The batch agent protocol includes automated review gates between
-Phase 5 (Verify) and Phase 6 (Deliver). These gates catch
-security vulnerabilities and code quality issues before the PR
-reaches a human reviewer.
+The batch agent protocol (`protocols/batch-agent.md`) includes
+review gates between Phase 5 (Verify) and Phase 6 (Deliver):
+`/security-review` as a mandatory gate, `/review --comment` as a
+recommendation in the PR body.
 
-### Security review (mandatory gate)
-
-The batch agent runs `/security-review` after Phase 5 verification
-passes and before pushing. If `/security-review` reports findings,
-the batch agent resolves them before proceeding. A PR shall not be
-created with known security findings.
-
-### Code review (recommended)
-
-The batch agent includes a recommendation in the PR body for the
-reviewer to run `/review --comment` to post code-quality findings
-as PR comments. This is a recommendation, not a gate — the human
-reviewer decides whether to run it.
-
-**Why security is mandatory:** security vulnerabilities in merged
-code are expensive to remediate and may ship to users before
-review. A local `/security-review` pass costs seconds and catches
-common issues (injection, credential exposure, insecure defaults)
+**Why security is mandatory:** vulnerabilities in merged code are
+expensive to remediate and may ship before review. A local
+`/security-review` pass costs seconds and catches common issues
 mechanically.
 
 **Why code review is recommended, not mandatory:** `/review` runs
-multiple parallel agents and produces nuanced findings that
-benefit from human judgment. Gating on it would either block
-unattended loops on false positives or require the batch agent
-to auto-dismiss findings — defeating the purpose. Posting findings
-as PR comments preserves the signal for the reviewer.
+parallel agents producing nuanced findings that benefit from human
+judgment. Gating on it would block unattended loops on false
+positives or require auto-dismissal — defeating the purpose.
 
 ## Thin roadmap workstreams §spec:thin-roadmap-workstreams
 *Status: in progress*
