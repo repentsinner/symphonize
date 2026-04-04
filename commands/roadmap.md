@@ -84,8 +84,11 @@ backpressure proportional to the gap.
    infrastructure workstreams first, surface workstream last. The
    surface workstream is the integration point that wires
    everything beneath it into a testable feature.
-   - Each workstream gets a `### §road:slug` heading, brief
-     description, and explicit dependency annotations.
+   - Each workstream gets a `### §road:slug` heading, one sentence
+     stating the deliverable and the affected file(s), a `§spec:`
+     citation, and explicit dependency annotations. Rationale,
+     procedures, and implementation detail live in the cited spec
+     section — not in the roadmap.
    - Size to one agent session (~200k tokens).
    - Don't write sample code — the implementation team does its
      own due diligence.
