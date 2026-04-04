@@ -401,3 +401,36 @@ benefit from human judgment. Gating on it would either block
 unattended loops on false positives or require the batch agent
 to auto-dismiss findings — defeating the purpose. Posting findings
 as PR comments preserves the signal for the reviewer.
+
+## Thin roadmap workstreams §spec:thin-roadmap-workstreams
+*Status: not started*
+
+Roadmap workstreams are thin pointers into SPEC.md, not
+self-contained design documents. The spec owns the "what and why";
+the roadmap says "do this next, in this order."
+
+A workstream description is one sentence stating the deliverable
+and the file(s) it touches, plus a `§spec:` citation. Rationale,
+procedures, constraints, and implementation detail live in the
+cited spec section — not in the roadmap.
+
+`**Verify:**` blocks remain at the section level. They define
+acceptance criteria for the vertical slice, not for individual
+workstreams.
+
+The `### §road:slug` heading format is retained. Headings are
+navigable (editor outline, table of contents) and grep-friendly.
+
+### Affected documents
+
+- CONVENTIONS.md § Roadmap format — add the "one sentence +
+  citation" rule, prohibit duplicating spec rationale.
+- `commands/roadmap.md` Phase 3 — update output format
+  instructions to produce thin workstreams.
+
+**Why:** when `/roadmap` generates verbose workstream descriptions,
+they duplicate the spec section and diverge when the spec is
+updated. The batch agent reads SPEC.md in Phase 1 — it already
+has the design context. Duplicating it in the roadmap wastes
+tokens, creates a second source of truth, and makes the roadmap
+grow without bound.
