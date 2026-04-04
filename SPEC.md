@@ -386,7 +386,7 @@ judgment. Gating on it would block unattended loops on false
 positives or require auto-dismissal — defeating the purpose.
 
 ## Thin roadmap workstreams §spec:thin-roadmap-workstreams
-*Status: not started*
+*Status: in progress*
 
 Roadmap workstreams are thin pointers into SPEC.md, not
 self-contained design documents. The spec owns the "what and why";
