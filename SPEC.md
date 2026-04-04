@@ -367,6 +367,52 @@ duplication. Closing unverified PRs destroys in-progress work.
 The verification cost (diffing a few commits) is trivial compared
 to the cost of losing a valid PR.
 
+## Clean working tree hygiene §spec:clean-working-tree-hygiene
+*Status: not started*
+
+The `/symphonize:clean` full-mode command shall not stash, force-
+checkout, or silently discard uncommitted changes. When the working
+tree is dirty at the start of full-mode clean, the command warns
+with `git status` output and aborts. The user resolves dirty state
+before re-running.
+
+### Phase ordering
+
+Full-mode clean checks out `main` and fast-forwards (`git pull
+--ff-only`) before running verification (analyze, test). The
+current command runs verification after governance doc updates but
+before switching to main — verifying from a branch, not from the
+state that will ship. Correct order:
+
+1. Git housekeeping (fetch, prune, branch/worktree cleanup, PR
+   supersession)
+2. Checkout main, fast-forward to `origin/main`
+3. Governance doc updates (roadmap, spec, changelog)
+4. Commit governance changes, push
+5. Verify (analyze, test) — now running against main
+
+### No implicit stashing
+
+The clean command shall not run `git stash` under any circumstance.
+Stashes created by branch-switching during cleanup accumulate
+silently — the pop or drop never happens, and `git stash list`
+grows without bound. The root cause is usually lock file drift
+(pubspec.lock, package-lock.json) from dependency resolution on
+different branches.
+
+If the working tree is dirty when clean needs to switch branches:
+
+- If the only dirty files are generated lock files, restore them
+  (`git restore <file>`) and proceed.
+- If other files are dirty, warn and abort. Uncommitted work is
+  the user's responsibility.
+
+**Why warn-and-abort, not stash:** a stash is a deferred decision
+disguised as cleanup. `/clean` runs at session boundaries where
+the user is present and can make the decision immediately. Silent
+stashing defers it indefinitely — the stash is forgotten, and the
+next `/clean` run creates another one.
+
 ## Pre-PR review gates §spec:pre-pr-review-gates
 *Status: complete*
 
