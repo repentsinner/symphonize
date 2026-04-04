@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.27](https://github.com/repentsinner/symphonize/compare/v0.1.26...v0.1.27) (2026-04-04)
+
+
+### Features
+
+* **conventions:** add thin workstream rules to roadmap format ([#84](https://github.com/repentsinner/symphonize/issues/84)) ([38848af](https://github.com/repentsinner/symphonize/commit/38848af65564b4d8217e9e757d7f65d2dbe45a91))
+
 ## [0.1.26](https://github.com/repentsinner/symphonize/compare/v0.1.25...v0.1.26) (2026-04-04)
 
 
