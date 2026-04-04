@@ -415,7 +415,7 @@ another workstream *in the same batch* is classified as blocked.
 
 `/roadmap` structures sections as vertical slices: infrastructure
 workstreams first, surface workstream last (per roadmap.md Phase 3,
-step 7: "every section must end with a surface workstream"). The
+step 7: "every section ends with a surface workstream"). The
 surface workstream depends on the infrastructure workstreams. Under
 the current algorithm, the surface workstream is always excluded as
 "blocked" — its dependencies are "still in ROADMAP.md." The batch
