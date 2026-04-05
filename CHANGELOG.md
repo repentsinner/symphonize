@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.34](https://github.com/repentsinner/symphonize/compare/v0.1.33...v0.1.34) (2026-04-05)
+
+
+### Features
+
+* **clean:** reorder full-mode phases and add dirty-state guard ([#99](https://github.com/repentsinner/symphonize/issues/99)) ([1adc19f](https://github.com/repentsinner/symphonize/commit/1adc19fda6ffb8a214cd81850827a871e01dd9b3))
+
 ## [0.1.33](https://github.com/repentsinner/symphonize/compare/v0.1.32...v0.1.33) (2026-04-05)
 
 
