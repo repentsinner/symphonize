@@ -2,7 +2,24 @@
 argument-hint: [task or feature area]
 description: Technical decisions — explore design options and produce SPEC.md sections
 ---
-Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` for spec format rules (§ Spec format).
+Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` for spec format rules
+(§ Spec format, § Governance root).
+
+## 0. Resolve governance root
+
+Resolve the governance root before reading or writing governance files:
+
+1. Walk up from the current working directory to find the nearest
+   ancestor directory containing SPEC.md.
+2. If no ancestor contains SPEC.md, fall back to the repository root.
+3. All governance file reads and writes in subsequent steps are
+   relative to the governance root, not the repository root.
+
+When the governance root is not the repository root (package-level
+governance), read root SPEC.md and root REQUIREMENTS.md as upstream
+context. Root spec provides system-level architectural decisions and
+cross-cutting constraints that package-level specs refine. Do not
+modify root files — they are read-only context.
 
 ## Responsibility
 
@@ -42,8 +59,10 @@ possible, recommend `/discover` when the gap is too large.
 
 1. Create a planning worktree. Fetch origin and start from tip of
    main.
-2. Read SPEC.md and ROADMAP.md to understand current state.
-3. **Check REQUIREMENTS.md.**
+2. Read SPEC.md and ROADMAP.md at the governance root to understand
+   current state. If operating on a package, also read root SPEC.md
+   as upstream architectural context.
+3. **Check REQUIREMENTS.md** (at the governance root).
    - **Absent:** assess the scope of the task. For a focused feature
      addition, capture the highlights inline — ask 3-4 key questions
      (who uses this, what problem does it solve, what does success
@@ -138,7 +157,7 @@ Architectures" (2001) — Twin Peaks model; Cervantes & Kazman,
 
 ## Phase 3: Write spec sections
 
-7. **Draft or update SPEC.md sections.** For each feature or
+7. **Draft or update SPEC.md sections** (at the governance root). For each feature or
    capability, write a spec section with:
    - Observable behavior (what the system does, verifiable from the
      surface)
@@ -170,7 +189,7 @@ Architectures" (2001) — Twin Peaks model; Cervantes & Kazman,
 10. **Check vertical coverage.** For each spec section, can you
     describe a user-level test path? If not, the section is a
     horizontal concern — refactor it.
-11. Commit updated SPEC.md to a branch, push, and open a PR. Review
-    with the user before merging.
+11. Commit updated SPEC.md (at the governance root) to a branch,
+    push, and open a PR. Review with the user before merging.
 
 The task goals from the user are: $1
