@@ -2,8 +2,20 @@
 description: Validate governance files (SPEC.md, ROADMAP.md, README.md)
 ---
 
-Run `npx markdownlint-cli2 SPEC.md ROADMAP.md README.md` and report
-the results. Uses the project's `.markdownlint.json` if present.
+Glob for governance files across the directory tree and run
+markdownlint against all matches. Uses the project's
+`.markdownlint.json` if present (markdownlint resolves config by
+walking up the directory tree natively).
+
+Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` § Governance root for
+the resolution algorithm.
+
+## Procedure
+
+1. From the repository root, glob for governance files:
+   `**/SPEC.md **/ROADMAP.md **/README.md **/REQUIREMENTS.md **/CHANGELOG.md`
+2. Run `npx markdownlint-cli2` against all matched files.
+3. Report the results.
 
 Do not interpret or reimplement lint rules yourself — run the tool
 and report its output.
