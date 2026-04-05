@@ -16,43 +16,12 @@ Confirm verification runs on main, not a branch.
 
 ## Directory-scoped governance
 
-### §road:governance-root-convention
-
-Add governance root resolution algorithm to CONVENTIONS.md: walk
-up from CWD to find nearest SPEC.md, fallback to repo root.
-Generalize "lives at repo root" rules to "lives at the governance
-root." §spec:directory-scoped-governance
-
-### §road:directory-scoped-init
-
-Update `commands/init.md` to scaffold governance files at the
-governance root (CWD) instead of always at repo root. When run
-from a subdirectory, create package-level governance files there.
-Depends on §road:governance-root-convention.
-§spec:directory-scoped-governance
-
-### §road:directory-scoped-lint
-
-Update `commands/lint.md` and `.github/workflows/governance-lint.yml`
-to glob for `**/SPEC.md`, `**/ROADMAP.md`, etc. instead of
-hardcoded root paths. Depends on §road:governance-root-convention.
-§spec:directory-scoped-governance
-
 ### §road:directory-scoped-pipeline
 
 Update `commands/discover.md`, `commands/plan.md`, and
 `commands/roadmap.md` to resolve governance root before reading or
 writing governance files. Read root governance as upstream context
-when operating on a package. Depends on
-§road:governance-root-convention. §spec:directory-scoped-governance
-
-### §road:directory-scoped-execution
-
-Update `commands/next.md`, `commands/orchestrate.md`,
-`commands/clean.md`, and `protocols/batch-agent.md` to resolve
-governance root for target roadmap and scope progress file to
-governance root. Depends on §road:governance-root-convention.
-§spec:directory-scoped-governance
+when operating on a package. §spec:directory-scoped-governance
 
 **Verify:** Run `/symphonize:init` from a `packages/auth/`
 subdirectory. Confirm SPEC.md, ROADMAP.md, CHANGELOG.md are

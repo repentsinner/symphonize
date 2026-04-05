@@ -25,9 +25,14 @@ does not mean unchecked.
 
 ## Phase 1: Plan (in plan mode)
 
-1. Read REQUIREMENTS.md (if present), SPEC.md, ROADMAP.md, and
-   project rules. All three upstream documents provide layered
-   context for implementation decisions.
+1. Resolve the governance root per the symphonize CONVENTIONS.md
+   § Governance root (walk up from CWD to find nearest SPEC.md,
+   fallback to repo root). Read REQUIREMENTS.md (if present),
+   SPEC.md, ROADMAP.md at the governance root, and project rules.
+   If operating on a package (governance root is not the repo root),
+   also read root SPEC.md as upstream architectural context. All
+   upstream documents provide layered context for implementation
+   decisions.
 2. Identify the target workstream(s). If a specific workstream was
    passed, scope to that. Otherwise, identify unblocked workstreams
    and skip anything marked blocked.

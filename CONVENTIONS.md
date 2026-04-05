@@ -2,6 +2,52 @@
 
 Rules that symphonize enforces on projects using its governance loop.
 
+## Governance root
+
+A **governance root** is any directory containing a SPEC.md file.
+Commands resolve the governance root by walking up from the current
+working directory to find the nearest ancestor directory containing
+SPEC.md. If no ancestor contains SPEC.md, the repository root is
+the fallback. This mirrors how `git` finds `.git/`, how Node
+resolves `node_modules`, and how Claude Code scopes CLAUDE.md files.
+
+Single-repo projects (no nested SPEC.md files) are unaffected — the
+repository root is both the only governance root and the fallback.
+
+### Resolution algorithm
+
+1. Start at the current working directory.
+2. If the directory contains SPEC.md, it is the governance root.
+3. Otherwise, walk up to the parent directory and repeat.
+4. If the repository root is reached without finding SPEC.md, the
+   repository root is the governance root.
+
+### Directory-scoped governance
+
+Governance files scope to the directory subtree they live in:
+
+- **Root governance** (SPEC.md at repo root) describes the composed
+  system — cross-cutting architectural decisions, system-level
+  behavior.
+- **Package governance** (SPEC.md in a subdirectory) describes that
+  package — its own spec, roadmap, changelog, scoped to that
+  subtree.
+- **Siblings are invisible to each other.** A package does not read
+  sibling packages' governance files. Shared context belongs in the
+  root.
+
+When operating on a package, commands read root governance as
+upstream architectural context. The package pulls what it needs
+from root. Root does not push constraints into packages.
+
+### File placement
+
+Governance files (SPEC.md, ROADMAP.md, REQUIREMENTS.md,
+CHANGELOG.md) and the progress file
+(`.symphonize-progress.local.md`) live at the governance root.
+Rules in this document that say "lives at repo root" generalize to
+"lives at the governance root."
+
 ## Governance file loop
 
 Four documents form a directed chain from problem to shipped code:
@@ -155,7 +201,7 @@ Rules:
   (e.g., `Depends on §road:extract-core`).
 - Update the roadmap when work starts and when it finishes. Stale
   entries erode trust in the document.
-- Lives at repo root alongside SPEC.md.
+- Lives at the governance root alongside SPEC.md.
 - Workstream descriptions are one sentence stating the deliverable and
   the affected file(s), plus a `§spec:` citation. Rationale, procedures,
   constraints, and implementation detail live in the cited spec section —
@@ -174,7 +220,7 @@ CHANGELOG.md records what shipped. Follows Keep a Changelog
 
 Rules:
 
-- Lives at repo root.
+- Lives at the governance root.
 - Always has an `## [Unreleased]` section at the top.
 - Groups: Added, Changed, Deprecated, Removed, Fixed, Security.
 - Dates in YYYY-MM-DD. Versions in reverse chronological order.

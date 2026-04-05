@@ -472,7 +472,7 @@ in Phase 1 — duplicating design context in the roadmap wastes
 tokens and creates a second source of truth.
 
 ## Directory-scoped governance §spec:directory-scoped-governance
-*Status: not started*
+*Status: in progress*
 
 Governance files scope to the directory subtree they live in. A
 SPEC.md in `packages/auth/` governs `packages/auth/` and its

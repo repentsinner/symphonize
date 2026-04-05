@@ -6,6 +6,20 @@ You are the dispatch layer, not the orchestrator. Do not perform any
 orchestration or git work in the current working tree beyond the
 pre-flight steps below.
 
+Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` § Governance root for
+the resolution algorithm.
+
+## 0. Resolve governance root
+
+Resolve the governance root before selecting work:
+
+1. Walk up from the current working directory to find the nearest
+   ancestor directory containing SPEC.md.
+2. If no ancestor contains SPEC.md, fall back to the repository root.
+3. All governance file reads (ROADMAP.md, SPEC.md, REQUIREMENTS.md)
+   and writes (progress file) in subsequent steps are relative to
+   the governance root, not the repository root.
+
 ## 1. Pre-flight
 
 Ensure local state is current before selecting work.
@@ -17,16 +31,19 @@ Ensure local state is current before selecting work.
 3. Remove any leftover worktrees from `.claude/worktrees/` and their
    backing git worktrees (`git worktree list`, `git worktree remove`
    for any linked worktrees that are no longer needed).
-4. Read ROADMAP.md from `origin/main` (use `git show origin/main:ROADMAP.md`)
-   — not the local working copy, which may be stale.
+4. Read ROADMAP.md from `origin/main` at the governance root path
+   (use `git show origin/main:<governance-root-relative>/ROADMAP.md`)
+   — not the local working copy, which may be stale. For the repo
+   root governance, this is `git show origin/main:ROADMAP.md`.
 
 ## 2. Detect unattended mode
 
 Check if `--unattended` was passed as an argument. If present, set
 `unattended = true`. Otherwise `unattended = false`.
 
-If `unattended`, read `.symphonize-progress.local.md` (if it exists)
-to get the list of workstreams already attempted this loop. Also run
+If `unattended`, read `.symphonize-progress.local.md` at the
+governance root (if it exists) to get the list of workstreams
+already attempted this loop. Also run
 `gh pr list --state open --author @me --json headRefBranch,title,url`
 to cross-check.
 
@@ -162,8 +179,8 @@ Wait for the agent to complete.
 ## 5. Record progress
 
 If the agent returned a PR URL:
-- Append a line to `.symphonize-progress.local.md`:
-  `- <workstream-slug>: <PR-URL>`
+- Append a line to `.symphonize-progress.local.md` at the governance
+  root: `- <workstream-slug>: <PR-URL>`
 - Create the file if it doesn't exist.
 
 Relay the agent's result (PR URL, errors, or status) to the user.

@@ -26,60 +26,58 @@ jobs:
       - uses: DavidAnson/markdownlint-cli2-action@v19
         with:
           globs: |
-            SPEC.md
-            ROADMAP.md
-            README.md
-            REQUIREMENTS.md
-            CHANGELOG.md
+            **/SPEC.md
+            **/ROADMAP.md
+            **/README.md
+            **/REQUIREMENTS.md
+            **/CHANGELOG.md
 
       - name: Validate SPEC.md status lines
         run: |
-          if [ ! -f SPEC.md ]; then
-            echo "No SPEC.md found — skipping status check"
-            exit 0
-          fi
-
           errors=0
-          section=""
-          expect_status=false
+          for specfile in $(find . -name 'SPEC.md' -not -path './.git/*' | sort); do
+            echo "Checking $specfile"
+            section=""
+            expect_status=false
 
-          while IFS= read -r line; do
-            if [[ "$line" =~ ^##\ [^#] ]]; then
-              if $expect_status; then
-                echo "::error::Section '$section' has no *Status: line"
-                errors=$((errors + 1))
-              fi
-              section="$line"
-              expect_status=true
-              continue
-            fi
-
-            if $expect_status; then
-              if [[ -z "$line" ]]; then
+            while IFS= read -r line; do
+              if [[ "$line" =~ ^##\ [^#] ]]; then
+                if $expect_status; then
+                  echo "::error file=${specfile}::Section '$section' has no *Status: line"
+                  errors=$((errors + 1))
+                fi
+                section="$line"
+                expect_status=true
                 continue
               fi
 
-              if [[ "$line" =~ ^\*Status:\ (not\ started|in\ progress|complete)\*$ ]]; then
-                expect_status=false
-              else
-                echo "::error::Section '$section' has invalid or missing status line: $line"
-                errors=$((errors + 1))
-                expect_status=false
-              fi
-            fi
-          done < <(tr -d '\r' < SPEC.md)
+              if $expect_status; then
+                if [[ -z "$line" ]]; then
+                  continue
+                fi
 
-          if $expect_status; then
-            echo "::error::Section '$section' has no *Status: line (end of file)"
-            errors=$((errors + 1))
-          fi
+                if [[ "$line" =~ ^\*Status:\ (not\ started|in\ progress|complete)\*$ ]]; then
+                  expect_status=false
+                else
+                  echo "::error file=${specfile}::Section '$section' has invalid or missing status line: $line"
+                  errors=$((errors + 1))
+                  expect_status=false
+                fi
+              fi
+            done < <(tr -d '\r' < "$specfile")
+
+            if $expect_status; then
+              echo "::error file=${specfile}::Section '$section' has no *Status: line (end of file)"
+              errors=$((errors + 1))
+            fi
+          done
 
           if [ "$errors" -gt 0 ]; then
             echo "$errors status-line error(s) found"
             exit 1
           fi
 
-          echo "All sections have valid status lines"
+          echo "All SPEC.md files have valid status lines"
 
       - name: Validate README.md headings
         if: inputs.readme-type != ''
@@ -130,18 +128,16 @@ jobs:
 
       - name: Validate SPEC.md heading slugs
         run: |
-          if [ ! -f SPEC.md ]; then
-            echo "No SPEC.md found — skipping slug check"
-            exit 0
-          fi
-
           errors=0
-          while IFS= read -r line; do
-            if ! echo "$line" | grep -qE '§spec:[a-z0-9-]+'; then
-              echo "::error::SPEC.md heading missing §spec: slug: $line"
-              errors=$((errors + 1))
-            fi
-          done < <(grep -E '^## ' SPEC.md | tr -d '\r')
+          for specfile in $(find . -name 'SPEC.md' -not -path './.git/*' | sort); do
+            echo "Checking $specfile"
+            while IFS= read -r line; do
+              if ! echo "$line" | grep -qE '§spec:[a-z0-9-]+'; then
+                echo "::error file=${specfile}::Heading missing §spec: slug: $line"
+                errors=$((errors + 1))
+              fi
+            done < <(grep -E '^## ' "$specfile" | tr -d '\r')
+          done
 
           if [ "$errors" -gt 0 ]; then
             echo "$errors SPEC.md heading slug error(s) found"
@@ -152,18 +148,16 @@ jobs:
 
       - name: Validate ROADMAP.md heading slugs
         run: |
-          if [ ! -f ROADMAP.md ]; then
-            echo "No ROADMAP.md found — skipping slug check"
-            exit 0
-          fi
-
           errors=0
-          while IFS= read -r line; do
-            if ! echo "$line" | grep -qE '^### §road:[a-z0-9-]+'; then
-              echo "::error::ROADMAP.md heading missing §road: slug pattern: $line"
-              errors=$((errors + 1))
-            fi
-          done < <(grep -E '^### ' ROADMAP.md | tr -d '\r')
+          for roadmapfile in $(find . -name 'ROADMAP.md' -not -path './.git/*' | sort); do
+            echo "Checking $roadmapfile"
+            while IFS= read -r line; do
+              if ! echo "$line" | grep -qE '^### §road:[a-z0-9-]+'; then
+                echo "::error file=${roadmapfile}::Heading missing §road: slug pattern: $line"
+                errors=$((errors + 1))
+              fi
+            done < <(grep -E '^### ' "$roadmapfile" | tr -d '\r')
+          done
 
           if [ "$errors" -gt 0 ]; then
             echo "$errors ROADMAP.md heading slug error(s) found"
@@ -174,18 +168,16 @@ jobs:
 
       - name: Validate REQUIREMENTS.md heading slugs
         run: |
-          if [ ! -f REQUIREMENTS.md ]; then
-            echo "No REQUIREMENTS.md found — skipping"
-            exit 0
-          fi
-
           errors=0
-          while IFS= read -r line; do
-            if ! echo "$line" | grep -qE '§req:[a-z0-9-]+'; then
-              echo "::error::REQUIREMENTS.md heading missing §req: slug: $line"
-              errors=$((errors + 1))
-            fi
-          done < <(grep -E '^## ' REQUIREMENTS.md | tr -d '\r')
+          for reqfile in $(find . -name 'REQUIREMENTS.md' -not -path './.git/*' | sort); do
+            echo "Checking $reqfile"
+            while IFS= read -r line; do
+              if ! echo "$line" | grep -qE '§req:[a-z0-9-]+'; then
+                echo "::error file=${reqfile}::Heading missing §req: slug: $line"
+                errors=$((errors + 1))
+              fi
+            done < <(grep -E '^## ' "$reqfile" | tr -d '\r')
+          done
 
           if [ "$errors" -gt 0 ]; then
             echo "$errors REQUIREMENTS.md heading slug error(s) found"
@@ -196,63 +188,59 @@ jobs:
 
       - name: Validate CHANGELOG.md structure
         run: |
-          if [ ! -f CHANGELOG.md ]; then
-            echo "No CHANGELOG.md found — skipping"
-            exit 0
-          fi
-
           errors=0
+          for changelog in $(find . -name 'CHANGELOG.md' -not -path './.git/*' | sort); do
+            echo "Checking $changelog"
 
-          # Must have an [Unreleased] section
-          if ! grep -qE '^## \[Unreleased\]' CHANGELOG.md; then
-            echo "::error::CHANGELOG.md missing ## [Unreleased] section"
-            errors=$((errors + 1))
-          fi
-
-          # Every ## heading must match [Unreleased] or [N.N.N] (with optional link)
-          while IFS= read -r line; do
-            if ! echo "$line" | grep -qE '^## \[(Unreleased|[0-9]+\.[0-9]+\.[0-9]+)\]'; then
-              echo "::error::CHANGELOG.md has invalid version heading: $line"
+            # Must have an [Unreleased] section
+            if ! grep -qE '^## \[Unreleased\]' "$changelog"; then
+              echo "::error file=${changelog}::Missing ## [Unreleased] section"
               errors=$((errors + 1))
             fi
-          done < <(grep -E '^## ' CHANGELOG.md | tr -d '\r')
+
+            # Every ## heading must match [Unreleased] or [N.N.N] (with optional link)
+            while IFS= read -r line; do
+              if ! echo "$line" | grep -qE '^## \[(Unreleased|[0-9]+\.[0-9]+\.[0-9]+)\]'; then
+                echo "::error file=${changelog}::Invalid version heading: $line"
+                errors=$((errors + 1))
+              fi
+            done < <(grep -E '^## ' "$changelog" | tr -d '\r')
+          done
 
           if [ "$errors" -gt 0 ]; then
             echo "$errors CHANGELOG.md structure error(s) found"
             exit 1
           fi
 
-          echo "CHANGELOG.md structure is valid"
+          echo "All CHANGELOG.md files have valid structure"
 
       - name: Validate cross-document references
         run: |
           errors=0
           slugs_file=$(mktemp)
 
-          # Extract §prefix:slug from heading lines and write to slugs file.
-          # §spec: from ## headings in SPEC.md
-          if [ -f SPEC.md ]; then
-            grep -E '^## ' SPEC.md | grep -oE '§spec:[a-z0-9-]+' >> "$slugs_file" || true
-          fi
+          # Extract §prefix:slug from heading lines across all governance roots.
+          # §spec: from ## headings in all SPEC.md files
+          for f in $(find . -name 'SPEC.md' -not -path './.git/*'); do
+            grep -E '^## ' "$f" | grep -oE '§spec:[a-z0-9-]+' >> "$slugs_file" || true
+          done
 
-          # §road: from ### headings in ROADMAP.md
-          if [ -f ROADMAP.md ]; then
-            grep -E '^### ' ROADMAP.md | grep -oE '§road:[a-z0-9-]+' >> "$slugs_file" || true
-          fi
+          # §road: from ### headings in all ROADMAP.md files
+          for f in $(find . -name 'ROADMAP.md' -not -path './.git/*'); do
+            grep -E '^### ' "$f" | grep -oE '§road:[a-z0-9-]+' >> "$slugs_file" || true
+          done
 
-          # §req: from ## headings in REQUIREMENTS.md
-          if [ -f REQUIREMENTS.md ]; then
-            grep -E '^## ' REQUIREMENTS.md | grep -oE '§req:[a-z0-9-]+' >> "$slugs_file" || true
-          fi
+          # §req: from ## headings in all REQUIREMENTS.md files
+          for f in $(find . -name 'REQUIREMENTS.md' -not -path './.git/*'); do
+            grep -E '^## ' "$f" | grep -oE '§req:[a-z0-9-]+' >> "$slugs_file" || true
+          done
 
           echo "Defined slugs:"
           cat "$slugs_file"
 
           # Scan governance files for references and validate them
-          for govfile in SPEC.md ROADMAP.md CONVENTIONS.md REQUIREMENTS.md; do
-            if [ ! -f "$govfile" ]; then
-              continue
-            fi
+          govfiles=$(find . -name 'SPEC.md' -o -name 'ROADMAP.md' -o -name 'CONVENTIONS.md' -o -name 'REQUIREMENTS.md' | grep -v './.git/' | sort)
+          for govfile in $govfiles; do
 
             lineno=0
             in_fenced_block=false
@@ -288,27 +276,21 @@ jobs:
                 prefix="${prefix#§}"
 
                 # Skip heading definitions (not references)
+                basename=$(basename "$govfile")
                 case "$prefix" in
                   spec)
-                    if [ "$govfile" = "SPEC.md" ] && echo "$line" | grep -q '^## '; then
+                    if [ "$basename" = "SPEC.md" ] && echo "$line" | grep -q '^## '; then
                       continue
                     fi ;;
                   road)
-                    if [ "$govfile" = "ROADMAP.md" ] && echo "$line" | grep -q '^### '; then
+                    if [ "$basename" = "ROADMAP.md" ] && echo "$line" | grep -q '^### '; then
                       continue
                     fi ;;
                   req)
-                    if [ "$govfile" = "REQUIREMENTS.md" ] && echo "$line" | grep -q '^## '; then
+                    if [ "$basename" = "REQUIREMENTS.md" ] && echo "$line" | grep -q '^## '; then
                       continue
                     fi ;;
                 esac
-
-                # §req: references require REQUIREMENTS.md to exist
-                if [ "$prefix" = "req" ] && [ ! -f REQUIREMENTS.md ]; then
-                  echo "::error file=${govfile},line=${lineno}::Dangling reference ${ref} — REQUIREMENTS.md does not exist"
-                  errors=$((errors + 1))
-                  continue
-                fi
 
                 # Check that the reference resolves to a defined slug
                 if ! grep -qxF "$ref" "$slugs_file"; then
