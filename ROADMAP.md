@@ -1,18 +1,5 @@
 # symphonize — Roadmap
 
-## Vertical-first batch selection
-
-### §road:chain-preferring-selection
-
-Rewrite `commands/next.md` step 3 to build dependency chains
-reaching the user-facing surface and select the longest chain
-that fits the batch cap. §spec:vertical-first-batch-selection
-
-**Verify:** Write a ROADMAP section with workstreams A → B → C
-where C is the surface workstream. Run `/symphonize:next`. Confirm
-the batch includes all three workstreams in dependency order, not
-just A.
-
 ## Clean working tree hygiene
 
 ### §road:clean-phase-reorder
