@@ -6,11 +6,27 @@ Scaffold the governance file loop and CI workflows into the current
 project. Idempotent — skip files that already exist, warn on each
 skip.
 
+Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` § Governance root for
+the resolution algorithm.
+
+## Governance root resolution
+
+Resolve the governance root before creating files:
+
+1. The governance root is the current working directory (CWD).
+   When run from a subdirectory (e.g., `packages/auth/`), scaffold
+   governance files there — not at the repo root.
+2. CI workflows and git hooks always go at the repo root (they are
+   repo-level, not package-level). If CWD is not the repo root,
+   skip CI workflow and git hook scaffolding with a note:
+   `skip: CI workflows and hooks (package-level init — configure
+   at repo root)`.
+
 ## Files to scaffold
 
 ### Governance files
 
-Create at the repo root:
+Create at the governance root (CWD):
 
 - **SPEC.md** — skeleton:
   ```markdown
@@ -165,14 +181,19 @@ hooks.
 
 ## Behavior
 
-1. Read the project name from the repo directory name or manifest.
-2. For each file above, check if it exists. If it does, print
-   `skip: <path> (already exists)` and move on.
-3. Create any missing files with the templates above.
-4. Make `.githooks/pre-commit` executable.
-5. Run `git config core.hooksPath .githooks` to activate hooks.
-6. Run `/symphonize:lint` to validate the result.
-7. Print a summary of created and skipped files.
+1. Resolve the governance root per § Governance root resolution above.
+2. Read the project name from the repo directory name or manifest.
+3. For each file above, check if it exists at the governance root.
+   If it does, print `skip: <path> (already exists)` and move on.
+4. Create any missing governance files at the governance root.
+5. If CWD is the repo root, also scaffold CI workflows and hooks:
+   a. Create CI workflow files under `.github/workflows/`.
+   b. Create `.githooks/pre-commit` and make it executable.
+   c. Run `git config core.hooksPath .githooks` to activate hooks.
+6. If CWD is not the repo root, skip CI workflows and hooks with
+   a note.
+7. Run `/symphonize:lint` to validate the result.
+8. Print a summary of created and skipped files.
 
 Do NOT commit. Leave the files unstaged so the user can review
 and commit when ready.
