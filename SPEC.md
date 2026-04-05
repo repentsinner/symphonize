@@ -452,11 +452,14 @@ Algorithm:
    workstream touching the user-facing surface (as identified by
    `/roadmap` Phase 2). Enumerate all maximal chains from roots
    (no unmet in-section dependencies) to surface workstreams.
-3. **Select the shortest surface-reaching chain that fits the
-   batch cap.** Prefer shorter chains — they deliver a vertical
-   slice with less work, consistent with walking skeleton
-   methodology. If multiple chains have the same length, prefer
-   the one appearing first in document order.
+3. **Select the longest surface-reaching chain that fits the
+   batch cap.** Prefer longer chains — they unblock the most
+   downstream work per review cycle. Each batch produces one PR
+   requiring one human review. A longer chain in one PR is one
+   review; the same workstreams split across batches is multiple
+   reviews with sequential dependencies. If multiple chains have
+   the same length, prefer the one appearing first in document
+   order.
 4. **Fill remaining capacity.** If the selected chain leaves room
    under the batch cap, add un-attempted workstreams from the same
    section that are independent (no dependency relationship with
@@ -500,17 +503,22 @@ by definition, crosses layers — it connects foundation to surface.
 Preferring chains aligns batch selection with the vertical slice
 structure that `/roadmap` already imposes on sections.
 
-**Why shortest chain:** walking skeleton methodology. The first
-slice through a capability should be the thinnest end-to-end path,
-proving the architecture works. Deeper implementation comes in
-subsequent batches. A longer chain means more work before the
-first verifiable result.
+**Why longest chain:** the bottleneck in an orchestration loop is
+review latency, not batch size. Each batch produces a PR that
+waits for human review. Maximizing the chain length per batch
+minimizes the number of review gates between "nothing built" and
+"vertical slice shipped." A 3-workstream chain in one PR is one
+review. The same 3 workstreams as sequential batches is three
+reviews — and each waits for the previous to merge. The walking
+skeleton principle still applies: the chain is vertical (foundation
+to surface), not horizontal. Length measures depth through the
+architecture, not breadth across unrelated features.
 
 **Why not topological sort of the whole section:** the dispatch
 layer selects one batch, not a build plan. Topological sort of the
 entire section would reason about future batches — outside the
 dispatch layer's scope. Chain selection answers "what is the
-smallest batch that ships a vertical slice?"
+largest vertical slice this batch can ship?"
 
 ## Clean working tree hygiene §spec:clean-working-tree-hygiene
 *Status: not started*
@@ -527,7 +535,7 @@ Full-mode clean checks out `main` and fast-forwards (`git pull
 --ff-only`) before running verification (analyze, test). The
 current command runs verification after governance doc updates but
 before switching to main — verifying from a branch, not from the
-state that will ship. Correct order:
+state that ships. Correct order:
 
 1. Git housekeeping (fetch, prune, branch/worktree cleanup, PR
    supersession)
