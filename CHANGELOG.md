@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.36](https://github.com/repentsinner/symphonize/compare/v0.1.35...v0.1.36) (2026-04-05)
+
+
+### Features
+
+* **pipeline:** resolve governance root in discover, plan, and roadmap ([#103](https://github.com/repentsinner/symphonize/issues/103)) ([b4a3c99](https://github.com/repentsinner/symphonize/commit/b4a3c99ba4e00dffb0d1de2cc3ebca32f1cf4d27))
+
 ## [0.1.35](https://github.com/repentsinner/symphonize/compare/v0.1.34...v0.1.35) (2026-04-05)
 
 
