@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.31](https://github.com/repentsinner/symphonize/compare/v0.1.30...v0.1.31) (2026-04-05)
+
+
+### Bug Fixes
+
+* **spec:** prefer longest chain in batch selection, fix Vale warnings ([#93](https://github.com/repentsinner/symphonize/issues/93)) ([cdc8013](https://github.com/repentsinner/symphonize/commit/cdc8013637a4ec614ef9ff2221ee833025a172ff))
+
 ## [0.1.30](https://github.com/repentsinner/symphonize/compare/v0.1.29...v0.1.30) (2026-04-04)
 
 
