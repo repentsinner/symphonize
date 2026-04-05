@@ -27,6 +27,29 @@ Do NOT update governance docs, run verification, or sync chezmoi.
 Run after PRs merge to main — either after a single batch or after
 reviewing all ralph-loop PRs.
 
+Never run `git stash` under any circumstance. Stashes created by
+branch-switching during cleanup accumulate silently — the pop or
+drop never happens.
+
+### 0. Dirty-state guard
+
+Before any other work, check for uncommitted changes:
+
+```sh
+git status --porcelain
+```
+
+- If the only dirty files are generated lock files (`pubspec.lock`,
+  `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`,
+  `Podfile.lock`, `Gemfile.lock`, `Cargo.lock`, `poetry.lock`,
+  `go.sum`), restore them (`git restore <file>` for each) and
+  proceed.
+- If other files are dirty, print the `git status` output as a
+  warning and abort. Tell the user to resolve uncommitted changes
+  before re-running `/symphonize:clean --full`.
+
+Do not stash, force-checkout, or silently discard uncommitted work.
+
 ### 1. Git housekeeping
 
 - Fetch origin.
@@ -50,16 +73,29 @@ reviewing all ralph-loop PRs.
   4. Only after all changes are confirmed present in main, close
      the PR with a comment citing the merge commit or batch PR
      that landed the work.
-- Leave the working tree on `main` at the tip of `origin/main`.
-- Verify `git status` is clean. If not, warn — do not discard
-  uncommitted work.
 
-### 2. Progress file cleanup
+### 2. Checkout main and fast-forward
+
+Switch to `main` and pull:
+
+```sh
+git checkout main
+git pull --ff-only
+```
+
+If fast-forward fails, warn and abort — main has diverged and
+needs manual resolution.
+
+Re-run the dirty-state guard (step 0 logic) after checkout. Lock
+file drift from switching branches is common — restore lock files,
+abort on other dirty files.
+
+### 3. Progress file cleanup
 
 If `.symphonize-progress.local.md` exists, delete it. The loop
 is over — progress state is no longer needed.
 
-### 3. Governance docs
+### 4. Governance docs
 
 Read SPEC.md, ROADMAP.md, CHANGELOG.md, and recent commit history
 (`git log --oneline -20`). Check:
@@ -80,10 +116,10 @@ Read SPEC.md, ROADMAP.md, CHANGELOG.md, and recent commit history
 Commit governance doc changes to a `docs/post-merge-cleanup` branch
 and open a PR (or push directly to main if the project allows).
 
-### 4. Verify
+### 5. Verify
+
+Run verification against main — not a branch.
 
 - Run the project's analysis tool — zero warnings.
 - Run the project's test suite — zero failures.
 - `git log --oneline -5` — confirm HEAD is clean main.
-
-$1
