@@ -3,6 +3,10 @@ argument-hint: [--lite | --full]
 description: Cleans up after executing batch workstreams
 ---
 
+Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` § Governance root for
+the resolution algorithm. Resolve the governance root before
+operating.
+
 Two modes: `--lite` and `--full`. If no flag is passed, auto-detect:
 use `--lite` if `.claude/ralph-loop.local.md` exists, `--full`
 otherwise.
@@ -92,13 +96,14 @@ abort on other dirty files.
 
 ### 3. Progress file cleanup
 
-If `.symphonize-progress.local.md` exists, delete it. The loop
+Find and delete `.symphonize-progress.local.md` files across all
+governance roots (glob `**/.symphonize-progress.local.md`). The loop
 is over — progress state is no longer needed.
 
 ### 4. Governance docs
 
-Read SPEC.md, ROADMAP.md, CHANGELOG.md, and recent commit history
-(`git log --oneline -20`). Check:
+Read SPEC.md, ROADMAP.md, CHANGELOG.md at the governance root, and
+recent commit history (`git log --oneline -20`). Check:
 
 - **ROADMAP.md**: no completed workstreams remain. Every bullet
   traces to a SPEC.md gap that is still open. Delete anything

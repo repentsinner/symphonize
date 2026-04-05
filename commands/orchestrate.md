@@ -1,6 +1,11 @@
 ---
 description: Start ralph-loop to work through ROADMAP.md
 ---
+The governance root is determined by the current working directory
+when this command is invoked. `/symphonize:next` resolves the
+governance root per `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md`
+§ Governance root.
+
 Run `/symphonize:clean --lite` to ensure local state is clean before
 starting the loop.
 
