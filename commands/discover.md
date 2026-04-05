@@ -3,13 +3,32 @@ argument-hint: [product idea or problem area]
 description: Interview the user to produce or update REQUIREMENTS.md
 ---
 Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` for governance file formats
-(§ Cross-document traceability).
+(§ Cross-document traceability, § Governance root).
 If CONVENTIONS.md exists in the target project, read it before producing output.
 
+## 0. Resolve governance root
+
+Resolve the governance root before reading or writing governance files:
+
+1. Walk up from the current working directory to find the nearest
+   ancestor directory containing SPEC.md.
+2. If no ancestor contains SPEC.md, fall back to the repository root.
+3. All governance file reads and writes in subsequent steps are
+   relative to the governance root, not the repository root.
+
+When the governance root is not the repository root (package-level
+governance), read root REQUIREMENTS.md and root SPEC.md as upstream
+context. Root requirements provide system-level problem context that
+package-level requirements refine. Do not modify root files — they
+are read-only context.
+
+---
+
 Conduct a structured interview to understand the user's problem space and
-produce, expand, or update REQUIREMENTS.md — a problem-space document in the
-user's language. If REQUIREMENTS.md already exists, read it first, then focus
-the interview on gaps, changes, or new feature areas.
+produce, expand, or update REQUIREMENTS.md at the governance root — a
+problem-space document in the user's language. If REQUIREMENTS.md already
+exists at the governance root, read it first, then focus the interview on
+gaps, changes, or new feature areas.
 
 ## Slicing principle
 

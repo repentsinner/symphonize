@@ -2,7 +2,25 @@
 argument-hint: [spec section or feature area]
 description: Break spec sections into ROADMAP.md workstreams
 ---
-Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` for roadmap format rules (§ Roadmap format).
+Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` for roadmap format rules
+(§ Roadmap format, § Governance root).
+
+## 0. Resolve governance root
+
+Resolve the governance root before reading or writing governance files:
+
+1. Walk up from the current working directory to find the nearest
+   ancestor directory containing SPEC.md.
+2. If no ancestor contains SPEC.md, fall back to the repository root.
+3. All governance file reads and writes in subsequent steps are
+   relative to the governance root, not the repository root.
+
+When the governance root is not the repository root (package-level
+governance), read root SPEC.md and root ROADMAP.md as upstream
+context. Root spec provides system-level architectural decisions
+that inform workstream decomposition. Root roadmap provides
+cross-cutting coordination context. Do not modify root files —
+they are read-only context.
 
 ## Responsibility
 
@@ -42,7 +60,9 @@ backpressure proportional to the gap.
 
 1. Create a planning worktree. Fetch origin and start from tip of
    main.
-2. Read REQUIREMENTS.md (if present), SPEC.md, and ROADMAP.md.
+2. Read REQUIREMENTS.md (if present), SPEC.md, and ROADMAP.md at
+   the governance root. If operating on a package, also read root
+   SPEC.md as upstream architectural context.
 3. **Check SPEC.md quality.**
    - **Absent:** cannot roadmap without a spec. Recommend
      `/plan` to produce spec sections. If the user insists on
@@ -138,7 +158,7 @@ backpressure proportional to the gap.
     `§spec:` target. Every spec section with status `not started`
     or `in progress` should have at least one workstream. Flag
     orphans in either direction.
-11. Commit updated ROADMAP.md to a branch, push, and open a PR.
-    Review with the user before merging.
+11. Commit updated ROADMAP.md (at the governance root) to a branch,
+    push, and open a PR. Review with the user before merging.
 
 The task goals from the user are: $1
