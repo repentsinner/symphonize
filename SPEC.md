@@ -395,7 +395,7 @@ Wake, "INVEST in Good Stories" (2003); Cockburn, "Elephant
 Carpaccio" exercise.
 
 ## Clean working tree hygiene §spec:clean-working-tree-hygiene
-*Status: not started*
+*Status: in progress*
 
 The `/symphonize:clean` full-mode command shall not stash, force-
 checkout, or silently discard uncommitted changes. When the working
