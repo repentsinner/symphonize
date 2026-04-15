@@ -429,6 +429,113 @@ parallel agents producing nuanced findings that benefit from human
 judgment. Gating on it would block unattended loops on false
 positives or require auto-dismissal — defeating the purpose.
 
+## Simplify gate §spec:simplify-gate
+*Status: not started*
+
+The batch agent protocol (`protocols/batch-agent.md`) includes a
+mandatory `/simplify` gate as Phase 5a, between Phase 5 (Verify)
+and Phase 5b (`/security-review`). The gate invokes the bundled
+`/simplify` skill, which spawns three parallel review agents for
+code reuse, quality, and efficiency, aggregates findings, and
+applies fixes to recently changed files. §req:quality-attributes
+
+### Gate ordering
+
+1. Phase 5 verify completes (CI green, vertical integration
+   confirmed, Boy Scout cleanup applied).
+2. Phase 5a runs `/simplify` once over the batch diff. The skill
+   applies fixes directly.
+3. The batch agent reviews the fixes. If any fix contradicts a
+   deliberate design choice made during implementation (e.g.,
+   intentional inlining, duplication for clarity), the agent
+   reverts that fix with a commit message explaining the reversion.
+4. The batch agent re-runs the CI command from Phase 2. Simplify
+   fixes that break CI shall be diagnosed and corrected before
+   proceeding.
+5. Phase 5b (`/security-review`) runs against the simplified code.
+6. Phase 6 (Deliver) pushes.
+
+### Skip condition
+
+The gate is skipped when the batch diff touches no source files
+(only markdown, YAML, or governance documents). The batch agent
+determines this by inspecting `git diff --name-only` against the
+merge base and checking that no files match the project's source
+file extensions. Skipping the gate is recorded in the batch agent's
+status report so the reviewer knows why Phase 5a did not execute.
+
+### Single invocation
+
+The gate runs `/simplify` exactly once. It does not iterate until
+clean. `/simplify` is an actuator — repeated invocations risk
+re-refactoring the skill's own output, producing churn without
+convergence. CI re-run is the safety net; a single pass plus CI
+validation bounds the loop.
+
+**Why mandatory:** reuse, duplication, and inefficiency violations
+are objective and mechanically detectable. Gating enforces
+brownfield-bias (CLAUDE.md § Brownfield bias) at machine speed
+rather than relying on batch-agent discretion. Symmetry with
+`/security-review`: both are native skills whose output is
+deterministic enough to gate on.
+
+**Why Phase 5a, not Phase 5 step:** `/simplify` mutates code and
+requires a CI re-run. Embedding it inside Phase 5's verify steps
+would interleave verification with mutation. A dedicated phase
+makes the mutate-then-revalidate cycle explicit.
+
+**Why after Phase 5, not before:** Phase 5 verifies the batch's
+vertical integration against the spec. `/simplify` optimizes
+*how* the code is written, not *what* it does. Running simplify
+before integration verification risks the skill refactoring
+incomplete work. Verify the slice works, then optimize its shape.
+
+**Why before `/security-review`, not after:** security-review
+inspects the code that ships. If `/simplify` ran after, security
+would review pre-simplify code and miss vulnerabilities introduced
+by the refactor. Running simplify first ensures security sees the
+final state. Running security twice (before and after) doubles
+cost without commensurate benefit.
+
+**Why batch-agent reviews fixes before CI re-run:** `/simplify`
+has no visibility into design intent. A batch agent may have
+deliberately inlined a helper for readability or duplicated logic
+across two sites for independence. Blindly accepting fixes
+overrides intent. Review-then-revert is cheap (the fixes are
+already a diff) and preserves the agent's architectural choices.
+
+**Why skip for doc-only batches:** `/simplify` reviews "code reuse,
+quality, and efficiency." Markdown and YAML have none of these
+concerns. Spending three agent spawns on prose is noise.
+§req:quality-attributes (proportionality).
+
+**Rejected alternatives:**
+
+- **Recommended, not mandatory.** Matches `/review --comment`'s
+  posture. Rejected: recommended gates are silently skipped in
+  unattended mode, which defeats the enforcement goal. Reuse
+  violations are objective enough to gate on.
+- **Iterate until clean.** Matches `/security-review`'s loop.
+  Rejected: `/simplify` applies fixes, so subsequent iterations
+  see a modified diff and may reverse prior work. Security-review
+  is a reporter — its "iterate until clean" is a fixpoint on
+  findings. Simplify is an actuator — its fixpoint is unstable.
+- **Replace Phase 5 step 5 (Boy Scout cleanup) with `/simplify`.**
+  Rejected: Boy Scout cleanup operates on *files the batch
+  already touches*, encouraging incremental improvement as a
+  side-effect of implementation work. `/simplify` operates on
+  *recently changed files*. Overlap is substantial but not
+  identical; manual cleanup remains valuable for code the
+  batch agent understands in context.
+
+**Tradeoffs accepted:**
+
+- Three additional parallel agent spawns per batch, charged against
+  the batch agent's token budget.
+- CI runs twice per batch (end of Phase 4, end of Phase 5a).
+- Simplify may propose fixes the batch agent must revert, costing
+  review time. Bounded by running simplify once.
+
 ## Thin roadmap workstreams §spec:thin-roadmap-workstreams
 *Status: complete*
 
