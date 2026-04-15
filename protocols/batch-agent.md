@@ -146,9 +146,36 @@ When all workstreams are merged:
    CONVENTIONS.md § Spec compression (path provided by the
    dispatch layer).
 
+## Phase 5a: Simplify Gate (mandatory)
+
+After Phase 5 verification passes and before `/security-review`.
+Implements §spec:simplify-gate.
+
+1. **Skip-condition check.** Compute the changed-file list with
+   `git diff --name-only $(git merge-base HEAD origin/main) HEAD`.
+   If every changed path is a non-source file (markdown, YAML, or
+   governance documents — SPEC.md, ROADMAP.md, REQUIREMENTS.md,
+   CHANGELOG.md), skip the gate and record the skip in the batch
+   agent's status report so the reviewer knows why Phase 5a did not
+   execute. Proceed directly to Phase 5b.
+2. **Single `/simplify` invocation.** Run `/simplify` exactly once
+   over the batch diff. Do not loop until clean — `/simplify` is an
+   actuator, and iteration risks re-refactoring its own output.
+3. **Fix review with revert-on-conflict.** After `/simplify` applies
+   fixes, inspect the resulting diff. If any fix contradicts a
+   deliberate design choice made during implementation (intentional
+   inlining, deliberate duplication for independence, readability
+   over DRY), revert that fix in a separate commit whose message
+   explains the reversion.
+4. **Mandatory CI re-run.** Run the CI command discovered in Phase 2
+   after fixes (and any reversions) settle. Simplify-introduced
+   regressions shall be diagnosed and fixed before proceeding.
+5. **Handoff to Phase 5b.** Phase 5a transitions to `/security-review`
+   so security scans the final, simplified code.
+
 ## Phase 5b: Security Review (mandatory gate)
 
-After Phase 5 verification passes and before pushing:
+After Phase 5a completes (or is skipped) and before pushing:
 
 1. Run `/security-review`.
 2. If `/security-review` reports findings, resolve them before
