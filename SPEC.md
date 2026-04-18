@@ -229,15 +229,6 @@ project-root dotfiles, named after the tool that owns it.
 from plugin commands. Symphonize state belongs to symphonize, not
 to the host tool's config directory.
 
-**Known issue:** the ralph-loop stop hook fires based on the
-presence of `.claude/ralph-loop.local.md`, not on which skill is
-active. If an orchestrate loop is blocked on review and the user
-runs `/symphonize:plan` or `/symphonize:discover` in the same
-project, the stop hook interrupts planning with orchestration
-directives. Workaround: `/clear` and manually remove the flag
-file before planning. A proper fix requires the stop hook (in
-ralph-loop, not symphonize) to check active skill context.
-
 ## Unattended flag passthrough §spec:unattended-flag-passthrough
 *Status: complete*
 
@@ -282,6 +273,59 @@ propagate the flag to sub-agent workers. Those workers can surface
 interactive prompts that block the orchestration loop indefinitely
 with no user present. Explicit passthrough at every layer ensures
 the entire tree runs non-interactively.
+
+## Orchestrate isolation §spec:orchestrate-isolation
+*Status: not started*
+
+`/symphonize:orchestrate` runs its ralph-loop inside a dedicated
+git worktree rather than the user's invocation working tree.
+Ralph-loop state (`.claude/ralph-loop.local.md`), the progress
+file (`.symphonize-progress.local.md`), and sub-agent worktrees
+created by `/symphonize:next` all live inside the orchestrate
+worktree.
+
+**Why:** the upstream `ralph-loop` plugin's Stop hook fires for
+every Claude Code session whose CWD contains
+`.claude/ralph-loop.local.md`. The hook has session-isolation
+logic, but it depends on a `CLAUDE_CODE_SESSION_ID` environment
+variable that Claude Code does not export to commands. Until the
+upstream fix lands (tracked at
+`anthropics/claude-plugins-official#64`, with ~13 open
+duplicates), every unrelated Claude Code session in the same
+working tree is hijacked by orchestrate's Stop hook — unrelated
+work gets injected with the ralph-loop prompt. Running
+orchestrate in its own worktree sidesteps the bug: sessions in
+the user's main tree see no state file and stop normally.
+
+**Consequences:**
+
+- Parallel orchestrate runs — two sessions in separate worktrees
+  shall execute different roadmap sections concurrently.
+- Side work in the main tree (`/plan`, `/discover`, ad-hoc
+  agents) runs without hijack.
+- `/symphonize:clean` shall remove orchestrate worktrees in
+  addition to sub-agent worktrees when the loop ends.
+- `/symphonize:next` already reads ROADMAP.md from `origin/main`
+  via `git show` (pre-flight 1.4), so dispatch decisions remain
+  correct regardless of orchestrate-worktree freshness.
+
+**Rejected alternatives:**
+
+- **Fork or patch `ralph-loop` locally.** Rejected: maintaining a
+  fork adds supply-chain drift, and the fix belongs upstream.
+  Worktree isolation works against stock ralph-loop.
+- **Document the hijack and tell users to worktree side work.**
+  Rejected: the bug's symptoms don't suggest "run parallel work
+  elsewhere," and users who keep multiple sessions open in the
+  same project hit it unaware.
+
+**Tradeoffs accepted:**
+
+- One worktree creation at orchestrate start, one removal at
+  completion or cancel.
+- SPEC.md and other non-ROADMAP reads in the orchestrate worktree
+  may lag `origin/main`. Dispatch-critical reads (ROADMAP.md)
+  bypass this via `origin/main` pins.
 
 ## Governance consistency §spec:governance-consistency
 *Status: in progress*
