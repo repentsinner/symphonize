@@ -627,3 +627,56 @@ means deleting them. No registry to maintain, no sync to drift.
 **Why no symphonize-specific lint inheritance:** markdownlint, Vale,
 and similar tools already resolve config by walking up the directory
 tree. Symphonize delegates to the linter's native scoping.
+
+## Conventions kernel extraction §spec:conventions-kernel
+*Status: not started*
+
+A dedicated kernel repository — currently `bug-free-happiness` — owns the
+conventions kernel: the governance contract (file formats, the
+`§req:`/`§spec:`/`§road:` slug grammar, the status-line format), the
+scaffolder that materializes it, and the reusable workflow that enforces
+it. Symphonize consumes that kernel as one governance-system adopter; it
+no longer owns the contract. §req:modular-adoption
+
+In the target state:
+
+- Symphonize's CI references the kernel's enforcement workflow with the
+  governance checks (traceability, prose, extended globs) enabled,
+  instead of shipping its own `governance-lint.yml`. This supersedes
+  §spec:reusable-ci and §spec:dogfooding.
+- Symphonize's `CONVENTIONS.md` holds a materialized copy of the kernel's
+  canonical grammar and carries a `contracts-version` marker, instead of
+  serving as the canonical source. This supersedes
+  §spec:self-contained-conventions.
+- `/symphonize:init` defers to the kernel's scaffolder, and symphonize
+  declares a plugin dependency on the kernel. This supersedes the
+  scaffolding ownership in §spec:project-scaffolding.
+
+The kernel repository's own SPEC.md specifies the kernel's design —
+single repo, three faces, and the version-coherence contract. Symphonize
+references that spec instead of restating it.
+
+**Why extract:** a linter is the executable form of the contract.
+Co-locating the contract and its enforcement in the kernel makes their
+coherence structural — one version moves both — and prevents the
+numbered-versus-slug drift that a split-repo arrangement already
+produced. Externalizing the contract lets adopters take the conventions
+without symphonize's execution model and gives every component one source
+of truth for valid governance. §req:modular-adoption
+
+**Why consume rather than own:** owning the contract made symphonize the
+de-facto kernel for every adopter, coupling them to its release cadence
+and full opinion. As a consumer, symphonize keeps its execution and
+curation opinions to itself while the shared contract lives in the
+kernel.
+
+**Direction:** the kernel extraction is the first step toward decomposing
+symphonize into independently-adoptable layers — a curation layer and a
+dispatch layer over the shared kernel. This section covers only the
+conventions-kernel boundary; the further splits await their own spec
+sections.
+
+**Tradeoff accepted:** a cross-repo dependency replaces an in-repo one.
+Symphonize's CI and scaffolding depend on a published kernel release. The
+`contracts-version` marker makes a kernel/consumer mismatch detectable
+rather than silent.
