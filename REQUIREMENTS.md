@@ -146,3 +146,29 @@ not an active requirement.
 - Batch triage for processing multiple issues in one session
 - Stale issue bot for auto-closing unresponsive `needs-info` issues
 - Pipeline auto-chaining with human review gates between stages
+
+## Modular adoption §req:modular-adoption
+
+Symphonize bundles three separable capabilities in one plugin: curating
+governance intent (`/discover`, `/plan`, `/roadmap`), dispatching
+execution (`/next`, `/orchestrate`, `/review`, `/clean`), and the
+conventions contract beneath both — the governance file formats, the
+`§`-slug traceability grammar, the scaffolder that installs them, and the
+CI workflow that enforces them.
+
+Adopters need these separately:
+
+- A team may want the conventions and their linting without symphonize's
+  agent-swarm execution model, or the planning discipline without the
+  dispatch machinery. The monolith forces all-or-nothing adoption.
+- The conventions contract should serve as the one source of truth that
+  symphonize, future symphonize components, and external adopters all
+  consume. Holding it inside symphonize couples every adopter to
+  symphonize's release cadence and full opinion.
+- A contract and the linter that enforces it drift when they live apart.
+  The enforcement workflow once validated numbered sections while the
+  grammar had moved to slug-style headings, and nothing caught the
+  divergence. The contract and its enforcement should share one version.
+
+The conventions layer separates first, because every other component and
+every adopter depends on it.
