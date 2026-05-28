@@ -283,6 +283,87 @@ interactive prompts that block the orchestration loop indefinitely
 with no user present. Explicit passthrough at every layer ensures
 the entire tree runs non-interactively.
 
+## Orchestration loop §spec:orchestration-loop
+*Status: not started*
+
+`/symphonize:orchestrate` runs an unattended execution loop that
+invokes `/symphonize:next --unattended` repeatedly until the
+active ROADMAP section's unblocked workstreams are attempted. The
+loop runs in-session via Claude Code's first-party `/goal` command
+(Claude Code 2.1.139+). §req:success-criteria
+
+### Observable behavior
+
+- When `/symphonize:orchestrate` runs, it first invokes
+  `/symphonize:clean --lite` to settle local state, then sets a
+  `/goal` whose condition describes the section's completion
+  state (all unblocked workstreams attempted, or ROADMAP.md
+  empty).
+- Each turn, Claude Code invokes `/symphonize:next --unattended`.
+  After the turn, the small fast model (typically Haiku) judges
+  the goal condition against the conversation transcript and
+  either continues or terminates the loop.
+- When the condition is met, the goal clears automatically and
+  the user regains control. The active ROADMAP section is left
+  blocked on review with one PR per executed batch.
+- The user terminates an active loop with `/goal clear` or by
+  starting a new conversation with `/clear`.
+
+### Termination contract with /next
+
+The goal is met when `/symphonize:next --unattended` reports that
+all unblocked workstreams in the active ROADMAP section have been
+attempted, or when ROADMAP.md contains no remaining workstreams.
+`/next`'s output shall make the terminal state visible to a
+reading evaluator — a literal sentinel string is not required and
+is not part of the contract. The exact condition wording is an
+implementation detail of `commands/orchestrate.md`.
+
+### Why /goal, not ralph-loop
+
+Earlier versions invoked the third-party ralph-loop plugin with a
+literal completion-promise sentinel (`BLOCKED ON REVIEW`). `/goal`
+covers the same in-session, condition-bounded execution use case
+natively. The switch removes:
+
+- A third-party plugin dependency, simplifying installation and
+  reducing the trust surface.
+- The `.claude/ralph-loop.local.md` flag-file coupling that bled
+  ralph-loop's stop hook into unrelated commands when the user
+  ran `/symphonize:plan` or `/symphonize:discover` in a project
+  with an active loop (see prior known-issue note in
+  §spec:progress-file-location).
+- A bespoke sentinel-string convention; the evaluator judges the
+  condition from `/next`'s natural output.
+
+### Rejected alternatives
+
+- **Keep ralph-loop.** Rejected: it remains a viable plugin, but
+  `/goal` is first-party in the host tool, resolves a documented
+  cross-skill leakage issue, and removes an external dependency.
+  Sub-1.0.0 status carries no back-compat obligation.
+- **Pure auto mode.** Rejected: auto mode approves tool calls
+  within a turn but does not start a new turn. The orchestration
+  loop needs per-turn continuation, which `/goal` provides.
+- **Time-interval `/loop`.** Rejected: orchestration is
+  event-driven (when `/next` finishes, start the next), not
+  time-driven. A fixed interval either wastes idle time or
+  preempts in-flight work.
+- **Custom stop hook.** Rejected: `/goal` is a session-scoped
+  wrapper around a prompt-based stop hook. Hand-rolling the
+  equivalent reproduces what the host already ships.
+
+### Tradeoffs accepted
+
+- Termination is model-judged (small fast model), not literal
+  string match. The condition is short and the evaluator's
+  accuracy is sufficient at this gate. §req:quality-attributes
+- The loop requires the workspace trust dialog accepted and
+  hooks enabled. `/goal` reports the reason when unavailable, so
+  the failure mode is visible rather than silent.
+- Slight per-turn evaluation cost on the small fast model;
+  negligible compared to main-turn spend.
+
 ## Governance consistency §spec:governance-consistency
 *Status: in progress*
 
