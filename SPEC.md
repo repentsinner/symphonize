@@ -632,11 +632,13 @@ tree. Symphonize delegates to the linter's native scoping.
 *Status: not started*
 
 A dedicated kernel repository — currently `bug-free-happiness` — owns the
-conventions kernel: the governance contract (file formats, the
-`§req:`/`§spec:`/`§road:` slug grammar, the status-line format), the
-scaffolder that materializes it, and the reusable workflow that enforces
-it. Symphonize consumes that kernel as one governance-system adopter; it
-no longer owns the contract. §req:modular-adoption
+conventions kernel: the **structural** governance contract (file formats,
+the `§req:`/`§spec:`/`§road:` slug grammar, the status-line format, and
+cross-reference rules), the scaffolder that materializes it, and the
+reusable workflow that enforces it. Symphonize consumes that structural
+contract as one governance-system adopter. Symphonize keeps its authoring
+methodology and process discipline — these are symphonize's own opinion,
+not part of the shared kernel contract. §req:modular-adoption
 
 In the target state:
 
@@ -644,9 +646,13 @@ In the target state:
   governance checks (traceability, prose, extended globs) enabled,
   instead of shipping its own `governance-lint.yml`. This supersedes
   §spec:reusable-ci and §spec:dogfooding.
-- Symphonize's `CONVENTIONS.md` holds a materialized copy of the kernel's
-  canonical grammar and carries a `contracts-version` marker, instead of
-  serving as the canonical source. This supersedes
+- Symphonize's `CONVENTIONS.md` splits three ways. The structural grammar
+  becomes a materialized copy from the kernel carrying a
+  `contracts-version` marker. The authoring methodology (declarative spec
+  writing, vertical slicing, interview frameworks, compression) moves into
+  symphonize's curation commands. The process discipline (branching,
+  commit conventions, quality gate) moves into its dispatch commands. Only
+  the structural slice comes from the kernel. This supersedes
   §spec:self-contained-conventions.
 - `/symphonize:init` defers to the kernel's scaffolder, and symphonize
   declares a plugin dependency on the kernel. This supersedes the
@@ -672,7 +678,10 @@ kernel.
 
 **Direction:** the kernel extraction is the first step toward decomposing
 symphonize into independently-adoptable layers — a curation layer and a
-dispatch layer over the shared kernel. This section covers only the
+dispatch layer over the shared kernel. The three-way split of today's
+`CONVENTIONS.md` mirrors that layering: the structural slice anchors the
+kernel, the authoring methodology becomes curation's, and the process
+discipline becomes dispatch's. This section covers only the
 conventions-kernel boundary; the further splits await their own spec
 sections.
 
