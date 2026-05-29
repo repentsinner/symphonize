@@ -634,9 +634,11 @@ tree. Symphonize delegates to the linter's native scoping.
 A dedicated kernel repository — currently `bug-free-happiness` — owns the
 conventions kernel: the **structural** governance contract (file formats,
 the `§req:`/`§spec:`/`§road:` slug grammar, the status-line format, and
-cross-reference rules), the scaffolder that materializes it, and the
-reusable workflow that enforces it. Symphonize consumes that structural
-contract as one governance-system adopter. Symphonize keeps its authoring
+cross-reference rules), the scaffolder that wires a repo up to it, and the
+reusable workflow that enforces it. The contract ships no document to
+adopters — the linter is its executable form and the plugins are built
+against the grammar. Symphonize consumes that structural contract as one
+governance-system adopter. Symphonize keeps its authoring
 methodology and process discipline — these are symphonize's own opinion,
 not part of the shared kernel contract. §req:modular-adoption
 
@@ -646,17 +648,19 @@ In the target state:
   governance checks (traceability, prose, extended globs) enabled,
   instead of shipping its own `governance-lint.yml`. This supersedes
   §spec:reusable-ci and §spec:dogfooding.
-- Symphonize's `CONVENTIONS.md` splits three ways. The structural grammar
-  becomes a materialized copy from the kernel carrying a
-  `contracts-version` marker. The authoring methodology (declarative spec
-  writing, vertical slicing, interview frameworks, compression) moves into
-  symphonize's curation commands. The process discipline (branching,
-  commit conventions, quality gate) moves into its dispatch commands. Only
-  the structural slice comes from the kernel. This supersedes
-  §spec:self-contained-conventions.
+- Symphonize's `CONVENTIONS.md` is deleted, not replaced. Its three kinds
+  of content disperse: the structural grammar needs no per-repo file —
+  the kernel's linter enforces it and the curate/dispatch commands are
+  built against it; the authoring methodology (declarative spec writing,
+  vertical slicing, interview frameworks, compression) moves inline into
+  the curation commands; the process discipline (branching, commit
+  conventions, quality gate) moves into the dispatch commands and the
+  batch-agent protocol. This supersedes §spec:self-contained-conventions.
 - `/symphonize:init` defers to the kernel's scaffolder, and symphonize
-  declares a plugin dependency on the kernel. This supersedes the
-  scaffolding ownership in §spec:project-scaffolding.
+  declares a plugin dependency on the kernel — the dependency pin and the
+  CI workflow ref together establish which kernel version symphonize
+  targets. This supersedes the scaffolding ownership in
+  §spec:project-scaffolding.
 
 The kernel repository's own SPEC.md specifies the kernel's design —
 single repo, three faces, and the version-coherence contract. Symphonize
@@ -687,5 +691,6 @@ sections.
 
 **Tradeoff accepted:** a cross-repo dependency replaces an in-repo one.
 Symphonize's CI and scaffolding depend on a published kernel release. The
-`contracts-version` marker makes a kernel/consumer mismatch detectable
-rather than silent.
+pinned workflow ref and the plugin dependency range — both machine-checked
+— keep symphonize and the kernel on one version, with no bespoke marker to
+maintain.
