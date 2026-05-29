@@ -92,3 +92,27 @@ and the duplicated `/init` scaffolding now served by the schema.
 deleted with no replacement file; `/symphonize:init` delegates to the
 schema's scaffolder; CI is green via the schema's workflow; `grep` finds
 no command referencing the removed `CONVENTIONS.md`.
+
+## Repo-state reconciliation hook
+
+Not blocked — symphonize-internal, no dependency on the schema work.
+
+### §road:reconcile-repo-state-hook
+
+Add a `UserPromptSubmit` hook — `hooks/hooks.json` plus a reconcile
+script referenced via `${CLAUDE_PLUGIN_ROOT}` — that runs a rate-limited
+read-only `git fetch` and injects divergence context (merged or closed
+PR for the current branch, branch behind `origin/main`, branch gone from
+the remote) each turn, staying silent on clean state and degrading to a
+no-op without git, `gh`, or network. §spec:repo-state-reconciliation
+
+**Verify:** Load the plugin locally (`claude --plugin-dir .`) in a git
+repo checked out to a branch with an open PR. From another terminal,
+merge that PR. Submit any prompt and confirm the turn's context reports
+the PR as merged. Reset to a clean, up-to-date branch and confirm the
+hook injects nothing and adds no perceptible latency. Run a prompt in a
+directory that is not a git repository and confirm the hook is a silent
+no-op — no error, the prompt proceeds. Remove `gh` from `PATH` and
+confirm the hook still reports branch ahead/behind from local refs
+without erroring. Submit two prompts within the rate-limit window and
+confirm only the first triggers a network fetch.
