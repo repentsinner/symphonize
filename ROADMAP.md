@@ -2,20 +2,19 @@
 
 ## Consume the kernel's enforcement workflow
 
-Blocked — depends on the kernel publishing the opt-in governance checks
-(`traceability`, `vale`) at a referenceable major tag. Unblocked when the
-kernel ships those inputs.
+Blocked — depends on the kernel publishing the full-schema
+`governance-lint.yml` at a referenceable major tag. Unblocked when the
+kernel ships it.
 
 ### §road:consume-kernel-lint
 
-Point `.github/workflows/ci.yml` at the kernel's `governance-lint.yml`
-with the governance checks enabled, retiring the embedded reusable
-workflow once CI is green. §spec:conventions-kernel
+Point `.github/workflows/ci.yml` at the kernel's `governance-lint.yml`,
+retiring the embedded reusable workflow once CI is green.
+§spec:conventions-kernel
 
-**Verify:** `ci.yml` calls the kernel's `governance-lint.yml@<major>`
-with `traceability` and `vale` enabled; CI passes on this repo's
-governance files; symphonize no longer hosts its own `governance-lint.yml`
-as the source of truth.
+**Verify:** `ci.yml` calls the kernel's `governance-lint.yml@<major>`; CI
+passes on this repo's governance files; symphonize no longer hosts its own
+`governance-lint.yml` as the source of truth.
 
 ## Relocate CONVENTIONS.md content into commands
 

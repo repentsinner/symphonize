@@ -644,9 +644,9 @@ not part of the shared kernel contract. §req:modular-adoption
 
 In the target state:
 
-- Symphonize's CI references the kernel's enforcement workflow with the
-  governance checks (traceability and prose) enabled, instead of shipping
-  its own `governance-lint.yml`. CHANGELOG.md stays unenforced — it is
+- Symphonize's CI references the kernel's enforcement workflow instead of
+  shipping its own `governance-lint.yml`; the workflow runs the full
+  schema with no toggles to set. CHANGELOG.md stays unenforced — it is
   release-please's generated artifact. This supersedes §spec:reusable-ci
   and §spec:dogfooding.
 - Symphonize's `CONVENTIONS.md` is deleted, not replaced. Its three kinds
