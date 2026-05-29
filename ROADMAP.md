@@ -17,21 +17,24 @@ with `traceability`, `vale`, and `extended-globs` enabled; CI passes on
 this repo's governance files; symphonize no longer hosts its own
 `governance-lint.yml` as the source of truth.
 
-## Adopt the kernel's materialized conventions
+## Relocate CONVENTIONS.md content into commands
 
-Blocked — depends on the kernel publishing the canonical CONVENTIONS.md
-and `contracts-version` marker. Unblocked when §road:consume-kernel-lint
-lands, since the lint version anchors the contract version.
+Not blocked — symphonize-internal, can proceed before the kernel ships.
+Prepares `CONVENTIONS.md` for deletion (§road:remove-kernel-originals);
+the structural grammar needs no replacement file (the kernel's linter
+enforces it), so only the methodology and process content must move.
 
-### §road:adopt-kernel-conventions
+### §road:relocate-conventions-content
 
-Replace symphonize's canonical `CONVENTIONS.md` with a materialized copy
-from the kernel carrying a `contracts-version` marker matching the
-referenced kernel version. §spec:conventions-kernel
+Move `CONVENTIONS.md`'s authoring methodology inline into the curation
+commands and its process discipline into the dispatch commands and
+`protocols/batch-agent.md`, repointing each command that reads
+`CONVENTIONS.md`. §spec:conventions-kernel
 
-**Verify:** `CONVENTIONS.md` carries a `contracts-version` marker; the
-marker matches the kernel major referenced in `ci.yml`; governance-lint
-passes.
+**Verify:** `discover`/`plan`/`roadmap` carry their methodology inline;
+`next`/`orchestrate`/`clean` and `batch-agent.md` carry the process
+discipline; no command depends on a `CONVENTIONS.md` section slated for
+deletion; governance-lint passes.
 
 ## Adopt the kernel's scaffolder
 
@@ -51,16 +54,19 @@ references a coherent kernel.
 
 ## Remove symphonize's superseded kernel originals
 
-Blocked — depends on the three adoption workstreams above. Unblocked when
-consumption is verified end-to-end; removing originals first would orphan
-adopters.
+Blocked — depends on §road:consume-kernel-lint,
+§road:adopt-kernel-scaffolder, and §road:relocate-conventions-content.
+Unblocked when consumption is verified end-to-end and `CONVENTIONS.md`'s
+content has moved; removing originals first would orphan adopters or
+strand command references.
 
 ### §road:remove-kernel-originals
 
-Delete symphonize's embedded `governance-lint.yml`, its canonical
-`CONVENTIONS.md` ownership, and the duplicated `/init` scaffolding now
-served by the kernel. §spec:conventions-kernel
+Delete symphonize's embedded `governance-lint.yml`, its `CONVENTIONS.md`,
+and the duplicated `/init` scaffolding now served by the kernel.
+§spec:conventions-kernel
 
-**Verify:** no embedded `governance-lint.yml` remains; `CONVENTIONS.md`
-is materialized from the kernel, not canonical; `/symphonize:init`
-delegates; CI is green; `grep` finds no duplicated scaffolding templates.
+**Verify:** no embedded `governance-lint.yml` remains; `CONVENTIONS.md` is
+deleted with no replacement file; `/symphonize:init` delegates to the
+kernel scaffolder; CI is green via the kernel workflow; `grep` finds no
+command referencing the removed `CONVENTIONS.md`.
