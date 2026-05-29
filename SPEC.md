@@ -810,7 +810,7 @@ merging unattended.
   are the only in-run protection. §req:quality-attributes
 
 ## Repo-state reconciliation hook §spec:repo-state-reconciliation
-*Status: not started*
+*Status: complete*
 
 An agent works from a snapshot of repo state taken when it last looked,
 and assumes it is the only actor. A human merges the open PR, force-pushes
@@ -821,33 +821,33 @@ governance loop's premise is that the docs and PRs reflect actual state
 (§req:success-criteria); an agent reasoning from stale state corrupts that
 premise from inside.
 
-Symphonize ships a Claude Code `UserPromptSubmit` hook in the plugin that
-reconciles the agent's view of repo state with the remote before each
-turn, and surfaces any divergence as conversation context.
+Symphonize ships a Claude Code `UserPromptSubmit` hook in the plugin
+(`hooks/hooks.json` registering `hooks/reconcile-repo-state.sh` via
+`${CLAUDE_PLUGIN_ROOT}`) that reconciles the agent's view of repo state with
+the remote before each turn, and surfaces any divergence as conversation
+context via `hookSpecificOutput.additionalContext`.
 
 ### Observable behavior
 
 - Before each user turn, the hook performs a **read-only** reconcile: a
-  rate-limited `git fetch`, then a comparison of the current branch
-  against its upstream and against `origin/main`, and of the branch's
-  associated pull request against its remote state.
+  rate-limited `git fetch --prune`, then a comparison of the current branch
+  against its upstream and `origin/main`, and of the branch's pull request
+  against its remote state.
 - The hook injects context **only when reality diverges** from the naive
   "nothing changed since I last looked" assumption — the current branch's
-  PR is merged or closed; the branch is behind `origin/main`; the branch
-  no longer exists on the remote. When nothing diverges, it injects
-  nothing.
-- The divergence is reported as a specific contradiction the agent
-  encounters at the point of use (e.g. "PR #118 for this branch is
-  MERGED"), not as an undifferentiated status dump.
-- The hook never blocks the prompt and never mutates the working tree or
-  the remote. It does not checkout, pull, rebase, or push. It reports;
-  the agent and user decide what to do.
-- The hook degrades to a silent no-op outside a git repository, when
-  `gh` is unavailable or unauthenticated, or when the network is
-  unreachable. Absence of remote state is never reported as a divergence.
-- The fetch is rate-limited: the hook skips the network round-trip when
-  one ran within a short window, so most turns add no latency. PR state
-  beyond that window is at most one window stale.
+  PR is merged or closed; the branch is behind `origin/main`; the branch no
+  longer exists on the remote. When nothing diverges, it injects nothing.
+- The divergence is reported as a specific contradiction at the point of use
+  (e.g. "PR #118 for this branch is MERGED"), not a status dump.
+- The hook never blocks the prompt and never mutates the working tree or the
+  remote (no checkout, pull, rebase, push). It reports; the agent and user
+  decide.
+- The hook degrades to a silent no-op outside a git repository, in detached
+  HEAD, when `gh` is unavailable or unauthenticated, or when the network is
+  unreachable. Absence of remote state is never reported as divergence.
+- The fetch is rate-limited via a per-repo stamp file: the hook skips the
+  network round-trip when one ran within a short window (default 300s), so
+  most turns add no latency. PR state is at most one window stale.
 
 ### Why a hook, not an instruction
 
