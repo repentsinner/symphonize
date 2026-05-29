@@ -627,3 +627,70 @@ means deleting them. No registry to maintain, no sync to drift.
 **Why no symphonize-specific lint inheritance:** markdownlint, Vale,
 and similar tools already resolve config by walking up the directory
 tree. Symphonize delegates to the linter's native scoping.
+
+## Governance-schema extraction §spec:governance-schema
+*Status: not started*
+
+Symphonize's governance-schema — the structural definition of its
+governance documents (file formats, the `§req:`/`§spec:`/`§road:` slug
+grammar, the status-line format, cross-reference rules) plus the workflow
+that enforces it and the scaffolder that wires a repo up to it — lives in
+a dedicated repository (`bug-free-happiness`), not inside symphonize. The
+schema ships no document to adopters: the linter is its executable form,
+and symphonize's commands are built against the grammar. Symphonize
+consumes the schema; it keeps its authoring methodology and process
+discipline, which are symphonize's own opinion and not part of the shared
+schema. §req:modular-adoption
+
+In the target state:
+
+- Symphonize's CI references the schema's enforcement workflow instead of
+  shipping its own `governance-lint.yml`; the workflow runs the full
+  schema with no toggles to set. CHANGELOG.md stays unenforced — it is
+  release-please's generated artifact. This supersedes §spec:reusable-ci
+  and §spec:dogfooding.
+- Symphonize's `CONVENTIONS.md` is deleted, not replaced. Its three kinds
+  of content disperse: the structural grammar needs no per-repo file —
+  the schema's linter enforces it and the curate/dispatch commands are
+  built against it; the authoring methodology (declarative spec writing,
+  vertical slicing, interview frameworks, compression) moves inline into
+  the curation commands; the process discipline (branching, commit
+  conventions, quality gate) moves into the dispatch commands and the
+  batch-agent protocol. This supersedes §spec:self-contained-conventions.
+- `/symphonize:init` defers to the schema's scaffolder, and symphonize
+  declares a plugin dependency on the schema — the dependency pin and the
+  CI workflow ref together establish which schema version symphonize
+  targets. This supersedes the scaffolding ownership in
+  §spec:project-scaffolding.
+
+The schema repository's own SPEC.md specifies its design — single repo,
+three faces, and the version-coherence contract. Symphonize references
+that spec instead of restating it.
+
+**Why a separate schema:** a linter is the executable form of the schema,
+so co-locating the grammar and its enforcement on one version line keeps
+them from drifting — they did once, when a numbered-versus-slug mismatch
+went uncaught. Holding the schema in its own repo also gives the future
+curation and dispatch layers one shared definition to depend on, rather
+than each embedding its own copy. §req:modular-adoption
+
+**Why symphonize-specific:** the schema encodes symphonize's conventions
+and is consumed only by symphonize — not a general-purpose linter other
+projects adopt. If symphonize ever needs a different schema, it would plug
+a different one in on its own side; that seam stays unbuilt until a second
+schema exists.
+
+**Direction:** the schema extraction is the first step toward decomposing
+symphonize into independently-adoptable layers — a curation layer and a
+dispatch layer over the shared schema. The three-way split of today's
+`CONVENTIONS.md` mirrors that layering: the structural slice anchors the
+schema, the authoring methodology becomes curation's, and the process
+discipline becomes dispatch's. This section covers only the
+governance-schema boundary; the further splits await their own spec
+sections.
+
+**Tradeoff accepted:** a cross-repo dependency replaces an in-repo one.
+Symphonize's CI and scaffolding depend on a published schema release. The
+pinned workflow ref and the plugin dependency range — both machine-checked
+— keep symphonize and the schema on one version, with no bespoke marker to
+maintain.
