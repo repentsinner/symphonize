@@ -808,3 +808,98 @@ merging unattended.
   person inspects the run until the final PR. The one-shot input is
   untrusted attack surface; the mechanical gates and the execution sandbox
   are the only in-run protection. §req:quality-attributes
+
+## Repo-state reconciliation hook §spec:repo-state-reconciliation
+*Status: not started*
+
+An agent works from a snapshot of repo state taken when it last looked,
+and assumes it is the only actor. A human merges the open PR, force-pushes
+the branch, or advances `origin/main` while the conversation continues —
+and the agent keeps asserting the merged PR is open, pushes commits onto a
+branch that no longer exists upstream, or builds on a stale base. The
+governance loop's premise is that the docs and PRs reflect actual state
+(§req:success-criteria); an agent reasoning from stale state corrupts that
+premise from inside.
+
+Symphonize ships a Claude Code `UserPromptSubmit` hook in the plugin that
+reconciles the agent's view of repo state with the remote before each
+turn, and surfaces any divergence as conversation context.
+
+### Observable behavior
+
+- Before each user turn, the hook performs a **read-only** reconcile: a
+  rate-limited `git fetch`, then a comparison of the current branch
+  against its upstream and against `origin/main`, and of the branch's
+  associated pull request against its remote state.
+- The hook injects context **only when reality diverges** from the naive
+  "nothing changed since I last looked" assumption — the current branch's
+  PR is merged or closed; the branch is behind `origin/main`; the branch
+  no longer exists on the remote. When nothing diverges, it injects
+  nothing.
+- The divergence is reported as a specific contradiction the agent
+  encounters at the point of use (e.g. "PR #118 for this branch is
+  MERGED"), not as an undifferentiated status dump.
+- The hook never blocks the prompt and never mutates the working tree or
+  the remote. It does not checkout, pull, rebase, or push. It reports;
+  the agent and user decide what to do.
+- The hook degrades to a silent no-op outside a git repository, when
+  `gh` is unavailable or unauthenticated, or when the network is
+  unreachable. Absence of remote state is never reported as a divergence.
+- The fetch is rate-limited: the hook skips the network round-trip when
+  one ran within a short window, so most turns add no latency. PR state
+  beyond that window is at most one window stale.
+
+### Why a hook, not an instruction
+
+No hook fires on the agent's generated text, so nothing can inspect a
+stale assertion after the agent makes it and force a correction. The only
+available lever is to put fresh ground truth into context *before* the
+turn, where it contradicts the stale assumption at the moment the agent
+would act on it. This is a floor raise, not behavior policing: it cannot
+guarantee the agent heeds the correction, but it removes the excuse of not
+knowing.
+
+The mechanism is chosen over a passive instruction — a CLAUDE.md note or a
+remembered preference — because passive reminders compete for attention
+against everything else in context and get normalized away within a
+session. A reminder the agent is free to skip is the failure mode this
+section exists to remove; injected ground truth at the decision point is
+not skippable in the same way.
+
+### Why shipped in the plugin
+
+The hook lives in symphonize's plugin bundle (`hooks/hooks.json` plus a
+script referenced via `${CLAUDE_PLUGIN_ROOT}`), not in a user's
+`settings.json`. Settings hooks bind to one machine and do not travel;
+a plugin-shipped hook installs with the plugin and every adopter inherits
+it. Keeping agents honest about external state is dispatch-layer
+infrastructure — it belongs with the execution machinery that assumes a
+current view of the repo. §req:modular-adoption
+
+### Rejected alternatives
+
+- **`SessionStart` hook.** Rejected: it snapshots once and rots. The
+  failure being fixed is mid-session drift — a PR merged while the
+  conversation is open — which a start-of-session check never sees.
+- **A blocking or auto-correcting hook** (deny the prompt, auto-rebase,
+  auto-fetch-and-pull). Rejected: a reconciler that mutates the tree or
+  blocks work on stale state can clobber in-progress work and surprises
+  the user. Reconciliation reports; it does not act.
+- **A passive memory or CLAUDE.md instruction.** Rejected: this is the
+  status quo the section replaces. It relies on recall and loses to
+  attention competition.
+- **A flat repo-status dump every turn.** Rejected: undifferentiated
+  status gets skimmed and adds noise on every turn. Reporting only the
+  contradiction keeps signal high and output silent when state is clean.
+
+### Tradeoffs accepted
+
+- Bounded staleness: the rate-limited fetch trades a few minutes of
+  possible PR-state lag for the elimination of a per-turn network tax.
+  §req:quality-attributes
+- PR-state detection depends on `gh`; without it the hook still reports
+  branch ahead/behind from local refs, but not merge state. Degraded, not
+  broken.
+- The response remains model-judged. Injecting the contradiction raises
+  the floor but does not force the agent to act on it. Acceptable — the
+  alternative (no fresh state at all) is strictly worse.
