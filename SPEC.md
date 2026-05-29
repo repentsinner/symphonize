@@ -694,3 +694,117 @@ Symphonize's CI and scaffolding depend on a published schema release. The
 pinned workflow ref and the plugin dependency range — both machine-checked
 — keep symphonize and the schema on one version, with no bespoke marker to
 maintain.
+
+## YOLO mode §spec:yolo-mode
+*Status: not started*
+
+`/symphonize:yolo` runs the governance pipeline from a user-named entry
+stage (`discover`, `plan`, `roadmap`, or `next`) through to a single pull
+request that bundles the governance-document changes and the landed
+implementation. It runs non-interactively: the agent makes the judgment
+calls a person normally makes at each stage, records them, and surfaces
+nothing for approval until the final PR. §req:priorities
+§req:quality-attributes
+
+YOLO mode is a dispatch-layer capability — the unattended execution model
+of §spec:orchestration-loop extended *up* the pipeline. Where
+`/symphonize:orchestrate` loops `/symphonize:next` inside an
+already-merged roadmap, YOLO also authors the upstream governance
+documents the run needs and bundles everything onto one branch.
+
+### Gates collapse, they do not disappear
+
+The default pipeline has two kinds of gate: **human** gates between stages
+(a person reviews REQUIREMENTS before `/plan`, SPEC before `/roadmap`, the
+PR before merge) and **mechanical** gates inside `/next` (`/simplify`,
+`/security-review`, CI, governance-lint). YOLO removes the human gates and
+keeps the mechanical ones. The four human review points collapse into one:
+a single review of the complete vertical slice — REQUIREMENTS → SPEC →
+ROADMAP → code — in one PR, where the run creates and validates the
+`§`-slug traceability chain in a single diff. §spec:pre-pr-review-gates
+§spec:simplify-gate
+
+### Observable behavior
+
+- **Entry stage.** A required argument names the stage the run starts at;
+  YOLO runs that stage and every downstream stage, and assumes the
+  upstream stages already hold. When an entry stage would skip an upstream
+  document a downstream one cites — a SPEC section references a `§req:`
+  slug that `/plan`-entry would not otherwise create — YOLO backfills the
+  minimal upstream entry so cross-references resolve, applying the same
+  backpressure the individual commands use for thin upstream documents.
+  §spec:requirements-discovery
+- **Single branch, single PR.** Every stage commits to one branch; the PR
+  opens once, at the end. No stage merges before the next begins, so the
+  run carries no inter-stage merge dependency.
+- **One commit per layer.** The bundle keeps separate conventional
+  commits — `docs(requirements):`, `docs(spec):`, `docs(roadmap):`, and
+  the implementation's `feat`/`fix`/etc. — so release-please reads the
+  history correctly. The PR is one slice; the commits stay one per change.
+- **One slice per run.** A run targets a single batch-sized vertical slice
+  per §spec:vertical-first-batch-selection. Inputs larger than one batch
+  route to the gated pipeline or `/symphonize:orchestrate`.
+- **Non-interactive curation.** `discover`, `plan`, and `roadmap` run
+  without user input; the agent makes conservative choices and documents
+  them in the commit, as sub-agents do under `--unattended`.
+  §spec:unattended-flag-passthrough
+- **Terminal state, risk-tiered.** Once the mechanical gates pass, the
+  bundle's merge eligibility follows its conventional-commit risk class:
+  - A breaking change (`!` or a `BREAKING CHANGE` footer) always stops at
+    a mergeable PR for human review.
+  - Clearly low-risk classes (`docs`, `chore`, `refactor`, `style`,
+    `test`, `ci`, `build`) auto-merge.
+  - `feat`, `fix`, and any class the run cannot confidently classify stop
+    for review. The mapping is configurable; the default is conservative.
+  - `--yolo-hard` auto-merges every class once the mechanical gates pass,
+    for trusted or scheduled contexts.
+
+  With no flag, a run stops at a mergeable PR — that PR is the one retained
+  human gate. §req:constraints
+- **Failure is explicit.** A run that cannot reach all-gates-green — CI
+  red after its attempts, a blocking `/security-review` finding, or an
+  agent unable to proceed — leaves a draft PR with diagnostics and stops.
+  It never leaves a broken branch or a partially merged state.
+
+**Why YOLO suits only bounded, low-risk slices:** the gated pipeline's
+value is cheap early correction — a person kills a bad requirement or
+design before any code exists. YOLO writes code against un-reviewed
+design, so a design the reviewer rejects at the final PR wastes the
+implementation built against it. YOLO pays off when the agent's design is
+likely correct — small, familiar work — and wastes effort when the design
+needs human steering. It is an opt-in mode, not the default path; the
+gated, human-reviewed pipeline remains the norm. §req:constraints
+
+**Why risk-tiered auto-merge keys on the commit type:** conventional-commit
+type already encodes semver impact, which tracks change risk — a breaking
+change is the most expensive to land wrong, a docs or chore change the
+least. Gating auto-merge on that classification reuses a signal the
+project already produces instead of inventing a separate risk model. The
+classifier trusts the agent's own commit type, so the conservative default
+— review anything not clearly low-risk — keeps a mis-typed change from
+merging unattended.
+
+**Rejected alternatives:**
+
+- **Auto-merge every class by default.** Rejected: it overrides the
+  never-merge-directly posture for every change, including breaking ones.
+  `--yolo-hard` offers this as an explicit opt-in instead. §req:constraints
+- **A separate PR per stage, auto-merged in sequence.** Rejected:
+  inter-stage merges reintroduce the gating and merge-conflict friction
+  YOLO exists to remove, and split one slice's traceability across four
+  PRs. One bundled PR reviews the whole slice at once.
+- **Skip the mechanical gates for speed.** Rejected: non-interactive
+  execution makes the mechanical gates the only in-run safety net.
+  Dropping them trades a bounded time saving for unbounded risk.
+
+**Tradeoffs accepted:**
+
+- A rejected design wastes the implementation built against it — bounded
+  by scoping YOLO to low-risk slices.
+- The risk classifier is only as honest as the commit type it reads; the
+  conservative default mitigates but does not remove this.
+- Non-interactive end-to-end execution widens the blast radius of a
+  prompt-injected input, a destructive action, or a flawed design — no
+  person inspects the run until the final PR. The one-shot input is
+  untrusted attack surface; the mechanical gates and the execution sandbox
+  are the only in-run protection. §req:quality-attributes
