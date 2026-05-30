@@ -1,0 +1,15 @@
+{
+  "description": "Reconcile repo state with the remote before each turn; inject context only on divergence.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/reconcile-repo-state.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
