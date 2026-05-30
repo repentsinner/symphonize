@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.37](https://github.com/repentsinner/symphonize/compare/v0.1.36...v0.1.37) (2026-05-30)
+
+
+### Features
+
+* batch — repo-state reconciliation hook ([#122](https://github.com/repentsinner/symphonize/issues/122)) ([092e09e](https://github.com/repentsinner/symphonize/commit/092e09e3b96b8e9ff46baf534dbfdb004db18d47))
+* batch — simplify gate phase ([#108](https://github.com/repentsinner/symphonize/issues/108)) ([7ecd121](https://github.com/repentsinner/symphonize/commit/7ecd121f0128f5f1fb4d0242e2699c1e58e55075))
+* **roadmap:** add orchestration loop /goal migration workstream ([#117](https://github.com/repentsinner/symphonize/issues/117)) ([182d958](https://github.com/repentsinner/symphonize/commit/182d958483f2a2a2b9bcadddc9480b3064420c90))
+* **roadmap:** add repo-state reconciliation hook workstream ([#121](https://github.com/repentsinner/symphonize/issues/121)) ([01b6c46](https://github.com/repentsinner/symphonize/commit/01b6c4628a1ed33be067467b0dc2093a1c0587ca))
+* **roadmap:** add simplify gate workstream ([#107](https://github.com/repentsinner/symphonize/issues/107)) ([8b08c55](https://github.com/repentsinner/symphonize/commit/8b08c55bfb1aec1bff4aa36eb2351c4b75a1cd42))
+* **spec:** add orchestration loop via /goal section ([#116](https://github.com/repentsinner/symphonize/issues/116)) ([d5a5c83](https://github.com/repentsinner/symphonize/commit/d5a5c832a4d50e8edd40beee809bdfd7f50f920f))
+* **spec:** add repo-state reconciliation hook section ([#120](https://github.com/repentsinner/symphonize/issues/120)) ([4c714e0](https://github.com/repentsinner/symphonize/commit/4c714e02c638adf037f0a2311709b17e2f9aca43))
+* **spec:** add simplify gate section ([#106](https://github.com/repentsinner/symphonize/issues/106)) ([e27bcca](https://github.com/repentsinner/symphonize/commit/e27bcca16ed419b9a4fb846f2ad3c061b0ca935b))
+* **spec:** add YOLO mode section ([#119](https://github.com/repentsinner/symphonize/issues/119)) ([e465d8f](https://github.com/repentsinner/symphonize/commit/e465d8fae41f7fcf75a5f936f79accb4ce3088cf))
+
 ## [0.1.36](https://github.com/repentsinner/symphonize/compare/v0.1.35...v0.1.36) (2026-04-05)
 
 
