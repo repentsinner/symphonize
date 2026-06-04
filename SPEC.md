@@ -684,27 +684,36 @@ tree. Symphonize delegates to the linter's native scoping.
 ## Plugin decomposition §spec:governance-schema
 *Status: not started*
 
-Symphonize is one repository publishing one plugin marketplace with three
-plugins — each independently installable and independently versioned via
-the `{plugin}--v{version}` tag convention:
+Symphonize is one repository publishing one plugin marketplace with four
+plugins — each independently installable, all sharing one coordinated
+version line via the `{plugin}--v{version}` tag convention:
 
+- **notation** — the governance schema the others build on: the structural
+  grammar (governance file formats, the `§req:`/`§spec:`/`§road:` slug
+  rules, the status-line format, cross-reference rules), the reusable
+  `governance-lint.yml` workflow that enforces it, and the `init`
+  scaffolder that installs it into adopter repos.
 - **compose** — the tastemaking layer ("are we building the right
   thing"): `discover`, `plan`, `roadmap`, `triage`, and the
   correctness/taste half of `review`. It produces the governance
   documents — the *score*.
 - **conduct** — the execution layer ("are we building it right"): `next`,
-  `orchestrate`, `clean`, `yolo`, and the integration/merge half of
-  `review`. It performs the score into landed PRs.
-- **notation** — the governance schema both build on: the structural
-  grammar (governance file formats, the `§req:`/`§spec:`/`§road:` slug
-  rules, the status-line format, cross-reference rules), the reusable
-  `governance-lint.yml` workflow that enforces it, and the `init`
-  scaffolder that installs it into adopter repos.
+  `orchestrate`, `clean`, and the integration/merge half of `review`. It
+  performs the score into landed PRs.
+- **symphonize** — the umbrella that composes the layers into the whole
+  product: `yolo`, which drives the full pipeline end to end
+  (`/compose:plan` → `/compose:roadmap` → `/conduct:next`), and `feedback`,
+  the meta command for reporting issues to the symphonize project itself.
 
-compose and conduct each declare a plugin `dependencies` on notation,
-resolved within the one marketplace. The names follow the product's own
-metaphor — **notation ← compose → conduct**: a composer writes the score
-in a shared notation, a conductor performs it. §req:modular-adoption
+notation has no dependencies; compose and conduct each declare a plugin
+`dependencies` on notation; symphonize declares `dependencies` on compose
+and conduct (and notation transitively). All resolve within the one
+marketplace, so installing `symphonize` pulls the whole set — the
+recommended default. The names follow the product's own metaphor —
+**notation ← compose → conduct**, with **symphonize** the verb over all
+three: a composer writes the score in a shared notation, a conductor
+performs it, and to symphonize is to do the whole work end to end.
+§req:modular-adoption
 
 ### Notation lives in this repository, not a separate one
 
@@ -725,19 +734,27 @@ drift), and costs only document relocation while notation is unbuilt. If
 symphonize ever needs a different schema, it plugs a different notation in
 on its own side; that seam stays unbuilt until a second schema exists.
 
-### Why three plugins, one repository
+### Why four plugins, one repository
 
-- **Three plugins, not one:** a team may adopt compose's shaping
+- **Layered, not monolithic:** a team may adopt compose's shaping
   discipline without conduct's agent-swarm execution, or the reverse.
   Separately-installable plugins serve that; one monolithic plugin would
   not. §req:modular-adoption
-- **One repository, not three:** compose, conduct, and notation co-evolve
-  — moving authoring methodology into compose and process discipline into
-  conduct touches all three, and a grammar change ripples to its
-  consumers. One repository makes those changes atomic and shares one CI,
-  while the `{plugin}--v{version}` tag convention preserves independent
-  version lines and independent installation. Separate repositories would
-  add cross-repo coordination with no adoption benefit.
+- **An umbrella, not feature-stuffed siblings:** `yolo` drives the full
+  pipeline, so it depends on both compose (`plan`, `roadmap`) and conduct
+  (`next`). Housing it in either sibling would couple compose and conduct to
+  each other; they are designed as independent peers over notation. A
+  separate `symphonize` plugin that depends on both is the only placement
+  that keeps the peers uncoupled. It also gives the default adopter — who
+  wants the whole product — one thing to install, and gives `feedback`
+  (project meta, belonging to no layer) a home.
+- **One repository, not four:** notation, compose, conduct, and symphonize
+  co-evolve — moving authoring methodology into compose and process
+  discipline into conduct touches several, and a grammar change ripples to
+  its consumers. One repository makes those changes atomic and shares one
+  CI, while the `{plugin}--v{version}` tag convention preserves independent
+  installation. Separate repositories would add cross-repo coordination with
+  no adoption benefit.
 
 ### Where today's CONVENTIONS.md content goes
 
@@ -766,8 +783,8 @@ decomposition separates:
 
 **Tradeoffs accepted:**
 
-- One coordinated version line covers all three plugins — they co-evolve
-  in one repo with a hard dependency edge, so a release bumps and tags them
+- One coordinated version line covers all four plugins — they co-evolve
+  in one repo with hard dependency edges, so a release bumps and tags them
   together. Independent *installation* (adopting compose without conduct)
   needs no independent version numbers. §spec:plugin-packaging
 - notation welds to symphonize; opening it as a generic governance-doc
@@ -782,29 +799,39 @@ decomposition separates:
 *Status: not started*
 
 The decomposition (§spec:governance-schema) ships as one Claude Code plugin
-marketplace named `symphonize`, declaring three plugins — `notation`,
-`compose`, `conduct` — each rooted at `plugins/<name>/` and listed in
-`.claude-plugin/marketplace.json` with `source: "./plugins/<name>"`. Each
-plugin carries its own `.claude-plugin/plugin.json`; commands resolve by
-convention from each plugin's `commands/` directory.
+marketplace named `symphonize`, declaring four plugins — `notation`,
+`compose`, `conduct`, `symphonize` — each rooted at `plugins/<name>/` and
+listed in `.claude-plugin/marketplace.json` with
+`source: "./plugins/<name>"`. Each plugin carries its own
+`.claude-plugin/plugin.json`; commands resolve by convention from each
+plugin's `commands/` directory. The marketplace and its umbrella plugin
+share the name `symphonize` — the marketplace-named plugin is the
+whole-product entry point.
 
 ### Observable behavior
 
 - A user adds the marketplace once
   (`/plugin marketplace add repentsinner/symphonize`) and installs any
-  subset of plugins. Installing `compose` or `conduct` auto-installs
-  `notation`, which both declare as a `dependencies` entry; installing
-  `notation` alone yields just the schema. Tastemaking without execution is
-  `compose`; the reverse is `conduct`. §req:modular-adoption
+  subset. The recommended default is `symphonize`, which declares
+  `dependencies` on compose and conduct and so pulls the whole product —
+  notation included transitively. Installing `compose` or `conduct` alone
+  auto-installs `notation`, which both declare as a `dependencies` entry;
+  installing `notation` alone yields just the schema. Tastemaking without
+  execution is `compose`; the reverse is `conduct`; everything is
+  `symphonize`. §req:modular-adoption
 - Commands appear under their plugin namespace: `/notation:init`,
   `/notation:lint`; `/compose:discover|plan|roadmap|triage`;
-  `/conduct:next|orchestrate|clean|yolo`. The former `/symphonize:*` names
-  no longer exist — pre-1.0, the rename ships without aliases.
-- The three plugins share one coordinated version line. A release bumps all
-  three `plugin.json` versions together and publishes one
+  `/conduct:next|orchestrate|clean`; `/symphonize:yolo`,
+  `/symphonize:feedback`. The former monolithic `/symphonize:*` namespace is
+  retired — its commands redistribute across the four plugins, and only
+  `yolo` and `feedback` keep the `symphonize` prefix (now scoped to the
+  umbrella plugin). Pre-1.0, the rename ships without aliases.
+- The four plugins share one coordinated version line. A release bumps all
+  four `plugin.json` versions together and publishes one
   `{plugin}--v{version}` git tag per plugin (`notation--v0.2.0`,
-  `compose--v0.2.0`, `conduct--v0.2.0`). `compose` and `conduct` pin
-  `notation` at that shared version through their `dependencies` range.
+  `compose--v0.2.0`, `conduct--v0.2.0`, `symphonize--v0.2.0`). compose and
+  conduct pin `notation`, and symphonize pins compose and conduct, at that
+  shared version through their `dependencies` ranges.
 
 ### Dual packaging of notation
 
@@ -845,15 +872,24 @@ drift check prevents the divergence a manual copy would invite.
 
 - **Symlinked shared files** — fragile at cache-copy time (above).
 - **Independent version numbers per plugin** — the plugins co-evolve in one
-  repo behind a hard dependency edge, so divergent versions inflate one
+  repo behind hard dependency edges, so divergent versions inflate one
   plugin's number on another's change with no adoption benefit. Independent
   *installation* needs no version divergence.
+- **`yolo` and `feedback` folded into conduct (or compose)** — rejected:
+  `yolo` spans compose and conduct, so housing it in either couples the two
+  sibling peers; the umbrella plugin depends on both without coupling them.
+  §spec:governance-schema
 
 ### Tradeoffs accepted
 
 - The `/symphonize:*` → `/{plugin}:*` rename breaks existing invocations.
   Accepted pre-1.0 (no compatibility contract); aliases would entrench the
   monolithic namespace the decomposition exists to retire.
+- `feedback` has no functional dependency on compose or conduct, yet lives
+  in the umbrella, so installing `notation`/`compose`/`conduct` alone omits
+  it. Accepted: the recommended install is `symphonize`, which carries it,
+  and a leftover meta command does not justify a fifth plugin. Revisit if
+  adopters of a single layer ask for `feedback`.
 
 ## Notation contract §spec:notation-contract
 *Status: not started*
@@ -917,11 +953,16 @@ calls a person normally makes at each stage, records them, and surfaces
 nothing for approval until the final PR. §req:priorities
 §req:quality-attributes
 
-YOLO mode is a dispatch-layer capability — the unattended execution model
-of §spec:orchestration-loop extended *up* the pipeline. Where
-`/symphonize:orchestrate` loops `/symphonize:next` inside an
-already-merged roadmap, YOLO also authors the upstream governance
-documents the run needs and bundles everything onto one branch.
+YOLO mode is the `symphonize` umbrella plugin's command — the unattended
+execution model of §spec:orchestration-loop extended *up* the pipeline.
+`yolo` invokes commands across the layers it depends on (`/compose:plan`,
+`/compose:roadmap`, `/conduct:next`), which is why it lives in the umbrella
+that declares `dependencies` on both compose and conduct rather than in
+either peer; the cross-plugin invocations resolve because installing
+`symphonize` installs both. Where `/conduct:orchestrate` loops
+`/conduct:next` inside an already-merged roadmap, YOLO also authors the
+upstream governance documents the run needs and bundles everything onto one
+branch. §spec:governance-schema
 
 ### Gates collapse, they do not disappear
 
@@ -954,7 +995,7 @@ ROADMAP → code — in one PR, where the run creates and validates the
   history correctly. The PR is one slice; the commits stay one per change.
 - **One slice per run.** A run targets a single batch-sized vertical slice
   per §spec:vertical-first-batch-selection. Inputs larger than one batch
-  route to the gated pipeline or `/symphonize:orchestrate`.
+  route to the gated pipeline or `/conduct:orchestrate`.
 - **Non-interactive curation.** `discover`, `plan`, and `roadmap` run
   without user input; the agent makes conservative choices and documents
   them in the commit, as sub-agents do under `--unattended`.
