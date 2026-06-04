@@ -143,9 +143,9 @@ worse. A `/doctor`-style command, if built, belongs to governance-document
 drift (status-line validity, dangling slugs, docs-versus-repo-state),
 where symphonize is the source of truth — not to action versions.
 
-When scaffolding ownership migrates to the schema's scaffolder
-(§spec:governance-schema, §road:adopt-schema-scaffolder), this freshness
-contract migrates with it. §req:modular-adoption
+The `init` scaffolder becomes the notation plugin's under the plugin
+decomposition (§spec:governance-schema); this freshness contract is
+notation's and moves with it. §req:modular-adoption
 
 ## Dogfooding §spec:dogfooding
 *Status: complete*
