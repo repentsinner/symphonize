@@ -6,7 +6,8 @@
 Symphonize provides Claude Code plugin commands that operate on
 the governance file loop (REQUIREMENTS.md → SPEC.md → ROADMAP.md
 → CHANGELOG.md) and produce conventional commits suitable for
-release-please.
+downstream release automation. See §spec:release-automation-options
+for the supported automation tools.
 
 The command pipeline:
 
@@ -53,10 +54,10 @@ The command creates:
 - `.markdownlint.json` — default config
 - `.github/workflows/governance-lint.yml` — caller workflow
   referencing `repentsinner/symphonize/.github/workflows/governance-lint.yml@v1`
-- `.github/workflows/release-please.yml` — release-please action
-  with config and manifest files
-- `.github/workflows/auto-merge-release.yml` — auto-merge for
-  release PRs
+- Release-automation files for the adopter's chosen tool. The set
+  of files depends on the choice (release-please workflows + config,
+  flywheel workflows + `.flywheel.yml`, or no files for manual).
+  See §spec:release-automation-options.
 - `.githooks/pre-commit` — runs markdownlint on staged governance
   files
 
@@ -74,35 +75,202 @@ in the governance loop. Scaffolding reduces setup from "read the
 docs and copy-paste" to one command.
 
 ## Reusable CI workflows §spec:reusable-ci
-*Status: complete*
+*Status: in progress*
 
-Symphonize ships reusable GitHub Actions workflows under
-`.github/workflows/` that target projects reference via
-`workflow_call`.
+Symphonize ships two kinds of GitHub Actions assets:
 
-### governance-lint.yml
+- **Reusable workflows** under `.github/workflows/` that target
+  projects reference via `workflow_call`.
+- **Templates** under `templates/<tool>/` that `/symphonize:init`
+  copies into target repos. Each template lives under a subdirectory
+  named for the tool it scaffolds.
+
+### governance-lint.yml (reusable)
 
 Reusable workflow accepting a `readme-type` input (string:
 `library`, `application`, or empty). Runs markdownlint,
 SPEC.md status-line validation, and optional README heading
 checks. Errors surface as GitHub annotations.
 
-### release-please.yml
+### templates/release-please/ (template)
 
-Template workflow for release-please-action@v4. Target projects
-copy this (via `/symphonize:init`) rather than calling it as a
-reusable workflow, because each project needs its own manifest
-and config.
+Files copied verbatim into target repos when the adopter selects
+release-please during `/symphonize:init`:
 
-### auto-merge-release.yml
+- `release-please.yml` — release-please-action@v4 workflow.
+- `auto-merge-release.yml` — auto-merges release PRs from
+  github-actions[bot] with the `autorelease: pending` label.
+- `update-major-tag.yml` — moves a floating major version tag
+  (e.g., `v1`) on each release.
+- `release-please-config.json` and `.release-please-manifest.json`
+  — per-project config and version manifest.
 
-Template workflow that auto-merges release PRs from
-github-actions[bot] with the `autorelease: pending` label.
+### templates/flywheel/ (template)
 
-### update-major-tag.yml
+Files copied when the adopter selects flywheel:
 
-Template workflow that moves a floating major version tag
-(e.g., `v1`) on each release.
+- `flywheel-pr.yml` — runs flywheel's `pr-conductor` on
+  `pull_request` events.
+- `flywheel-push.yml` — runs flywheel's release and promotion
+  flows on `push` to managed branches.
+- `.flywheel.yml` — single-stream, single-branch (`main`) default
+  configuration.
+
+### templates/manual/ (template)
+
+No files. Manual release process is the absence of release
+automation, not a separate workflow.
+
+**Why split workflows from templates:** the reusable workflow
+pattern (`workflow_call`) lets symphonize ship one canonical
+copy of governance-lint that every adopter inherits. Templates
+cannot use that pattern — each adopter needs its own config
+file (`release-please-config.json`, `.flywheel.yml`) and the
+release workflow itself needs the config in the same repo.
+Separating the two locations makes the distinction explicit.
+
+**Why one subdirectory per tool:** the alternative — inlining
+template YAML inside `commands/init.md` — was the previous
+pattern. Splitting templates into a versioned directory tree
+lets symphonize ship multiple options without bloating init.md,
+makes the templates testable (lint runs over them), and matches
+the file layout that `/symphonize:init` writes into adopter
+repos.
+
+**Dogfooding:** symphonize's own `.github/workflows/` continues
+to use release-please. The live workflow files are kept in sync
+with `templates/release-please/` (verified by the
+governance-consistency check, §spec:governance-consistency).
+
+## Release automation options §spec:release-automation-options
+*Status: not started*
+
+`/symphonize:init` lets the adopter choose how conventional
+commits flow into versioned releases. The supported options are
+**release-please**, **flywheel**, and **manual**. The choice
+controls which release-automation files §spec:project-scaffolding
+scaffolds, and which release-aware checks §spec:clean-working-tree-hygiene
+runs.
+
+### Selection
+
+`/symphonize:init` prompts for the release-automation tool when
+CWD is the repo root (CI-workflow scaffolding only runs at the
+repo root). Prompt copy: "How should releases be cut from
+conventional commits?" with the three options above. The
+adopter's choice determines which `templates/<tool>/` directory
+the command copies from. Manual ("no release automation —
+manage CHANGELOG.md and tags by hand") scaffolds no
+release-automation files; CHANGELOG.md still gets its
+`[Unreleased]` section.
+
+### Re-run detection
+
+When `/symphonize:init` runs in a repo that already has
+release-automation scaffolded, the command detects the existing
+choice and skips the prompt. Detection rules:
+
+- `release-please-config.json` present → release-please.
+- `.flywheel.yml` present → flywheel.
+- Neither present → manual (or prompt, if no governance files
+  exist at all and this is the first init run).
+
+The command proceeds to scaffold only missing files, consistent
+with §spec:project-scaffolding's existing idempotent behavior.
+Adopters who want to switch tools remove the old config files
+first.
+
+### `/clean` integration
+
+`/symphonize:clean` reads the same detection signals to choose
+its release-aware check. The check it runs:
+
+- **release-please:** verify the next release-please PR will
+  pick up new commits since the last release.
+- **flywheel:** verify pushed conventional commits are eligible
+  for a release on the managed branch.
+- **manual:** confirm `CHANGELOG.md` `[Unreleased]` reflects
+  merged commits and remind the user to tag.
+
+Clean does not call the release tool; it reads repo state. The
+checks are advisory — they surface drift between the governance
+loop and the release pipeline.
+
+### Tool comparison
+
+| Aspect | release-please | flywheel | manual |
+|---|---|---|---|
+| Trigger | push to main | PR + push to managed branch | none |
+| CHANGELOG.md | maintained by release-please | maintained by flywheel via `@semantic-release/changelog` (built-in) | maintained by hand |
+| Per-repo config | `release-please-config.json` + manifest | `.flywheel.yml` | none |
+| Branch protection | any | requires merge queue + native auto-merge | any |
+| GitHub App | required | required (separate App) | not required |
+| Multi-branch (`dev`/`main`/`rc`) | flat | first-class via streams | manual |
+
+Both release-please and flywheel maintain CHANGELOG.md
+automatically; the governance loop's CHANGELOG-as-source-of-truth
+assumption (§spec:requirements-discovery) holds for both. Manual
+adopters maintain CHANGELOG.md themselves.
+
+**Why three options:**
+
+- **release-please** is the symphonize default and what the plugin
+  has shipped since launch. Existing adopters depend on it; the
+  dogfood loop runs on it.
+- **flywheel** addresses adopters who need multi-branch release
+  streams (e.g., `dev` → `main` with pre-release versioning), use
+  GitHub's merge queue, or prefer push-time releases over the
+  release-please PR-accumulation model. Symphonize stays
+  ecosystem-agnostic by not picking a winner.
+- **manual** lets adopters opt out of release automation entirely
+  — useful for early-stage projects, forks, or repos where another
+  tool already manages releases. Without this option, every
+  adopter pays the cost of GitHub App setup before they can use
+  `/symphonize:init`.
+
+**Why detect on re-run, not prompt:** matches the existing
+idempotent contract of `/symphonize:init` ("skip files that
+exist, warn on each skip"). Adopters who want to switch release
+tools remove the old config files first — symphonize does not
+own the migration. Migration-by-prompt would be a destructive
+operation (delete workflows + config) that the simple file-skip
+model does not justify.
+
+**Why split flywheel's config from its workflows:** flywheel
+generates `.releaserc.json` at runtime from `.flywheel.yml`
+and overwrites any committed copy on every push (per flywheel
+docs). Symphonize's template ships `.flywheel.yml` as the
+single source of truth and does not ship `.releaserc.json`.
+
+**Rejected alternatives:**
+
+- **Keep release-please as the only option.** Rejected: locks
+  adopters into one release model when their branch strategy or
+  ecosystem may not fit. Already covered in CONVENTIONS.md by
+  the "preferred where available" hedge — making the choice
+  explicit removes the implicit pressure.
+- **Add a fourth option for monorepo tooling (e.g., melos).**
+  Rejected for v1: melos and similar tools are language-ecosystem
+  specific (melos = Dart). Symphonize stays ecosystem-agnostic.
+  Monorepo adopters can pick manual and configure their tool
+  separately, or add a `templates/melos/` directory in a future
+  workstream if demand emerges.
+- **Auto-detect from repo state (no prompt).** Rejected: on a
+  fresh `/symphonize:init` run, there is no existing config to
+  detect. The adopter must make the choice once; the prompt is
+  the right place to capture it.
+
+**Tradeoffs accepted:**
+
+- Three templates to maintain. Drift between symphonize's
+  dogfooded release-please workflows and `templates/release-please/`
+  is the highest risk; §spec:governance-consistency covers it.
+- `/clean`'s release-aware check becomes a small dispatch over
+  three branches. Acceptable — each branch is a one-line repo
+  state read and a one-paragraph user-facing message.
+- Adopters who later want to switch release tools do so manually
+  (remove old config, re-run `/symphonize:init`). Symphonize does
+  not own the migration path.
 
 ## Scaffolding freshness §spec:scaffold-freshness
 *Status: in progress*
@@ -423,6 +591,9 @@ internally consistent. Specifically:
 - The governance files table is consistent across README.md,
   SPEC.md, and CONVENTIONS.md (four files, same descriptions)
 - markdownlint globs include REQUIREMENTS.md and CHANGELOG.md
+- `templates/release-please/` matches symphonize's live
+  `.github/workflows/` release-please files (symphonize dogfoods
+  the same template it ships to adopters)
 
 **Why:** inconsistencies between documents erode trust. An agent
 that reads init.md and CONVENTIONS.md should not get conflicting
