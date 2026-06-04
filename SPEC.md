@@ -104,6 +104,49 @@ github-actions[bot] with the `autorelease: pending` label.
 Template workflow that moves a floating major version tag
 (e.g., `v1`) on each release.
 
+## Scaffolding freshness §spec:scaffold-freshness
+*Status: in progress*
+
+`/symphonize:init` scaffolds the current state of the world; it does not
+keep scaffolded files current afterward. This matches every scaffolder
+(`flutter create`, `npm init`): generated files are handed to the project
+to mutate in project-specific ways, so the scaffolder cannot own their
+later evolution. Two freshness concerns follow from that boundary, with
+different owners.
+
+Symphonize ships its workflow templates two ways (§spec:reusable-ci):
+`governance-lint.yml` is scaffolded as a `@v1` reusable caller, so a
+consumer picks up symphonize's internal action bumps transitively; the
+release, auto-merge, and major-tag workflows are copied verbatim because
+each needs project-specific manifests and tokens, so a consumer holds a
+point-in-time snapshot that does not self-update.
+
+- **Source freshness — symphonize's concern.** The copied templates'
+  source is symphonize's own `.github/workflows/*`, and the plugin bundle
+  init copies from is built from it. If the source rots, every new scaffold
+  ships stale action versions — "init-ing the past." Symphonize keeps the
+  source current with Dependabot (`github-actions`), so a fresh scaffold
+  ships current pins.
+- **Copy freshness — the consumer's concern.** A consumer's copied
+  workflows are theirs to mutate and theirs to keep current. `init`
+  scaffolds a `.github/dependabot.yml` (`github-actions`) into the consumer
+  so those copies self-heal through native upgrade PRs — the same mechanism
+  that surfaces a deprecation to any GitHub repository.
+
+**Why delegate copy freshness rather than check it:** a drift checker
+would have to diff a consumer's workflows against the current templates,
+but those files are *meant* to diverge — it cannot separate intentional
+project mutation from a stale pin without re-asserting symphonize as
+authority over files it deliberately handed off. Dependabot already owns
+the action-version upgrade graph; reimplementing it would be strictly
+worse. A `/doctor`-style command, if built, belongs to governance-document
+drift (status-line validity, dangling slugs, docs-versus-repo-state),
+where symphonize is the source of truth — not to action versions.
+
+When scaffolding ownership migrates to the schema's scaffolder
+(§spec:governance-schema, §road:adopt-schema-scaffolder), this freshness
+contract migrates with it. §req:modular-adoption
+
 ## Dogfooding §spec:dogfooding
 *Status: complete*
 
