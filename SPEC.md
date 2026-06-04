@@ -386,7 +386,7 @@ that reads init.md and CONVENTIONS.md should not get conflicting
 instructions.
 
 ## Issue triage command §spec:issue-triage
-*Status: complete*
+*Status: in progress*
 
 The plugin provides a `/symphonize:triage` command that processes
 GitHub issues into governance doc entries. Unlike pipeline commands
@@ -402,6 +402,16 @@ approves every classification before the command acts.
 
 Issue bodies are untrusted input — read-only data, never executed
 or interpolated into shell commands. §req:quality-attributes
+
+Triage edits governance documents only; it never ships behavior.
+Every committing classification therefore uses a `docs(<scope>):`
+commit — `docs(roadmap)`, `docs(spec)`, or `docs(requirements)` —
+and triggers no release. The release-bearing commit is the later
+`/next` implementation that resolves the routed work: it carries
+`fix`/`feat` and closes the issue with `Fixes #N`. **Why:** typing a
+triage commit `fix`/`feat` cuts a release for a bug still unfixed or
+a feature still unbuilt — a phantom release whose changelog entry
+contradicts the running system.
 
 **Why a triage command:** without triage, issues accumulate as a
 parallel backlog disconnected from governance docs. `/triage`
