@@ -172,3 +172,52 @@ Adopters need these separately:
 
 The conventions layer separates first, because every other component and
 every adopter depends on it.
+
+## Low-friction governance §req:low-friction-governance
+
+The repository is the single source of truth for two kinds of artifact:
+the governance documents (REQUIREMENTS, SPEC, ROADMAP) and the codebase.
+They differ in nature, and that difference should shape how each lands in
+the repository:
+
+- Governance documents are **interpreted** — agents read them live, every
+  turn, as instructions and context, re-read on each run like an
+  interpreted language. Their correctness is whether they parse (slugs
+  present, status lines valid, cross-references resolve) and whether an
+  agent reads them coherently. They are verified just-in-time, by being
+  read.
+- Code is **compiled** — built, tested, and gated by CI ahead of time, so
+  errors surface before it runs.
+
+Today both land in the repository through the same heavy ceremony, which
+is mis-calibrated for an interpreted artifact. Per-document changes
+collide on a moving `main` — a ROADMAP change conflicted on GitHub during
+PR #118 because main advanced under it; documents drift stale relative to
+the repository's real state; and the tastemaking process (`discover`,
+`plan`, `roadmap`) produces changes that fail to merge cleanly. The
+maintainer pays twice: in wasted conflict-resolution, and in documents no
+reader trusts to be current.
+
+This friction is **frequent** — every governance change meets it — and
+**expensive** — the merge churn plus the slow erosion of trust when
+documents lag reality. The repository, not an agent's working memory, is
+the durable source of truth; documents that go stale stop being
+auditable. §req:quality-attributes
+
+Success looks like:
+
+- Governance changes land **correct by construction** — they parse, lint,
+  and cross-resolve before they reach GitHub — so they seldom fail to
+  merge.
+- Governance documents stay **fresh**: the lag between the repository's
+  real state and what the documents say stays small.
+- A governance change meets far less friction than a code change, and
+  rarely produces a PR that conflicts on GitHub.
+- The effort a change must clear is **proportional to its nature** — an
+  interpreted document is judged by whether it parses and reads
+  coherently, not held to the checks compiled code requires.
+  §req:quality-attributes
+
+CHANGELOG.md is out of scope: release-please generates it, so it is
+neither authored by the tastemaking process nor interpreted as
+instructions.
