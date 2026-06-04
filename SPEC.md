@@ -681,72 +681,101 @@ means deleting them. No registry to maintain, no sync to drift.
 and similar tools already resolve config by walking up the directory
 tree. Symphonize delegates to the linter's native scoping.
 
-## Governance-schema extraction §spec:governance-schema
+## Plugin decomposition §spec:governance-schema
 *Status: not started*
 
-Symphonize's governance-schema — the structural definition of its
-governance documents (file formats, the `§req:`/`§spec:`/`§road:` slug
-grammar, the status-line format, cross-reference rules) plus the workflow
-that enforces it and the scaffolder that wires a repo up to it — lives in
-a dedicated repository (`bug-free-happiness`), not inside symphonize. The
-schema ships no document to adopters: the linter is its executable form,
-and symphonize's commands are built against the grammar. Symphonize
-consumes the schema; it keeps its authoring methodology and process
-discipline, which are symphonize's own opinion and not part of the shared
-schema. §req:modular-adoption
+Symphonize is one repository publishing one plugin marketplace with three
+plugins — each independently installable and independently versioned via
+the `{plugin}--v{version}` tag convention:
 
-In the target state:
+- **compose** — the tastemaking layer ("are we building the right
+  thing"): `discover`, `plan`, `roadmap`, `triage`, and the
+  correctness/taste half of `review`. It produces the governance
+  documents — the *score*.
+- **conduct** — the execution layer ("are we building it right"): `next`,
+  `orchestrate`, `clean`, `yolo`, and the integration/merge half of
+  `review`. It performs the score into landed PRs.
+- **notation** — the governance schema both build on: the structural
+  grammar (governance file formats, the `§req:`/`§spec:`/`§road:` slug
+  rules, the status-line format, cross-reference rules), the reusable
+  `governance-lint.yml` workflow that enforces it, and the `init`
+  scaffolder that installs it into adopter repos.
 
-- Symphonize's CI references the schema's enforcement workflow instead of
-  shipping its own `governance-lint.yml`; the workflow runs the full
-  schema with no toggles to set. CHANGELOG.md stays unenforced — it is
-  release-please's generated artifact. This supersedes §spec:reusable-ci
-  and §spec:dogfooding.
-- Symphonize's `CONVENTIONS.md` is deleted, not replaced. Its three kinds
-  of content disperse: the structural grammar needs no per-repo file —
-  the schema's linter enforces it and the curate/dispatch commands are
-  built against it; the authoring methodology (declarative spec writing,
-  vertical slicing, interview frameworks, compression) moves inline into
-  the curation commands; the process discipline (branching, commit
-  conventions, quality gate) moves into the dispatch commands and the
-  batch-agent protocol. This supersedes §spec:self-contained-conventions.
-- `/symphonize:init` defers to the schema's scaffolder, and symphonize
-  declares a plugin dependency on the schema — the dependency pin and the
-  CI workflow ref together establish which schema version symphonize
-  targets. This supersedes the scaffolding ownership in
-  §spec:project-scaffolding.
+compose and conduct each declare a plugin `dependencies` on notation,
+resolved within the one marketplace. The names follow the product's own
+metaphor — **notation ← compose → conduct**: a composer writes the score
+in a shared notation, a conductor performs it. §req:modular-adoption
 
-The schema repository's own SPEC.md specifies its design — single repo,
-three faces, and the version-coherence contract. Symphonize references
-that spec instead of restating it.
+### Notation lives in this repository, not a separate one
 
-**Why a separate schema:** a linter is the executable form of the schema,
-so co-locating the grammar and its enforcement on one version line keeps
-them from drifting — they did once, when a numbered-versus-slug mismatch
-went uncaught. Holding the schema in its own repo also gives the future
-curation and dispatch layers one shared definition to depend on, rather
-than each embedding its own copy. §req:modular-adoption
+Notation is a plugin in this monorepo, not a standalone repository.
+Symphonize keeps the `governance-lint.yml` workflow, the grammar it
+enforces, and the `init` scaffolder it ships today — they become the
+notation plugin rather than moving out. This supersedes §spec:reusable-ci,
+§spec:self-contained-conventions, §spec:project-scaffolding, and
+§spec:dogfooding: those capabilities are notation's, in-repo.
 
-**Why symphonize-specific:** the schema encodes symphonize's conventions
-and is consumed only by symphonize — not a general-purpose linter other
-projects adopt. If symphonize ever needs a different schema, it would plug
-a different one in on its own side; that seam stays unbuilt until a second
-schema exists.
+**Why in-repo, not a separate schema repository:** an earlier design
+extracted notation to its own repository to serve generic adopters. The
+schema is symphonize-specific — consumed only by symphonize — so that
+justification lapsed. Keeping notation in-repo holds compose and conduct's
+dependency on it within one marketplace (no cross-marketplace allowlist),
+makes a grammar change and its consumers one atomic PR (no cross-repo
+drift), and costs only document relocation while notation is unbuilt. If
+symphonize ever needs a different schema, it plugs a different notation in
+on its own side; that seam stays unbuilt until a second schema exists.
 
-**Direction:** the schema extraction is the first step toward decomposing
-symphonize into independently-adoptable layers — a curation layer and a
-dispatch layer over the shared schema. The three-way split of today's
-`CONVENTIONS.md` mirrors that layering: the structural slice anchors the
-schema, the authoring methodology becomes curation's, and the process
-discipline becomes dispatch's. This section covers only the
-governance-schema boundary; the further splits await their own spec
-sections.
+### Why three plugins, one repository
 
-**Tradeoff accepted:** a cross-repo dependency replaces an in-repo one.
-Symphonize's CI and scaffolding depend on a published schema release. The
-pinned workflow ref and the plugin dependency range — both machine-checked
-— keep symphonize and the schema on one version, with no bespoke marker to
-maintain.
+- **Three plugins, not one:** a team may adopt compose's shaping
+  discipline without conduct's agent-swarm execution, or the reverse.
+  Separately-installable plugins serve that; one monolithic plugin would
+  not. §req:modular-adoption
+- **One repository, not three:** compose, conduct, and notation co-evolve
+  — moving authoring methodology into compose and process discipline into
+  conduct touches all three, and a grammar change ripples to its
+  consumers. One repository makes those changes atomic and shares one CI,
+  while the `{plugin}--v{version}` tag convention preserves independent
+  version lines and independent installation. Separate repositories would
+  add cross-repo coordination with no adoption benefit.
+
+### Where today's CONVENTIONS.md content goes
+
+Symphonize's current `CONVENTIONS.md` bundles three contracts the
+decomposition separates:
+
+- **Structural grammar** → notation enforces it; the linter is its
+  executable form, so notation ships no per-repo conventions document.
+- **Authoring methodology** (declarative spec writing, vertical slicing,
+  interview frameworks, compression) → inline in the compose commands.
+- **Process discipline** (branching, commit conventions, quality gate) →
+  inline in the conduct commands and the batch-agent protocol.
+
+**Rejected alternatives:**
+
+- **Notation as a separate repository** (the earlier `bug-free-happiness`
+  plan). Rejected: the schema is symphonize-specific, so the separate repo
+  solves a generic-adoption problem symphonize does not have while adding
+  cross-repo dependency machinery and drift surface.
+- **compose and conduct in separate repositories.** Rejected: they
+  co-evolve and the split refactor touches both; separate repos add
+  coordination with no adoption benefit over separately-installable
+  plugins in one marketplace.
+- **One plugin with grouped commands.** Rejected: it abandons the
+  adopt-one-layer-without-the-other goal. §req:modular-adoption
+
+**Tradeoffs accepted:**
+
+- Three plugins in one tree means three version lines and three
+  changelogs to maintain — accepted for atomic cross-plugin change and one
+  CI surface.
+- notation welds to symphonize; opening it as a generic governance-doc
+  linter later would mean re-extracting it. Accepted given the
+  symphonize-specific decision.
+- Adopter projects reference the reusable `governance-lint.yml` cross-repo
+  via a notation-scoped major tag rather than a dedicated repository's
+  `@v1`. The tag name carries the version; the cosmetic difference is
+  accepted.
 
 ## YOLO mode §spec:yolo-mode
 *Status: not started*
