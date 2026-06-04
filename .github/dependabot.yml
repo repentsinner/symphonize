@@ -1,0 +1,12 @@
+version: 2
+updates:
+  # Keep the GitHub Actions pinned in .github/workflows current. These
+  # workflow files are also the templates /symphonize:init copies into
+  # consuming repos, so keeping them fresh here keeps new scaffolds from
+  # shipping stale action versions.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
