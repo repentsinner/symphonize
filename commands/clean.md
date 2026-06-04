@@ -3,9 +3,9 @@ argument-hint: [--lite | --full]
 description: Cleans up after executing batch workstreams
 ---
 
-Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` § Governance root for
-the resolution algorithm. Resolve the governance root before
-operating.
+Resolve the governance root before operating: walk up from the current
+working directory to the nearest ancestor containing SPEC.md; if none
+is found, fall back to the repository root.
 
 Two modes: `--lite` and `--full`. If no flag is passed, auto-detect:
 use `--lite` if `.claude/ralph-loop.local.md` exists, `--full`
@@ -110,9 +110,16 @@ recent commit history (`git log --oneline -20`). Check:
   that shipped.
 - **SPEC.md**: status lines match reality. Sections whose last
   workstream just merged should move to `complete` or
-  `in progress`. Apply spec compression per
-  `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` § Spec compression for
-  any newly completed sections.
+  `in progress`. Compress any newly completed section — it shifts
+  from guiding implementation to documenting the running system.
+  **Retain** design rationale (constraints, tradeoffs, rejected
+  alternatives), observable behavior, state machines, and
+  cross-references. **Remove** wire formats and protocol tables
+  (point to the protocol's own docs), algorithm pseudocode and
+  step-by-step detail (the code owns *how*), edge cases obvious from
+  tests, and "shall" language that restates the code without adding
+  rationale. Heuristic: cover a paragraph with your thumb — if the
+  design intent survives, cut it; if the *why* disappears, keep it.
 - **CHANGELOG.md**: `[Unreleased]` section reflects what merged
   since the last release. If release-please manages this, verify
   it will pick up the new commits.
@@ -123,7 +130,11 @@ and open a PR (or push directly to main if the project allows).
 
 ### 5. Verify
 
-Run verification against main — not a branch.
+Run verification against main — not a branch. The quality gate is
+zero failures and zero warnings — the only sustainable baseline. A
+"pre-existing" failure is not an excuse: every known failure that
+ships becomes invisible within a session, and within two batches the
+failure count drifts so real regressions hide behind the noise floor.
 
 - Run the project's analysis tool — zero warnings.
 - Run the project's test suite — zero failures.

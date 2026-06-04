@@ -2,10 +2,6 @@
 argument-hint: [product idea or problem area]
 description: Interview the user to produce or update REQUIREMENTS.md
 ---
-Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` for governance file formats
-(§ Cross-document traceability, § Governance root).
-If CONVENTIONS.md exists in the target project, read it before producing output.
-
 ## 0. Resolve governance root
 
 Resolve the governance root before reading or writing governance files:
@@ -49,6 +45,51 @@ References: Wake, "INVEST in Good Stories" (2003) — the "V" is
 Valuable, the "T" is Testable; Mavin et al., "EARS" (2009) —
 "When [trigger], the system shall [observable response]";
 Cockburn, *Crystal Clear* (2004) — walking skeleton.
+
+## Requirements format
+
+REQUIREMENTS.md is a problem-space document in the user's language.
+This command populates it through a structured interview, but any tool
+or manual edit must produce conformant output.
+
+Standard sections, each carrying a `§req:slug` suffix on its `##`
+heading:
+
+| Section | Slug | Purpose |
+|---------|------|---------|
+| Problem statement | `§req:problem-statement` | Target users, their problem, and why current solutions fall short |
+| Success criteria | `§req:success-criteria` | Observable, measurable outcomes that define product success |
+| User stories | `§req:user-stories` | Concrete workflows in the user's language |
+| Quality attributes | `§req:quality-attributes` | Non-functional expectations: performance, security, reliability, accessibility, scalability |
+| Constraints | `§req:constraints` | Technical, business, and regulatory bounds on the solution space |
+| Priorities | `§req:priorities` | Must-have vs. nice-to-have, ordered by user impact |
+
+Order matters: success criteria come before user stories. Define "done"
+before exploring "how." Adapt slugs and add subsections as needed. The
+document stays in the user's problem space — no solution design, no
+architecture, no implementation details. Translation to solution space
+happens in `/plan` (architecture → SPEC.md) and `/roadmap`
+(workstreams → ROADMAP.md).
+
+### Acceptance before exploration
+
+Define "done" before exploring "how" — at every layer. This is TDD
+applied recursively:
+
+| Layer | Define first | Then explore |
+|-------|-------------|--------------|
+| Requirements | Success criteria | Features and workflows |
+| Specification | Observable behavior | Design and rationale |
+| Roadmap | Spec gap to close | Workstream breakdown |
+| Code | Failing test | Implementation |
+
+The acceptance condition scopes the solution space and prevents drift.
+Requirements and specification co-evolve: enough design to validate
+requirements feasibility, enough requirements to constrain design.
+
+References: Nuseibeh, "Weaving Together Requirements and Architectures"
+(2001) — the Twin Peaks model; ISO/IEC/IEEE 29148:2018 — stakeholder
+vs. system requirements; Singer, *Shape Up* (2019).
 
 ## Interview Workflow
 

@@ -94,7 +94,8 @@ any point; the commands will pull them back as far as needed.
 Governance files use namespaced slug prefixes (`§req:`, `§spec:`,
 `§road:`) for grep-friendly cross-document references. Every spec
 section traces to a requirement; every roadmap workstream traces to a
-spec section. See `CONVENTIONS.md` for the full traceability chain.
+spec section. governance-lint enforces the chain — a dangling
+reference fails CI.
 
 ### Why in-repo?
 
@@ -202,7 +203,8 @@ claude --plugin-dir /path/to/symphonize
 - `git`, `gh` (authenticated), and `npx` (Node.js) on `PATH`
 - `vale` (optional — needed when `.vale.ini` exists for prose linting)
 - A project with governance files (run `/symphonize:init` to scaffold
-  them — format conventions are in `CONVENTIONS.md`)
+  them — the compose commands carry the authoring formats, and
+  governance-lint enforces the structural grammar)
 - [ralph-loop](https://github.com/anthropics/claude-plugins-public/tree/main/plugins/ralph-loop)
   plugin (for unattended `/orchestrate` mode)
 

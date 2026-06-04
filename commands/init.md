@@ -6,9 +6,6 @@ Scaffold the governance file loop and CI workflows into the current
 project. Idempotent — skip files that already exist, warn on each
 skip.
 
-Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` § Governance root for
-the resolution algorithm.
-
 ## Governance root resolution
 
 Resolve the governance root before creating files:
