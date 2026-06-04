@@ -108,3 +108,17 @@ file inside the rate-limit window; the hook emits no `File: unbound variable`
 error and skips the fetch silently. On macOS, the same scenario still
 rate-limits correctly. `stat -c %Y "$stamp"` resolves the mtime on Linux
 without falling through to the BSD form.
+
+## Triage commit-type correction
+
+### §road:fix-triage-commit-types
+
+Change `commands/triage.md` Phase 4 so every committing classification uses
+a `docs(<scope>):` commit (`docs(roadmap)`, `docs(spec)`, `docs(requirements)`)
+and a `docs/triage-N-slug` branch instead of `fix`/`feat`, so triaging an
+issue never cuts a release. §spec:issue-triage
+
+**Verify:** `commands/triage.md` Phase 4 prescribes `docs(<scope>):` for the
+bug, bug+spec-gap, and feature classifications, and `docs/` branch prefixes;
+a triage-only PR produces no release-please release entry; governance-lint
+passes.
