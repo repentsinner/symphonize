@@ -766,9 +766,10 @@ decomposition separates:
 
 **Tradeoffs accepted:**
 
-- Three plugins in one tree means three version lines and three
-  changelogs to maintain — accepted for atomic cross-plugin change and one
-  CI surface.
+- One coordinated version line covers all three plugins — they co-evolve
+  in one repo with a hard dependency edge, so a release bumps and tags them
+  together. Independent *installation* (adopting compose without conduct)
+  needs no independent version numbers. §spec:plugin-packaging
 - notation welds to symphonize; opening it as a generic governance-doc
   linter later would mean re-extracting it. Accepted given the
   symphonize-specific decision.
@@ -776,6 +777,134 @@ decomposition separates:
   via a notation-scoped major tag rather than a dedicated repository's
   `@v1`. The tag name carries the version; the cosmetic difference is
   accepted.
+
+## Plugin packaging and distribution §spec:plugin-packaging
+*Status: not started*
+
+The decomposition (§spec:governance-schema) ships as one Claude Code plugin
+marketplace named `symphonize`, declaring three plugins — `notation`,
+`compose`, `conduct` — each rooted at `plugins/<name>/` and listed in
+`.claude-plugin/marketplace.json` with `source: "./plugins/<name>"`. Each
+plugin carries its own `.claude-plugin/plugin.json`; commands resolve by
+convention from each plugin's `commands/` directory.
+
+### Observable behavior
+
+- A user adds the marketplace once
+  (`/plugin marketplace add repentsinner/symphonize`) and installs any
+  subset of plugins. Installing `compose` or `conduct` auto-installs
+  `notation`, which both declare as a `dependencies` entry; installing
+  `notation` alone yields just the schema. Tastemaking without execution is
+  `compose`; the reverse is `conduct`. §req:modular-adoption
+- Commands appear under their plugin namespace: `/notation:init`,
+  `/notation:lint`; `/compose:discover|plan|roadmap|triage`;
+  `/conduct:next|orchestrate|clean|yolo`. The former `/symphonize:*` names
+  no longer exist — pre-1.0, the rename ships without aliases.
+- The three plugins share one coordinated version line. A release bumps all
+  three `plugin.json` versions together and publishes one
+  `{plugin}--v{version}` git tag per plugin (`notation--v0.2.0`,
+  `compose--v0.2.0`, `conduct--v0.2.0`). `compose` and `conduct` pin
+  `notation` at that shared version through their `dependencies` range.
+
+### Dual packaging of notation
+
+notation reaches adopters through two channels on one version line:
+
+- The **plugin** (`plugins/notation/`) ships the `init` scaffolder and the
+  workflow templates it copies into adopter repos.
+- The **reusable workflow** `governance-lint.yml` stays at the repository
+  root `.github/workflows/` — GitHub Actions resolves reusable workflows
+  only from that path, and the repo's own CI calls it there. Adopters
+  reference it cross-repo via
+  `uses: repentsinner/symphonize/.github/workflows/governance-lint.yml@<major>`.
+
+The git ref a workflow caller pins and the plugin version a `dependencies`
+range resolves both originate from the same version line, so the scaffolder
+always writes a workflow ref that exists and matches.
+
+### Cross-plugin fragment assembly
+
+Installed plugins are copied into `~/.claude/plugins/cache/` and cannot
+read files outside their own directory — `../` into a sibling plugin fails.
+Most of today's shared `CONVENTIONS.md` content becomes single-owner under
+the decomposition: authoring methodology in compose's commands, process
+discipline in conduct's commands and `protocols/batch-agent.md`, the
+structural grammar in notation's linter. The residual every plugin needs —
+the governance-root resolution algorithm and the `§`-slug grammar — lives
+once as a canonical source fragment and is **assembled** into each plugin's
+command files by a build step. CI fails when a committed command file
+drifts from a fresh assembly, so each cached plugin stays self-contained
+while the fragment keeps one source of truth.
+
+**Why a build step, not symlinks:** a symlink into a sibling plugin
+resolves at install-time copy and dangles in the cache. Assembly resolves
+at commit/publish time, leaving each cached plugin self-contained, and the
+drift check prevents the divergence a manual copy would invite.
+
+### Rejected alternatives
+
+- **Symlinked shared files** — fragile at cache-copy time (above).
+- **Independent version numbers per plugin** — the plugins co-evolve in one
+  repo behind a hard dependency edge, so divergent versions inflate one
+  plugin's number on another's change with no adoption benefit. Independent
+  *installation* needs no version divergence.
+
+### Tradeoffs accepted
+
+- The `/symphonize:*` → `/{plugin}:*` rename breaks existing invocations.
+  Accepted pre-1.0 (no compatibility contract); aliases would entrench the
+  monolithic namespace the decomposition exists to retire.
+
+## Notation contract §spec:notation-contract
+*Status: not started*
+
+notation defines what a well-formed governance document *is*: the
+governance file formats, the `§req:`/`§spec:`/`§road:` slug rules, the
+status-line format and placement, the cross-reference rules, and the
+governance-root definition. The contract is content-agnostic — it governs
+document *structure*, not authoring methodology (compose's) or development
+process (conduct's).
+
+### Expressed, not distributed
+
+The contract ships no document to adopters. Its executable form is the
+reusable `governance-lint.yml` workflow — what the linter checks *is* the
+contract — and its human-readable form is notation's own documentation.
+compose and conduct are built against the same grammar and carry inline
+what they need to produce conforming documents (§spec:plugin-packaging);
+neither they nor the linter read a per-adopter conventions file. A
+materialized `CONVENTIONS.md` in each adopter repo would be a second source
+of truth to keep in sync with the linter — the drift this design exists to
+prevent.
+
+### Observable behavior
+
+- governance-lint enforces, on every invocation with no opt-in switches:
+  markdownlint over the governance documents; a valid status line on every
+  `##` SPEC/REQUIREMENTS heading and `###` ROADMAP heading; a `§`-slug on
+  every such heading; and resolution of every `§`-reference to a defined
+  slug, code spans exempt — a dangling reference fails the job. Vale runs
+  when a `.vale.ini` exists, else is a silent no-op. CHANGELOG.md is
+  excluded: release-please generates it, so enforcing its shape fights the
+  generator.
+- These checks already run in symphonize's `governance-lint.yml`; the
+  decomposition re-homes them under notation rather than rebuilding them.
+
+### Version coherence
+
+A consumer pins the contract two ways, both off notation's one version
+line: the workflow by git ref (`@<major>`), the plugin by a `dependencies`
+range. The floating major tag points at the release it names and does not
+lag a renamed or restructured workflow. No separate version marker is
+needed — the contract ships no file to carry one; ref plus dependency
+already declare which schema version a repo targets.
+
+**Why validate every `##` heading, not numbered sections only:** a
+numbered-only status-line check matches zero sections in a slug-style
+SPEC.md and reports success — a silent false green. This drift occurred
+once (the workflow validated `## N.` sections while the grammar had moved
+to slug headings; nothing caught it). Validating every heading removes that
+failure mode. §req:modular-adoption
 
 ## YOLO mode §spec:yolo-mode
 *Status: not started*
