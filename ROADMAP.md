@@ -92,3 +92,18 @@ and the duplicated `/init` scaffolding now served by the schema.
 deleted with no replacement file; `/symphonize:init` delegates to the
 schema's scaffolder; CI is green via the schema's workflow; `grep` finds
 no command referencing the removed `CONVENTIONS.md`.
+
+## Scaffolding freshness
+
+### §road:scaffold-consumer-dependabot
+
+Add a `.github/dependabot.yml` (`github-actions`) to the files
+`/symphonize:init` scaffolds, and document the scaffold-current-state /
+delegate-freshness contract in `commands/init.md`. §spec:scaffold-freshness
+
+**Verify:** a repo scaffolded by `/symphonize:init` contains a
+`.github/dependabot.yml` enabling weekly `github-actions` updates;
+`commands/init.md` and §spec:scaffold-freshness agree on the contract;
+governance-lint passes. If §road:adopt-schema-scaffolder has landed first,
+the dependabot scaffolding lives in the schema's scaffolder, not
+`commands/init.md`.

@@ -154,23 +154,28 @@ proceeding.
 
 ## Phase 4: Commit and push
 
-1. Create a feature branch from `origin/main`. Use the conventional
-   commit type matching the classification:
+1. Create a feature branch from `origin/main`. Triage edits
+   governance documents only and ships no behavior, so every
+   committing classification uses a `docs/` branch:
 
-   - Bug → `fix/triage-N-slug`
-   - Feature → `feat/triage-N-slug`
+   - Bug → `docs/triage-N-slug`
+   - Feature → `docs/triage-N-slug`
 
    ```bash
-   git checkout -b <type>/triage-<issue-number>-<slug> origin/main
+   git checkout -b docs/triage-<issue-number>-<slug> origin/main
    ```
 
 2. Write the governance file updates.
 
-3. Commit with conventional format:
+3. Commit with conventional format. Triage commits never cut a
+   release — they use `docs(<scope>):`, scoped to the governance
+   file written. The release-bearing commit is the later `/next`
+   implementation carrying `fix`/`feat` and closing the issue with
+   `Fixes #N`.
 
-   - Bug → `fix(roadmap): triage #N — short description`
-   - Bug + spec gap → `fix(spec): triage #N — short description`
-   - Feature → `feat(requirements): triage #N — short description`
+   - Bug → `docs(roadmap): triage #N — short description`
+   - Bug + spec gap → `docs(spec): triage #N — short description`
+   - Feature → `docs(requirements): triage #N — short description`
    - Feedback/out-of-scope → no commit (comment only)
 
 4. Push and open a PR. The PR body cites the source issue:
