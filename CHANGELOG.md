@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.39](https://github.com/repentsinner/symphonize/compare/v0.1.38...v0.1.39) (2026-06-04)
+
+
+### Features
+
+* **spec:** rework governance-schema into the plugin decomposition ([#123](https://github.com/repentsinner/symphonize/issues/123)) ([5531b3b](https://github.com/repentsinner/symphonize/commit/5531b3b28130baa32e4f34fc4fb039696da74a2c))
+
 ## [0.1.38](https://github.com/repentsinner/symphonize/compare/v0.1.37...v0.1.38) (2026-06-04)
 
 
