@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.38](https://github.com/repentsinner/symphonize/compare/v0.1.37...v0.1.38) (2026-06-04)
+
+
+### Features
+
+* batch — fix Linux stat probe crash and triage commit types ([#129](https://github.com/repentsinner/symphonize/issues/129)) ([72c9aad](https://github.com/repentsinner/symphonize/commit/72c9aadde9daaba97fc5b3c8879a8cf187207ca4))
+
 ## [0.1.37](https://github.com/repentsinner/symphonize/compare/v0.1.36...v0.1.37) (2026-05-30)
 
 
