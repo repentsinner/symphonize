@@ -92,33 +92,3 @@ and the duplicated `/init` scaffolding now served by the schema.
 deleted with no replacement file; `/symphonize:init` delegates to the
 schema's scaffolder; CI is green via the schema's workflow; `grep` finds
 no command referencing the removed `CONVENTIONS.md`.
-
-## Repo-state reconciliation hook — stat probe order
-
-### §road:fix-stat-probe-order
-
-Reorder the `stat` mtime probe in `hooks/reconcile-repo-state.sh` to try the
-GNU form (`stat -c %Y`) before the BSD form (`stat -f %m`), so GNU/Linux hits
-the working path and exits 0 before the BSD fallback pollutes stdout and
-crashes the rate-limit read under `set -u`. Reported in #125.
-§spec:repo-state-reconciliation
-
-**Verify:** On GNU/Linux, trigger a `UserPromptSubmit` with an existing stamp
-file inside the rate-limit window; the hook emits no `File: unbound variable`
-error and skips the fetch silently. On macOS, the same scenario still
-rate-limits correctly. `stat -c %Y "$stamp"` resolves the mtime on Linux
-without falling through to the BSD form.
-
-## Triage commit-type correction
-
-### §road:fix-triage-commit-types
-
-Change `commands/triage.md` Phase 4 so every committing classification uses
-a `docs(<scope>):` commit (`docs(roadmap)`, `docs(spec)`, `docs(requirements)`)
-and a `docs/triage-N-slug` branch instead of `fix`/`feat`, so triaging an
-issue never cuts a release. §spec:issue-triage
-
-**Verify:** `commands/triage.md` Phase 4 prescribes `docs(<scope>):` for the
-bug, bug+spec-gap, and feature classifications, and `docs/` branch prefixes;
-a triage-only PR produces no release-please release entry; governance-lint
-passes.

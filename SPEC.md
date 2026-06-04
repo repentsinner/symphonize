@@ -386,7 +386,7 @@ that reads init.md and CONVENTIONS.md should not get conflicting
 instructions.
 
 ## Issue triage command §spec:issue-triage
-*Status: in progress*
+*Status: complete*
 
 The plugin provides a `/symphonize:triage` command that processes
 GitHub issues into governance doc entries. Unlike pipeline commands
