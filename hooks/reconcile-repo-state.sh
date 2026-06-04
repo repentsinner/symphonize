@@ -68,7 +68,11 @@ should_fetch=1
 
 if [ "$should_fetch" = "1" ] && [ -f "$stamp" ]; then
   now="$(date +%s 2>/dev/null || echo 0)"
-  stamp_mtime="$(stat -f %m "$stamp" 2>/dev/null || stat -c %Y "$stamp" 2>/dev/null || echo 0)"
+  # Probe the GNU form first: `stat -c %Y` fails cleanly (no stdout) on BSD/macOS
+  # and falls through to `stat -f %m`. The reverse order is unsafe — GNU `stat -f`
+  # means --file-system and prints a block to stdout while exiting non-zero, which
+  # leaks into the substitution and crashes the arithmetic below under set -u (#125).
+  stamp_mtime="$(stat -c %Y "$stamp" 2>/dev/null || stat -f %m "$stamp" 2>/dev/null || echo 0)"
   age=$((now - stamp_mtime))
   if [ "$age" -ge 0 ] && [ "$age" -lt "$window" ]; then
     should_fetch=0

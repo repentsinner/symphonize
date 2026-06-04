@@ -264,6 +264,69 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# Test 9: GNU `stat` form is probed before BSD (regression for #125)
+# ---------------------------------------------------------------------------
+# On GNU coreutils, `stat -f` means --file-system and `%m` is a bare filename:
+# the probe exits non-zero but still prints a filesystem block to stdout. If the
+# hook probes the BSD form (`stat -f %m`) first, that block leaks into the
+# command substitution, the `|| stat -c %Y` fallback also runs, and the mtime
+# read becomes a multi-word string. Arithmetic on it under `set -u` then throws
+# `File: unbound variable`. The fix probes the GNU form (`stat -c %Y`) first.
+#
+# We stub `stat` on PATH to emulate GNU coreutils regardless of host platform:
+#   stat -c %Y FILE  -> prints the mtime, exits 0
+#   stat -f %m  FILE -> prints a filesystem block, exits 1 (GNU --file-system)
+STAMP_DIR="$ROOT/stamps9"
+work="$(make_repo gnustat)"
+ghdir="$ROOT/gh-none9"
+make_gh_stub "$ghdir" NONE
+
+GNUSTAT_BIN="$ROOT/gnustat-bin"
+mkdir -p "$GNUSTAT_BIN"
+# Symlink the real tools the hook needs, but shadow `stat` with a GNU emulator.
+for tool in git jq cat printf date mkdir tr cut shasum sha1sum \
+            mktemp dirname basename grep sed env bash sh head find; do
+  src="$(command -v "$tool" 2>/dev/null)" && ln -sf "$src" "$GNUSTAT_BIN/$tool"
+done
+REAL_STAT="$(command -v stat)"
+cat >"$GNUSTAT_BIN/stat" <<EOF
+#!/usr/bin/env bash
+# GNU coreutils emulator: -c %Y works; -f %m is --file-system (prints a block,
+# exits non-zero against a regular file).
+if [ "\$1" = "-c" ]; then
+  exec "$REAL_STAT" -f %m "\$3"
+fi
+if [ "\$1" = "-f" ]; then
+  echo "  File: \"\$3\""
+  echo "    ID: 0 Namelen: 255 Type: apfs"
+  exit 1
+fi
+exec "$REAL_STAT" "\$@"
+EOF
+chmod +x "$GNUSTAT_BIN/stat"
+
+# Pre-create a stamp inside the rate-limit window so the hook reads its mtime.
+# The hook keys the stamp on the repo's resolved toplevel (which may differ from
+# $work — e.g. /tmp vs /private/tmp on macOS), so derive the key the same way.
+mkdir -p "$STAMP_DIR"
+stamp_top="$(tgit -C "$work" rev-parse --show-toplevel)"
+key="$(printf '%s' "$stamp_top" | shasum | cut -d' ' -f1)"
+: >"$STAMP_DIR/$key"
+
+out="$(printf '{"hook_event_name":"UserPromptSubmit","cwd":"%s","prompt":"hi"}' "$work" |
+  PATH="$ghdir:$GNUSTAT_BIN" RECONCILE_STAMP_DIR="$STAMP_DIR" \
+  RECONCILE_RATE_WINDOW_SECONDS=3600 "$HOOK" 2>&1)"
+rc=$?
+assert_not_contains "GNU stat: no 'File: unbound variable' crash" "$out" "unbound variable"
+assert_not_contains "GNU stat: filesystem block does not leak to output" "$out" "Namelen"
+assert_empty "GNU stat: clean rate-limited turn injects nothing" "$out"
+if [ "$rc" -eq 0 ]; then
+  pass=$((pass + 1)); echo "ok   - GNU stat: hook exits 0"
+else
+  fail=$((fail + 1)); echo "FAIL - GNU stat: hook exits 0 (got $rc)"
+fi
+
+# ---------------------------------------------------------------------------
 echo
 echo "passed: $pass  failed: $fail"
 [ "$fail" -eq 0 ]
