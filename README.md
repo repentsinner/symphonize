@@ -161,7 +161,7 @@ jobs:
 | `/symphonize:lint [type]` | Validate governance files (markdownlint) |
 | `/symphonize:feedback` | Submit feedback or report a bug to the symphonize project |
 
-The batch agent protocol (`protocols/batch-agent.md`) manages
+The batch agent protocol (`plugins/symphonize/protocols/batch-agent.md`) manages
 sub-agent dispatch, merge conflict resolution, and CI verification.
 
 ## API

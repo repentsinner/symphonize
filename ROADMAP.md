@@ -5,9 +5,9 @@
 ### §road:migrate-orchestrate-to-goal
 
 Replace `/ralph-loop:ralph-loop` with `/goal` in
-`commands/orchestrate.md`, and retire residual ralph-loop coupling
-in `commands/clean.md` (flag-file mode auto-detect),
-`protocols/batch-agent.md`, `README.md`,
+`plugins/symphonize/commands/orchestrate.md`, and retire residual ralph-loop
+coupling in `plugins/symphonize/commands/clean.md` (flag-file mode
+auto-detect), `plugins/symphonize/protocols/batch-agent.md`, `README.md`,
 `§spec:unattended-flag-passthrough`, and the known-issue note in
 `§spec:progress-file-location`. §spec:orchestration-loop
 
@@ -20,7 +20,7 @@ at least one PR; (4) the goal clears automatically once the
 section reports all unblocked workstreams attempted. In a second
 session in the same project, run `/symphonize:plan` and confirm
 no stop-hook directives fire from ralph-loop. Finally,
-`grep -r 'ralph' commands/ protocols/ README.md SPEC.md` shall
+`grep -r 'ralph' plugins/symphonize/ README.md SPEC.md` shall
 return no matches in active code paths (CHANGELOG.md may retain
 historical references).
 
@@ -30,50 +30,23 @@ historical references).
 
 Add a `.github/dependabot.yml` (`github-actions`) to the files
 `/symphonize:init` scaffolds, and document the scaffold-current-state /
-delegate-freshness contract in `commands/init.md`. §spec:scaffold-freshness
+delegate-freshness contract in `plugins/symphonize/commands/init.md`.
+§spec:scaffold-freshness
 
 **Verify:** a repo scaffolded by `/symphonize:init` contains a
 `.github/dependabot.yml` enabling weekly `github-actions` updates;
-`commands/init.md` and §spec:scaffold-freshness agree on the contract;
-governance-lint passes. The dependabot scaffolding lives with the `init`
-scaffolder — `commands/init.md` today, the notation plugin once the
+`plugins/symphonize/commands/init.md` and §spec:scaffold-freshness agree on
+the contract; governance-lint passes. The dependabot scaffolding lives with
+the `init` scaffolder — `plugins/symphonize/commands/init.md` today, the
+notation plugin once the
 decomposition (§spec:governance-schema) builds it out.
-
-## Relocate the monolith
-
-The decomposition begins by relocating today's single root plugin into
-`plugins/symphonize/`, so the repo root holds only the marketplace manifest
-and the shared `.github/` workflows. This is a structural no-op for users —
-every command stays `/symphonize:*` — but it removes the `source: "./"`
-whole-repo-copy hazard before any sibling appears under `plugins/`: a
-root-sourced plugin in a repo that also nests `plugins/*` is an
-undocumented, untested case that would drag sibling trees into the
-umbrella's cache. notation, compose, and conduct are then carved out of
-`plugins/symphonize/`; what remains is the umbrella — the same plugin,
-relocated once and drained, never deleted or recreated. The command files
-are already self-contained (CONVENTIONS.md inlined into them) and ready to
-move.
-
-### §road:relocate-monolith
-
-Move the repo's plugin into `plugins/symphonize/` — relocate `commands/`,
-`protocols/`, `hooks/`, and `.claude-plugin/plugin.json` (preserving its
-`name`, version, and history) under `plugins/symphonize/`, and point
-`.claude-plugin/marketplace.json` at `source: "./plugins/symphonize"`.
-§spec:plugin-packaging §spec:governance-schema
-
-**Verify:** every `/symphonize:*` command resolves exactly as before;
-installing the plugin copies only `plugins/symphonize/`'s tree into
-`~/.claude/plugins/cache/` (no repo-root siblings, no `.github/`);
-governance-lint passes.
 
 ## Notation plugin
 
 The dependency root and the first separately-installable sibling — the
 walking skeleton. Carved out of `plugins/symphonize/`, it establishes the
 multi-plugin `marketplace.json` (a second entry) and the per-sibling
-`plugin.json` pattern the later carve-outs reuse. Depends on
-§road:relocate-monolith.
+`plugin.json` pattern the later carve-outs reuse.
 
 ### §road:extract-notation-plugin
 
