@@ -8,26 +8,28 @@ the governance file loop (REQUIREMENTS.md → SPEC.md → ROADMAP.md
 → CHANGELOG.md) and produce conventional commits suitable for
 release-please.
 
-The command pipeline:
+The commands distribute across four plugins (§spec:governance-schema),
+grouped here by plugin:
 
-1. `/symphonize:discover` — domain discovery, produces
-   REQUIREMENTS.md
-2. `/symphonize:plan` — technical decisions, produces SPEC.md
-3. `/symphonize:roadmap` — break spec into workstreams, produces
-   ROADMAP.md
-4. `/symphonize:next` — executes workstreams
-5. `/symphonize:orchestrate` — unattended multi-batch execution
-6. `/symphonize:triage` — classify issues into governance entries
-7. `/symphonize:review` — PR review and integration test guidance
-8. `/symphonize:clean` — post-merge cleanup
-9. `/symphonize:lint` — governance file validation
-10. `/symphonize:init` — project scaffolding
-11. `/symphonize:feedback` — submit feedback to symphonize
+- `/notation:init` — project scaffolding
+- `/notation:lint` — governance file validation
+- `/compose:discover` — domain discovery, produces REQUIREMENTS.md
+- `/compose:plan` — technical decisions, produces SPEC.md
+- `/compose:roadmap` — break spec into workstreams, produces ROADMAP.md
+- `/compose:triage` — classify issues into governance entries
+- `/compose:review` — correctness-and-taste review of a PR
+- `/conduct:next` — executes workstreams
+- `/conduct:orchestrate` — unattended multi-batch execution
+- `/conduct:review` — integration review (conflicts, checkout, testing)
+- `/conduct:clean` — post-merge cleanup
+- `/symphonize:feedback` — submit feedback to symphonize
+
+`/symphonize:yolo`, the full-pipeline one-shot, is planned — §spec:yolo-mode.
 
 ## Governance lint command §spec:governance-lint
 *Status: complete*
 
-The plugin provides a `/symphonize:lint` command that runs
+The plugin provides a `/notation:lint` command that runs
 `npx markdownlint-cli2` against SPEC.md, ROADMAP.md, and
 README.md. It uses the project's `.markdownlint.json` if present.
 
@@ -42,8 +44,9 @@ before pushing, avoiding a CI round-trip for formatting errors.
 ## Project scaffolding command §spec:project-scaffolding
 *Status: complete*
 
-The plugin provides a `/symphonize:init` command that scaffolds
-governance files and CI workflows into a target project.
+Re-homed to the notation plugin under §spec:governance-schema; the behavior
+below is current. The notation plugin provides a `/notation:init` command
+that scaffolds governance files and CI workflows into a target project.
 
 The command creates:
 
@@ -63,7 +66,7 @@ The command creates:
 The command activates hooks for the current checkout via
 `git config core.hooksPath .githooks`. Hook scripts are tracked;
 activation is per-checkout. Consumers opt in by running
-`/symphonize:init` — upstream repos do not push hooks on
+`/notation:init` — upstream repos do not push hooks on
 contributors. CI is the backstop.
 
 The command is idempotent: it skips files that already exist and
@@ -76,8 +79,10 @@ docs and copy-paste" to one command.
 ## Reusable CI workflows §spec:reusable-ci
 *Status: complete*
 
-Symphonize ships reusable GitHub Actions workflows under
-`.github/workflows/` that target projects reference via
+Now the notation plugin's, under §spec:governance-schema; the workflows stay
+at the repository root `.github/workflows/` (GitHub Actions resolves reusable
+workflows only from there — §spec:plugin-packaging). Symphonize ships
+reusable GitHub Actions workflows that target projects reference via
 `workflow_call`.
 
 ### governance-lint.yml
@@ -89,8 +94,8 @@ checks. Errors surface as GitHub annotations.
 
 ### release-please.yml
 
-Template workflow for release-please-action@v4. Target projects
-copy this (via `/symphonize:init`) rather than calling it as a
+Template workflow for release-please-action@v5. Target projects
+copy this (via `/notation:init`) rather than calling it as a
 reusable workflow, because each project needs its own manifest
 and config.
 
@@ -109,7 +114,7 @@ for the reusable `governance-lint.yml`.
 ## Scaffolding freshness §spec:scaffold-freshness
 *Status: in progress*
 
-`/symphonize:init` scaffolds the current state of the world; it does not
+`/notation:init` scaffolds the current state of the world; it does not
 keep scaffolded files current afterward. This matches every scaffolder
 (`flutter create`, `npm init`): generated files are handed to the project
 to mutate in project-specific ways, so the scaffolder cannot own their
@@ -172,7 +177,7 @@ deferring to the user's CLAUDE.md.
 
 **Why self-contained:** conventions are part of the plugin's
 contract, not the user's personal configuration. Any user who
-installs symphonize and runs `/symphonize:init` gets a working
+installs symphonize and runs `/notation:init` gets a working
 governance loop without needing symphonize-specific content in
 their CLAUDE.md.
 
@@ -180,7 +185,7 @@ their CLAUDE.md.
 *Status: complete*
 
 REQUIREMENTS.md is the fourth governance file — a problem-space
-document in the user's language. `/symphonize:discover` populates
+document in the user's language. `/compose:discover` populates
 it through a structured interview.
 
 | Document | Voice | Question |
@@ -190,12 +195,12 @@ it through a structured interview.
 | ROADMAP.md | Work queue | What remains to build? |
 | CHANGELOG.md | History | What shipped? |
 
-`/symphonize:plan` reads REQUIREMENTS.md (if present) as input
-when drafting SPEC.md sections. `/symphonize:roadmap` reads
+`/compose:plan` reads REQUIREMENTS.md (if present) as input
+when drafting SPEC.md sections. `/compose:roadmap` reads
 SPEC.md to produce ROADMAP.md workstreams. Each command applies
 backpressure when upstream documents are absent or thin — filling
 gaps inline for small issues, recommending the upstream command
-for large ones. `/symphonize:init` scaffolds an empty
+for large ones. `/notation:init` scaffolds an empty
 REQUIREMENTS.md skeleton.
 
 **Why a separate document:** requirements live in the user's
@@ -221,7 +226,7 @@ complements markdownlint — structure vs. prose.
 The governance-lint workflow runs Vale against SPEC.md and
 REQUIREMENTS.md when a `.vale.ini` config exists. Projects opt in
 by adding `.vale.ini` and a `styles/` directory via
-`/symphonize:init`.
+`/notation:init`.
 
 **Why prose linting:** agents generate requirements and spec text
 that drifts toward vague, passive, non-testable language.
@@ -231,7 +236,7 @@ and `it should be noted that...` (filler) before review.
 ## Requirements frameworks §spec:requirements-frameworks
 *Status: complete*
 
-`/symphonize:discover` uses established frameworks as interview
+`/compose:discover` uses established frameworks as interview
 prompts to broaden the user's thinking. Frameworks guide
 conversation — they do not impose structured output. Answers
 flow into REQUIREMENTS.md as prose.
@@ -265,7 +270,7 @@ constraints).
 ## Progress file location §spec:progress-file-location
 *Status: complete*
 
-The `/symphonize:next` command tracks attempted workstreams in
+The `/conduct:next` command tracks attempted workstreams in
 `.symphonize-progress.local.md` at the project root. The file was
 previously at `.claude/.ralph-progress.local.md`, which has two
 problems: it lives inside Claude Code's managed `.claude/` directory
@@ -274,7 +279,7 @@ when symphonize's own commands write and delete it.
 
 The file is symphonize state — it belongs alongside other
 project-root dotfiles, named after the tool that owns it.
-`/symphonize:clean` deletes it when the loop ends.
+`/conduct:clean` deletes it when the loop ends.
 
 **Why:** Claude Code controls `.claude/` and may restrict writes
 from plugin commands. Symphonize state belongs to symphonize, not
@@ -283,7 +288,7 @@ to the host tool's config directory.
 **Known issue:** the ralph-loop stop hook fires based on the
 presence of `.claude/ralph-loop.local.md`, not on which skill is
 active. If an orchestrate loop is blocked on review and the user
-runs `/symphonize:plan` or `/symphonize:discover` in the same
+runs `/compose:plan` or `/compose:discover` in the same
 project, the stop hook interrupts planning with orchestration
 directives. Workaround: `/clear` and manually remove the flag
 file before planning. A proper fix requires the stop hook (in
@@ -292,16 +297,16 @@ ralph-loop, not symphonize) to check active skill context.
 ## Unattended flag passthrough §spec:unattended-flag-passthrough
 *Status: complete*
 
-When `/symphonize:orchestrate` starts a ralph-loop, every agent in
+When `/conduct:orchestrate` starts a ralph-loop, every agent in
 the execution hierarchy runs unattended. The `--unattended` flag
 propagates explicitly through each layer — no agent infers
 unattended mode from file existence or ambient state.
 
 ### Propagation chain
 
-1. `/symphonize:orchestrate` passes `--unattended` in the
-   ralph-loop prompt that invokes `/symphonize:next`.
-2. `/symphonize:next` reads `--unattended` from its arguments
+1. `/conduct:orchestrate` passes `--unattended` in the
+   ralph-loop prompt that invokes `/conduct:next`.
+2. `/conduct:next` reads `--unattended` from its arguments
    (not from `.claude/ralph-loop.local.md`). Passes
    `--unattended` to the batch agent it spawns.
 3. The batch agent (BATCH_AGENT.md) passes `--unattended` to
@@ -320,7 +325,7 @@ sets `unattended = true`. When absent, `unattended = false`. The
 
 ### `/clean` unchanged
 
-`/symphonize:clean` checks `.claude/ralph-loop.local.md` to
+`/conduct:clean` checks `.claude/ralph-loop.local.md` to
 auto-detect cleanup mode. That check remains — `clean` runs in the
 main working tree where the file is visible, and mode auto-detect
 is a convenience, not a correctness concern.
@@ -337,20 +342,20 @@ the entire tree runs non-interactively.
 ## Orchestration loop §spec:orchestration-loop
 *Status: not started*
 
-`/symphonize:orchestrate` runs an unattended execution loop that
-invokes `/symphonize:next --unattended` repeatedly until the
+`/conduct:orchestrate` runs an unattended execution loop that
+invokes `/conduct:next --unattended` repeatedly until the
 active ROADMAP section's unblocked workstreams are attempted. The
 loop runs in-session via Claude Code's first-party `/goal` command
 (Claude Code 2.1.139+). §req:success-criteria
 
 ### Observable behavior
 
-- When `/symphonize:orchestrate` runs, it first invokes
-  `/symphonize:clean --lite` to settle local state, then sets a
+- When `/conduct:orchestrate` runs, it first invokes
+  `/conduct:clean --lite` to settle local state, then sets a
   `/goal` whose condition describes the section's completion
   state (all unblocked workstreams attempted, or ROADMAP.md
   empty).
-- Each turn, Claude Code invokes `/symphonize:next --unattended`.
+- Each turn, Claude Code invokes `/conduct:next --unattended`.
   After the turn, the small fast model (typically Haiku) judges
   the goal condition against the conversation transcript and
   either continues or terminates the loop.
@@ -362,7 +367,7 @@ loop runs in-session via Claude Code's first-party `/goal` command
 
 ### Termination contract with /next
 
-The goal is met when `/symphonize:next --unattended` reports that
+The goal is met when `/conduct:next --unattended` reports that
 all unblocked workstreams in the active ROADMAP section have been
 attempted, or when ROADMAP.md contains no remaining workstreams.
 `/next`'s output shall make the terminal state visible to a
@@ -381,7 +386,7 @@ natively. The switch removes:
   reducing the trust surface.
 - The `.claude/ralph-loop.local.md` flag-file coupling that bled
   ralph-loop's stop hook into unrelated commands when the user
-  ran `/symphonize:plan` or `/symphonize:discover` in a project
+  ran `/compose:plan` or `/compose:discover` in a project
   with an active loop (see prior known-issue note in
   §spec:progress-file-location).
 - A bespoke sentinel-string convention; the evaluator judges the
@@ -439,7 +444,7 @@ conflicting instructions.
 ## Issue triage command §spec:issue-triage
 *Status: complete*
 
-The plugin provides a `/symphonize:triage` command that processes
+The plugin provides a `/compose:triage` command that processes
 GitHub issues into governance doc entries. Unlike pipeline commands
 that each own a single file, triage is a lateral entry point — it
 classifies issues and routes them to whichever governance file the
@@ -478,7 +483,7 @@ step replaces the pipeline ordering as the routing mechanism.
 ## Clean command supersession safety §spec:clean-supersession-safety
 *Status: complete*
 
-The `/symphonize:clean` command (full mode) closes open sub-agent
+The `/conduct:clean` command (full mode) closes open sub-agent
 PRs and deletes remote branches during post-merge cleanup. These
 are destructive, hard-to-reverse operations — a closed PR with a
 deleted remote branch cannot be reopened.
@@ -512,7 +517,7 @@ to the cost of losing a valid PR.
 ## Vertical-first batch selection §spec:vertical-first-batch-selection
 *Status: complete*
 
-The `/symphonize:next` dispatch layer selects workstreams for a
+The `/conduct:next` dispatch layer selects workstreams for a
 batch by building dependency chains that reach the user-facing
 surface, then selecting the longest chain that fits the batch cap.
 The algorithm is implemented in `plugins/conduct/commands/next.md` step 3.
@@ -539,7 +544,7 @@ Carpaccio" exercise.
 ## Clean working tree hygiene §spec:clean-working-tree-hygiene
 *Status: complete*
 
-The `/symphonize:clean` full-mode command checks for dirty state
+The `/conduct:clean` full-mode command checks for dirty state
 at entry, checks out main before verification, and never stashes.
 
 **Why no stashing:** stashes from branch-switching accumulate
