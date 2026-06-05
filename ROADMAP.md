@@ -41,36 +41,13 @@ the `init` scaffolder — `plugins/symphonize/commands/init.md` today, the
 notation plugin once the
 decomposition (§spec:governance-schema) builds it out.
 
-## symphonize umbrella plugin
-
-With notation, compose, and conduct carved out, `plugins/symphonize/` holds
-only `feedback` (and later `yolo`). It becomes the umbrella by declaring its
-dependencies — no extraction, no new plugin. compose and conduct are already
-extracted, so this workstream's dependencies are met. `yolo`'s
-implementation is a separate, not-yet-roadmapped section (§spec:yolo-mode);
-this workstream only wires the dependencies `yolo` will need — the command
-lands later under its own roadmap pass.
-
-### §road:wire-symphonize-umbrella
-
-Add `dependencies: [compose, conduct]` to `plugins/symphonize/`'s
-`plugin.json` so installing `symphonize` pulls the whole product, and
-confirm the plugin now contains only `feedback`. §spec:plugin-packaging
-§spec:governance-schema
-
-**Verify:** installing `symphonize` auto-installs compose, conduct, and
-notation — the whole product in one install; `/symphonize:feedback` appears
-and runs; `plugins/symphonize/` contains only `feedback` (no carved-out
-commands remain); installing all four plugins yields the full former command
-set under the new namespaces.
-
 ## Cross-plugin fragment assembly
 
 The residual content every plugin needs — the governance-root resolution
 algorithm and the `§`-slug grammar — cannot be shared by `../` reference
 across cached plugin directories. Until this section lands, the extraction
-sections above hand-copy that fragment into each plugin's commands. Depends
-on all four plugins existing (§road:wire-symphonize-umbrella).
+sections above hand-copy that fragment into each plugin's commands. All four
+plugins now exist.
 
 ### §road:assemble-shared-fragment
 
@@ -86,8 +63,8 @@ is self-contained with no `../` references.
 
 ## Coordinated release
 
-One shared version line across the four plugins, tagged together. Depends
-on all four plugins existing (§road:wire-symphonize-umbrella).
+One shared version line across the four plugins, tagged together. All four
+plugins now exist.
 
 ### §road:coordinate-plugin-release
 
