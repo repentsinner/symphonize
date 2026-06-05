@@ -690,7 +690,7 @@ and similar tools already resolve config by walking up the directory
 tree. Symphonize delegates to the linter's native scoping.
 
 ## Plugin decomposition §spec:governance-schema
-*Status: in progress*
+*Status: complete*
 
 Symphonize is one repository publishing one plugin marketplace with four
 plugins — each independently installable, all sharing one coordinated
@@ -764,12 +764,10 @@ on its own side; that seam stays unbuilt until a second schema exists.
   installation. Separate repositories would add cross-repo coordination with
   no adoption benefit.
 
-### Where today's CONVENTIONS.md content goes
+### Where the former CONVENTIONS.md content went
 
 The former shared `CONVENTIONS.md` bundled three contracts the
-decomposition separates. The content split has landed (the file is
-deleted); the plugin restructure that gives each group its own plugin
-home is still pending:
+decomposition separated (the file is deleted):
 
 - **Structural grammar** → notation enforces it; the linter is its
   executable form, so notation ships no per-repo conventions document.
@@ -808,7 +806,7 @@ home is still pending:
   difference is accepted.
 
 ## Plugin packaging and distribution §spec:plugin-packaging
-*Status: in progress*
+*Status: complete*
 
 The decomposition (§spec:governance-schema) ships as one Claude Code plugin
 marketplace named `symphonize`, declaring four plugins — `notation`,
@@ -865,25 +863,18 @@ always writes a workflow ref that exists and matches.
 
 Installed plugins are copied into `~/.claude/plugins/cache/` and cannot
 read files outside their own directory — `../` into a sibling plugin fails.
-Most of today's shared `CONVENTIONS.md` content becomes single-owner under
-the decomposition: authoring methodology in compose's commands, process
-discipline in conduct's commands and `protocols/batch-agent.md`, the
-structural grammar in notation's linter. The residual that several commands
-duplicate verbatim — the governance-root resolution algorithm — lives once
-under `fragments/` and is **assembled** into each consuming command file
-by `tools/assemble-fragments.sh`, between `<!-- assembled:<name> -->`
-markers. Each consumer's own surrounding context (its heading, the files it
-reads and writes, its upstream-context paragraph) stays hand-authored
-outside the markers. CI re-runs the build then `git diff --exit-code`, so a
-committed command file that drifts from a fresh assembly fails the job. Each
-cached plugin stays self-contained while the fragment keeps one source of
-truth. (The `§`-slug grammar is not duplicated as one identical block — it
-appears as command-specific format guidance — so it is not a fragment.)
+So the residual that several commands duplicate verbatim — the
+governance-root resolution algorithm — lives once under `fragments/` and is
+assembled into each consuming command file by a build step, with CI failing
+on any drift from a fresh assembly. Each cached plugin stays self-contained
+while the fragment keeps one source of truth. (The `§`-slug grammar is
+command-specific guidance, not one verbatim block, so it is not a fragment.)
+The marker and build mechanics live in `fragments/README.md`.
 
 **Why a build step, not symlinks:** a symlink into a sibling plugin
 resolves at install-time copy and dangles in the cache. Assembly resolves
-at commit/publish time, leaving each cached plugin self-contained, and the
-drift check prevents the divergence a manual copy would invite.
+at commit time, leaving each cached plugin self-contained, and the drift
+check prevents the divergence a manual copy would invite.
 
 ### Rejected alternatives
 
@@ -909,7 +900,7 @@ drift check prevents the divergence a manual copy would invite.
   adopters of a single layer ask for `feedback`.
 
 ## Notation contract §spec:notation-contract
-*Status: in progress*
+*Status: complete*
 
 notation defines what a well-formed governance document *is*: the
 governance file formats, the `§req:`/`§spec:`/`§road:` slug rules, the
@@ -937,10 +928,9 @@ prevent.
   `##` SPEC heading; a `§`-slug on every `##` SPEC/REQUIREMENTS and `###`
   ROADMAP heading; and resolution of every `§`-reference to a defined slug,
   code spans exempt — a dangling reference fails the job. Vale runs when a
-  `.vale.ini` exists, else is a silent no-op. CHANGELOG.md is excluded from
-  the status-line and slug checks (release-please generates it, so enforcing
-  its shape fights the generator); the workflow validates only its
-  `[Unreleased]`/`[N.N.N]` version-heading structure.
+  `.vale.ini` exists, else is a silent no-op. CHANGELOG.md is excluded
+  entirely (markdownlint and the structural checks both skip it):
+  release-please generates it, so enforcing its shape fights the generator.
 - These checks already run in symphonize's `governance-lint.yml`, which
   notation now owns; the decomposition re-homes them rather than rebuilding
   them.
