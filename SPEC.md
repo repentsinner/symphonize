@@ -865,12 +865,17 @@ read files outside their own directory — `../` into a sibling plugin fails.
 Most of today's shared `CONVENTIONS.md` content becomes single-owner under
 the decomposition: authoring methodology in compose's commands, process
 discipline in conduct's commands and `protocols/batch-agent.md`, the
-structural grammar in notation's linter. The residual every plugin needs —
-the governance-root resolution algorithm and the `§`-slug grammar — lives
-once as a canonical source fragment and is **assembled** into each plugin's
-command files by a build step. CI fails when a committed command file
-drifts from a fresh assembly, so each cached plugin stays self-contained
-while the fragment keeps one source of truth.
+structural grammar in notation's linter. The residual that several commands
+duplicate verbatim — the governance-root resolution algorithm — lives once
+under `fragments/` and is **assembled** into each consuming command file
+by `tools/assemble-fragments.sh`, between `<!-- assembled:<name> -->`
+markers. Each consumer's own surrounding context (its heading, the files it
+reads and writes, its upstream-context paragraph) stays hand-authored
+outside the markers. CI re-runs the build then `git diff --exit-code`, so a
+committed command file that drifts from a fresh assembly fails the job. Each
+cached plugin stays self-contained while the fragment keeps one source of
+truth. (The `§`-slug grammar is not duplicated as one identical block — it
+appears as command-specific format guidance — so it is not a fragment.)
 
 **Why a build step, not symlinks:** a symlink into a sibling plugin
 resolves at install-time copy and dangles in the cache. Assembly resolves

@@ -41,26 +41,6 @@ the `init` scaffolder — `plugins/symphonize/commands/init.md` today, the
 notation plugin once the
 decomposition (§spec:governance-schema) builds it out.
 
-## Cross-plugin fragment assembly
-
-The residual content every plugin needs — the governance-root resolution
-algorithm and the `§`-slug grammar — cannot be shared by `../` reference
-across cached plugin directories. Until this section lands, the extraction
-sections above hand-copy that fragment into each plugin's commands. All four
-plugins now exist.
-
-### §road:assemble-shared-fragment
-
-Add a canonical source fragment for the governance-root algorithm and
-`§`-grammar plus a build step that assembles it into each plugin's command
-files, and a CI check that fails when a committed command file drifts from a
-fresh assembly. §spec:plugin-packaging
-
-**Verify:** editing the canonical fragment and rebuilding updates every
-plugin's command files identically; hand-editing one assembled copy out of
-sync fails the CI drift-check; each plugin under `~/.claude/plugins/cache/`
-is self-contained with no `../` references.
-
 ## Coordinated release
 
 One shared version line across the four plugins, tagged together. All four
