@@ -146,11 +146,47 @@ jobs:
       readme-type: library  # or "application", or "" to skip
 ```
 
+## Plugins
+
+symphonize ships as a Claude Code marketplace of four plugins, named for a
+score-and-performance metaphor: a composer writes the score in a shared
+**notation**, a **conductor** performs it, and **symphonize** is the whole
+work.
+
+- **notation** — the governance schema everything builds on: the file
+  formats, the `§req:`/`§spec:`/`§road:` slug grammar, the status-line
+  contract, the `governance-lint` workflow that enforces them, and the
+  `init` scaffolder. (`/notation:init`, `/notation:lint`)
+- **compose** — the tastemaking layer ("are we building the right thing"):
+  produces the governance documents. (`/compose:discover`, `plan`,
+  `roadmap`, `triage`, and the correctness/taste half of `review`)
+- **conduct** — the execution layer ("are we building it right"): performs
+  the documents into landed PRs, and ships the repo-state reconcile hook.
+  (`/conduct:next`, `orchestrate`, `clean`, and the integration half of
+  `review`)
+- **symphonize** — the umbrella and whole-product entry point. Houses
+  `/symphonize:feedback` (and the planned `yolo`).
+
+compose and conduct both build on **notation**'s grammar, and the
+**symphonize** umbrella pulls all three together (arrows point to the
+plugin depended on):
+
+```text
+            ┌──► compose ──┐
+symphonize ─┤              ├──► notation
+            └──► conduct ──┘
+```
+
+Installing `symphonize` pulls all four; adopt a single layer for a subset —
+e.g. `notation` alone for just the schema, linter, and scaffolder.
+
+**Flow:** notation defines the contract → compose authors governance
+documents against it → conduct executes the roadmap into PRs → notation's
+linter validates the whole chain in CI.
+
 ## Usage
 
-Commands resolve under their plugin namespace. Installing the `symphonize`
-plugin pulls all three layers (it depends on them); install `notation`,
-`compose`, or `conduct` individually for a subset.
+Each command resolves under its plugin namespace (see [Plugins](#plugins)).
 
 | Command | Description |
 |---|---|
@@ -191,18 +227,14 @@ cross-repo):
 
 ## Installation
 
-Add the marketplace, then install. The `symphonize` plugin is the
-whole-product entry point — it depends on `notation`, `compose`, and
-`conduct`, so installing it pulls all four:
+Add the marketplace, then install the `symphonize` umbrella — it pulls all
+four plugins (see [Plugins](#plugins)). Install a single layer instead
+(e.g. `notation@repentsinner-symphonize`) for a subset.
 
 ```shell
 /plugin marketplace add repentsinner/symphonize
 /plugin install symphonize@repentsinner-symphonize
 ```
-
-To adopt a single layer, install it directly instead (e.g.
-`/plugin install notation@repentsinner-symphonize` for just the governance
-schema, linter, and scaffolder).
 
 Or from source during development:
 
