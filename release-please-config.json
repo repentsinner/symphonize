@@ -1,15 +1,84 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "include-component-in-tag": true,
+  "tag-separator": "--",
+  "plugins": [
+    {
+      "type": "linked-versions",
+      "groupName": "symphonize-plugins",
+      "components": ["notation", "compose", "conduct", "symphonize"]
+    }
+  ],
   "packages": {
-    ".": {
+    "plugins/notation": {
       "release-type": "simple",
+      "component": "notation",
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
       "extra-files": [
         {
           "type": "json",
-          "path": "plugins/symphonize/.claude-plugin/plugin.json",
+          "path": ".claude-plugin/plugin.json",
           "jsonpath": "$.version"
+        }
+      ]
+    },
+    "plugins/compose": {
+      "release-type": "simple",
+      "component": "compose",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        {
+          "type": "json",
+          "path": ".claude-plugin/plugin.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": ".claude-plugin/plugin.json",
+          "jsonpath": "$.dependencies[0].version"
+        }
+      ]
+    },
+    "plugins/conduct": {
+      "release-type": "simple",
+      "component": "conduct",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        {
+          "type": "json",
+          "path": ".claude-plugin/plugin.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": ".claude-plugin/plugin.json",
+          "jsonpath": "$.dependencies[0].version"
+        }
+      ]
+    },
+    "plugins/symphonize": {
+      "release-type": "simple",
+      "component": "symphonize",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        {
+          "type": "json",
+          "path": ".claude-plugin/plugin.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": ".claude-plugin/plugin.json",
+          "jsonpath": "$.dependencies[0].version"
+        },
+        {
+          "type": "json",
+          "path": ".claude-plugin/plugin.json",
+          "jsonpath": "$.dependencies[1].version"
         }
       ]
     }
