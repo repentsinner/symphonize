@@ -21,7 +21,7 @@
     },
     {
       "name": "symphonize",
-      "description": "Depth-first roadmap execution engine",
+      "description": "Umbrella plugin: the whole-product entry point. Installs all layers (notation, compose, conduct) and houses feedback.",
       "source": "./plugins/symphonize"
     }
   ]
