@@ -10,3 +10,17 @@ jobs:
     uses: ./.github/workflows/governance-lint.yml
     with:
       readme-type: library
+
+  fragment-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # Re-assemble canonical fragments into their consumers, then fail if a
+      # committed command file drifted from a fresh assembly. Local fix:
+      # run `tools/assemble-fragments.sh` and commit. See fragments/README.md
+      # and SPEC §spec:plugin-packaging.
+      - name: Assemble fragments and check for drift
+        run: |
+          bash tools/assemble-fragments.sh
+          git diff --exit-code
