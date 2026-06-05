@@ -2,9 +2,8 @@
 description: Start ralph-loop to work through ROADMAP.md
 ---
 The governance root is determined by the current working directory
-when this command is invoked. `/conduct:next` resolves the
-governance root (walk up from CWD to the nearest ancestor containing
-SPEC.md; fall back to the repository root).
+when this command is invoked. `/conduct:next` resolves the governance
+root.
 
 Run `/conduct:clean --lite` to ensure local state is clean before
 starting the loop.

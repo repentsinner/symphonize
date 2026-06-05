@@ -7,9 +7,13 @@ markdownlint against all matches. Uses the project's
 `.markdownlint.json` if present (markdownlint resolves config by
 walking up the directory tree natively).
 
-Resolve the governance root by walking up from the current working
-directory to the nearest ancestor containing SPEC.md; fall back to the
-repository root.
+Resolve the governance root before globbing for governance files:
+
+<!-- assembled:governance-root -->
+1. Walk up from the current working directory to find the nearest
+   ancestor directory containing SPEC.md.
+2. If no ancestor contains SPEC.md, fall back to the repository root.
+<!-- /assembled:governance-root -->
 
 ## Procedure
 

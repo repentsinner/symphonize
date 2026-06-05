@@ -29,6 +29,8 @@ CONSUMERS=(
   "governance-root|plugins/compose/commands/plan.md"
   "governance-root|plugins/compose/commands/roadmap.md"
   "governance-root|plugins/conduct/commands/next.md"
+  "governance-root|plugins/notation/commands/lint.md"
+  "governance-root|plugins/conduct/commands/clean.md"
 )
 
 # assemble FRAGMENT_NAME TARGET_FILE
