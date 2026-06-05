@@ -72,11 +72,11 @@ repo root:
 | `ROADMAP.md` | Imperative work queue. What remains to close the gap. |
 | `CHANGELOG.md` | Release history. What shipped, in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. |
 
-The loop: `/symphonize:discover` interviews the user and produces
-**REQUIREMENTS.md**. `/symphonize:plan` explores technical decisions
-and produces **SPEC.md** sections. `/symphonize:roadmap` breaks spec
+The loop: `/compose:discover` interviews the user and produces
+**REQUIREMENTS.md**. `/compose:plan` explores technical decisions
+and produces **SPEC.md** sections. `/compose:roadmap` breaks spec
 sections into **ROADMAP.md** workstreams as thin vertical slices.
-Each `/next` batch advances the roadmap, produces conventional
+Each `/conduct:next` batch advances the roadmap, produces conventional
 commits, and opens a PR. A downstream
 [release-please](https://github.com/googleapis/release-please)
 workflow (or [melos](https://melos.invertase.dev/) for monorepos)
@@ -117,7 +117,7 @@ with the code wins.
 
 Symphonize validates governance files at two levels:
 
-- **Local** (`/symphonize:lint`): runs `npx markdownlint-cli2` against
+- **Local** (`/notation:lint`): runs `npx markdownlint-cli2` against
   SPEC.md, ROADMAP.md, and README.md. Catches formatting errors before
   pushing.
 - **CI** (`governance-lint.yml`): runs markdownlint plus SPEC.md
@@ -148,17 +148,23 @@ jobs:
 
 ## Usage
 
+Commands resolve under their plugin namespace. Installing the `symphonize`
+plugin pulls all three layers (it depends on them); install `notation`,
+`compose`, or `conduct` individually for a subset.
+
 | Command | Description |
 |---|---|
-| `/symphonize:init` | Scaffold governance files and CI workflows into a project (one-time setup) |
-| `/symphonize:discover` | Domain discovery — structured interview that produces REQUIREMENTS.md |
-| `/symphonize:plan [task]` | Technical decisions — explore design options and produce SPEC.md sections |
-| `/symphonize:roadmap [section]` | Break spec sections into ROADMAP.md workstreams (thin vertical slices) |
-| `/symphonize:next [target]` | Execute next unblocked workstreams (depth-first by section) |
-| `/symphonize:orchestrate` | Start ralph-loop to work through ROADMAP.md unattended |
-| `/symphonize:review [PR]` | Review a PR — resolve conflicts, check out locally, guide integration testing |
-| `/symphonize:clean [--lite\|--full]` | Clean up after batch execution |
-| `/symphonize:lint [type]` | Validate governance files (markdownlint) |
+| `/notation:init` | Scaffold governance files and CI workflows into a project (one-time setup) |
+| `/notation:lint [type]` | Validate governance files (markdownlint) |
+| `/compose:discover` | Domain discovery — structured interview that produces REQUIREMENTS.md |
+| `/compose:plan [task]` | Technical decisions — explore design options and produce SPEC.md sections |
+| `/compose:roadmap [section]` | Break spec sections into ROADMAP.md workstreams (thin vertical slices) |
+| `/compose:triage [issue]` | Classify a GitHub issue and route it to the right governance file |
+| `/compose:review [PR]` | Correctness-and-taste review — does the change meet its spec |
+| `/conduct:next [target]` | Execute next unblocked workstreams (depth-first by section) |
+| `/conduct:orchestrate` | Start ralph-loop to work through ROADMAP.md unattended |
+| `/conduct:review [PR]` | Integration review — resolve conflicts, check out locally, guide testing |
+| `/conduct:clean [--lite\|--full]` | Clean up after batch execution |
 | `/symphonize:feedback` | Submit feedback or report a bug to the symphonize project |
 
 The batch agent protocol (`plugins/conduct/protocols/batch-agent.md`) manages
@@ -174,7 +180,7 @@ Target projects reference these via `workflow_call`:
 |---|---|
 | `governance-lint.yml` | Markdownlint + SPEC.md status lines + slug cross-refs + Vale prose linting + README heading checks |
 
-Template workflows (copied by `/symphonize:init`, not called
+Template workflows (copied by `/notation:init`, not called
 cross-repo):
 
 | Workflow | Description |
@@ -185,12 +191,18 @@ cross-repo):
 
 ## Installation
 
-Add the marketplace, then install:
+Add the marketplace, then install. The `symphonize` plugin is the
+whole-product entry point — it depends on `notation`, `compose`, and
+`conduct`, so installing it pulls all four:
 
 ```shell
 /plugin marketplace add repentsinner/symphonize
 /plugin install symphonize@repentsinner-symphonize
 ```
+
+To adopt a single layer, install it directly instead (e.g.
+`/plugin install notation@repentsinner-symphonize` for just the governance
+schema, linter, and scaffolder).
 
 Or from source during development:
 
@@ -202,7 +214,7 @@ claude --plugin-dir /path/to/symphonize
 
 - `git`, `gh` (authenticated), and `npx` (Node.js) on `PATH`
 - `vale` (optional — needed when `.vale.ini` exists for prose linting)
-- A project with governance files (run `/symphonize:init` to scaffold
+- A project with governance files (run `/notation:init` to scaffold
   them — the compose commands carry the authoring formats, and
   governance-lint enforces the structural grammar)
 - [ralph-loop](https://github.com/anthropics/claude-plugins-public/tree/main/plugins/ralph-loop)
