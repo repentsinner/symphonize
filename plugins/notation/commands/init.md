@@ -130,12 +130,17 @@ Create under `.github/workflows/`:
 
   jobs:
     lint:
-      uses: repentsinner/symphonize/.github/workflows/governance-lint.yml@v1
+      uses: repentsinner/symphonize/.github/workflows/governance-lint.yml@notation--v0
       with:
         readme-type: ""
   ```
   Ask the user whether their project is a `library` or `application`
   and set `readme-type` accordingly. Leave empty if they decline.
+
+  Pin the `@notation--v0` floating major tag: `governance-lint.yml`
+  belongs to the notation plugin, whose coordinated version line is
+  pre-1.0, so the adopter-facing major ref is `notation--v0` (not `v1`).
+  `update-major-tag.yml` moves this tag forward on each notation release.
 
 - **release-please.yml** — copy from symphonize's template. Also
   create `release-please-config.json` and
