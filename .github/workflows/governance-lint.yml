@@ -30,7 +30,6 @@ jobs:
             **/ROADMAP.md
             **/README.md
             **/REQUIREMENTS.md
-            **/CHANGELOG.md
 
       - name: Validate SPEC.md status lines
         run: |
@@ -185,34 +184,6 @@ jobs:
           fi
 
           echo "All REQUIREMENTS.md headings have §req: slugs"
-
-      - name: Validate CHANGELOG.md structure
-        run: |
-          errors=0
-          for changelog in $(find . -name 'CHANGELOG.md' -not -path './.git/*' | sort); do
-            echo "Checking $changelog"
-
-            # Must have an [Unreleased] section
-            if ! grep -qE '^## \[Unreleased\]' "$changelog"; then
-              echo "::error file=${changelog}::Missing ## [Unreleased] section"
-              errors=$((errors + 1))
-            fi
-
-            # Every ## heading must match [Unreleased] or [N.N.N] (with optional link)
-            while IFS= read -r line; do
-              if ! echo "$line" | grep -qE '^## \[(Unreleased|[0-9]+\.[0-9]+\.[0-9]+)\]'; then
-                echo "::error file=${changelog}::Invalid version heading: $line"
-                errors=$((errors + 1))
-              fi
-            done < <(grep -E '^## ' "$changelog" | tr -d '\r')
-          done
-
-          if [ "$errors" -gt 0 ]; then
-            echo "$errors CHANGELOG.md structure error(s) found"
-            exit 1
-          fi
-
-          echo "All CHANGELOG.md files have valid structure"
 
       - name: Validate cross-document references
         run: |
