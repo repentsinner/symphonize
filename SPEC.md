@@ -163,7 +163,7 @@ longer a shared `CONVENTIONS.md`: authoring methodology (spec, roadmap,
 and requirements formats; spec compression; interview frameworks) is
 inline in the compose commands, process discipline (branching, commit
 conventions, quality gate) is inline in the conduct commands and
-`plugins/symphonize/protocols/batch-agent.md`, and the structural grammar is enforced by
+`plugins/conduct/protocols/batch-agent.md`, and the structural grammar is enforced by
 governance-lint. Commands carry their own contract inline rather than
 deferring to the user's CLAUDE.md.
 
@@ -365,7 +365,7 @@ attempted, or when ROADMAP.md contains no remaining workstreams.
 `/next`'s output shall make the terminal state visible to a
 reading evaluator — a literal sentinel string is not required and
 is not part of the contract. The exact condition wording is an
-implementation detail of `plugins/symphonize/commands/orchestrate.md`.
+implementation detail of `plugins/conduct/commands/orchestrate.md`.
 
 ### Why /goal, not ralph-loop
 
@@ -512,7 +512,7 @@ to the cost of losing a valid PR.
 The `/symphonize:next` dispatch layer selects workstreams for a
 batch by building dependency chains that reach the user-facing
 surface, then selecting the longest chain that fits the batch cap.
-The algorithm is implemented in `plugins/symphonize/commands/next.md` step 3.
+The algorithm is implemented in `plugins/conduct/commands/next.md` step 3.
 
 Batch selection goals, in priority order: vertical slices, walking
 skeleton, dependency correctness, batch coherence, forward progress.
@@ -553,7 +553,7 @@ updates ensures tests run against the shipped state.
 ## Pre-PR review gates §spec:pre-pr-review-gates
 *Status: complete*
 
-The batch agent protocol (`plugins/symphonize/protocols/batch-agent.md`) includes
+The batch agent protocol (`plugins/conduct/protocols/batch-agent.md`) includes
 review gates between Phase 5 (Verify) and Phase 6 (Deliver):
 `/security-review` as a mandatory gate, `/review --comment` as a
 recommendation in the PR body.
@@ -579,7 +579,7 @@ quality, and efficiency and applies fixes to recently changed files.
 
 The gate flow (skip-condition check, single invocation, fix review
 with revert-on-conflict, mandatory CI re-run, handoff) is defined in
-`plugins/symphonize/protocols/batch-agent.md` Phase 5a.
+`plugins/conduct/protocols/batch-agent.md` Phase 5a.
 
 **Why mandatory:** reuse, duplication, and inefficiency violations
 are objective and mechanically detectable. Gating enforces
@@ -1084,9 +1084,9 @@ governance loop's premise is that the docs and PRs reflect actual state
 (§req:success-criteria); an agent reasoning from stale state corrupts that
 premise from inside.
 
-Symphonize ships a Claude Code `UserPromptSubmit` hook in the plugin
-(`plugins/symphonize/hooks/hooks.json` registering
-`plugins/symphonize/hooks/reconcile-repo-state.sh` via
+Symphonize ships a Claude Code `UserPromptSubmit` hook in the conduct plugin
+(`plugins/conduct/hooks/hooks.json` registering
+`plugins/conduct/hooks/reconcile-repo-state.sh` via
 `${CLAUDE_PLUGIN_ROOT}`) that reconciles the agent's view of repo state with
 the remote before each turn, and surfaces any divergence as conversation
 context via `hookSpecificOutput.additionalContext`.
@@ -1132,12 +1132,12 @@ not skippable in the same way.
 
 ### Why shipped in the plugin
 
-The hook lives in symphonize's plugin bundle (`plugins/symphonize/hooks/hooks.json`
+The hook lives in the conduct plugin bundle (`plugins/conduct/hooks/hooks.json`
 plus a script referenced via `${CLAUDE_PLUGIN_ROOT}`), not in a user's
 `settings.json`. Settings hooks bind to one machine and do not travel;
 a plugin-shipped hook installs with the plugin and every adopter inherits
 it. Keeping agents honest about external state is dispatch-layer
-infrastructure — it belongs with the execution machinery that assumes a
+infrastructure — it belongs with conduct's execution machinery that assumes a
 current view of the repo. §req:modular-adoption
 
 ### Rejected alternatives

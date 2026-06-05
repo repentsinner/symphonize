@@ -41,32 +41,12 @@ the `init` scaffolder — `plugins/symphonize/commands/init.md` today, the
 notation plugin once the
 decomposition (§spec:governance-schema) builds it out.
 
-## conduct plugin
-
-The execution layer, carved out of `plugins/symphonize/`. Declares
-`dependencies: [notation]` (notation is extracted and available). After
-this carve-out `plugins/symphonize/` holds only `feedback`.
-
-### §road:extract-conduct-plugin
-
-Create `plugins/conduct/` with a `plugin.json` declaring
-`dependencies: [notation]`, and move `next`/`orchestrate`/`clean` and the
-integration/merge half of `review` plus `protocols/batch-agent.md` and the
-`hooks/` reconcile-repo-state hook out of `plugins/symphonize/` into it
-under `/conduct:*`. §spec:plugin-packaging §spec:governance-schema
-
-**Verify:** installing conduct auto-installs notation; `/conduct:next`,
-`/conduct:orchestrate`, `/conduct:clean`, and `/conduct:review` appear and
-run; the repo-state reconcile hook fires on a stale branch; the former
-`/symphonize:next` and siblings no longer resolve; `plugins/symphonize/`
-retains only `feedback`.
-
 ## symphonize umbrella plugin
 
 With notation, compose, and conduct carved out, `plugins/symphonize/` holds
 only `feedback` (and later `yolo`). It becomes the umbrella by declaring its
-dependencies — no extraction, no new plugin. compose is already extracted;
-this depends on §road:extract-conduct-plugin. `yolo`'s
+dependencies — no extraction, no new plugin. compose and conduct are already
+extracted, so this workstream's dependencies are met. `yolo`'s
 implementation is a separate, not-yet-roadmapped section (§spec:yolo-mode);
 this workstream only wires the dependencies `yolo` will need — the command
 lands later under its own roadmap pass.

@@ -123,7 +123,7 @@ case), warn the user:
 
 "Section '\<name>' has no workstream touching a user-facing
 surface. PRs from this section will ship unintegrated code.
-Consider running `/symphonize:roadmap` to add an integration
+Consider running `/compose:roadmap` to add an integration
 workstream."
 
 If `unattended`, log the warning and continue — do not block
@@ -156,7 +156,7 @@ Read the batch agent protocol at
 
 Spawn a single Agent with `isolation: "worktree"` and pass it:
 - The full contents of the batch agent protocol you just read
-- The symphonize plugin root: `${CLAUDE_PLUGIN_ROOT}` (so the
+- The conduct plugin root: `${CLAUDE_PLUGIN_ROOT}` (so the
   batch agent can read `protocols/batch-agent.md`)
 - The workstream target(s) selected in step 3
 - If `unattended`: the flag `--unattended`

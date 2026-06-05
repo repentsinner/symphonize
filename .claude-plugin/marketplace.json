@@ -15,6 +15,11 @@
       "source": "./plugins/compose"
     },
     {
+      "name": "conduct",
+      "description": "Execution layer: next, orchestrate, clean, and integration review. Performs the governance score into landed PRs.",
+      "source": "./plugins/conduct"
+    },
+    {
       "name": "symphonize",
       "description": "Depth-first roadmap execution engine",
       "source": "./plugins/symphonize"
