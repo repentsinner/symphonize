@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.40](https://github.com/repentsinner/symphonize/compare/v0.1.39...v0.1.40) (2026-06-05)
+
+
+### Features
+
+* batch — cross-plugin fragment assembly with drift-check ([#150](https://github.com/repentsinner/symphonize/issues/150)) ([cdc8cd5](https://github.com/repentsinner/symphonize/commit/cdc8cd54b0e6b8dec47f1670dd63c5433953293c))
+* batch — extract the compose plugin ([#147](https://github.com/repentsinner/symphonize/issues/147)) ([c5c5fec](https://github.com/repentsinner/symphonize/commit/c5c5fec1b2cc0c8d2882ab0ec661ee18e083fedc))
+* batch — extract the notation plugin ([#146](https://github.com/repentsinner/symphonize/issues/146)) ([361ac1b](https://github.com/repentsinner/symphonize/commit/361ac1b2e168cd5c830134e51fa3b9a48f2166d9))
+* batch — normalize governance-root restatements under the fragment ([#153](https://github.com/repentsinner/symphonize/issues/153)) ([b7fcd04](https://github.com/repentsinner/symphonize/commit/b7fcd04d4eac1fd1a2a8cb8269bf6dd0d748840c))
+* **conduct:** extract conduct plugin with execution commands, protocol, and hook ([#148](https://github.com/repentsinner/symphonize/issues/148)) ([547f31b](https://github.com/repentsinner/symphonize/commit/547f31b06565a0e22add858c1a480da9a2e3c25c))
+* **spec:** plan plugin packaging and notation contract for the decomposition ([#140](https://github.com/repentsinner/symphonize/issues/140)) ([32f07b9](https://github.com/repentsinner/symphonize/commit/32f07b968f788b623d1789de2a00b84ff24d75e2))
+* **symphonize:** wire the umbrella plugin's dependencies on compose and conduct ([#149](https://github.com/repentsinner/symphonize/issues/149)) ([ed0d8a5](https://github.com/repentsinner/symphonize/commit/ed0d8a5757cfd03a814c48b48c4f037aef5d6f55))
+
 ## [0.1.39](https://github.com/repentsinner/symphonize/compare/v0.1.38...v0.1.39) (2026-06-04)
 
 

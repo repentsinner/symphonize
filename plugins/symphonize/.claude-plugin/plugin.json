@@ -1,6 +1,6 @@
 {
   "name": "symphonize",
-  "version": "0.1.39",
+  "version": "0.1.40",
   "description": "Umbrella plugin for symphonize: the whole-product entry point. Depends on compose and conduct (and transitively notation) to install all layers, and houses the feedback command.",
   "author": {
     "name": "repentsinner"
@@ -14,7 +14,13 @@
     "worktree"
   ],
   "dependencies": [
-    { "name": "compose", "version": "0.1.39" },
-    { "name": "conduct", "version": "0.1.39" }
+    {
+      "name": "compose",
+      "version": "0.1.39"
+    },
+    {
+      "name": "conduct",
+      "version": "0.1.39"
+    }
   ]
 }
