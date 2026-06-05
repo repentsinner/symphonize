@@ -1,0 +1,16 @@
+{
+  "name": "notation",
+  "version": "0.1.39",
+  "description": "Governance schema for symphonize: governance file formats, §req:/§spec:/§road: slug rules, the status-line contract, and the init scaffolder that installs them.",
+  "author": {
+    "name": "repentsinner"
+  },
+  "repository": "https://github.com/repentsinner/symphonize",
+  "license": "MIT",
+  "keywords": [
+    "governance",
+    "schema",
+    "notation",
+    "linting"
+  ]
+}

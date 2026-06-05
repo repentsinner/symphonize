@@ -171,7 +171,7 @@ git config core.hooksPath .githooks
 The hook scripts live in `.githooks/` (tracked). Activation is
 per-checkout via `core.hooksPath` — git intentionally does not
 auto-run hooks on clone. Consumers who fork the repo opt in by
-running `/symphonize:init` in their checkout.
+running `/notation:init` in their checkout.
 
 CI remains the backstop for contributors who haven't activated
 hooks.
@@ -189,7 +189,7 @@ hooks.
    c. Run `git config core.hooksPath .githooks` to activate hooks.
 6. If CWD is not the repo root, skip CI workflows and hooks with
    a note.
-7. Run `/symphonize:lint` to validate the result.
+7. Run `/notation:lint` to validate the result.
 8. Print a summary of created and skipped files.
 
 Do NOT commit. Leave the files unstaged so the user can review

@@ -41,39 +41,10 @@ the `init` scaffolder — `plugins/symphonize/commands/init.md` today, the
 notation plugin once the
 decomposition (§spec:governance-schema) builds it out.
 
-## Notation plugin
-
-The dependency root and the first separately-installable sibling — the
-walking skeleton. Carved out of `plugins/symphonize/`, it establishes the
-multi-plugin `marketplace.json` (a second entry) and the per-sibling
-`plugin.json` pattern the later carve-outs reuse.
-
-### §road:extract-notation-plugin
-
-Create `plugins/notation/` with its `.claude-plugin/plugin.json`, move
-`commands/init.md` and `commands/lint.md` out of `plugins/symphonize/` into
-it under the `/notation:*` namespace, and add it to
-`.claude-plugin/marketplace.json` with `source: "./plugins/notation"`.
-§spec:plugin-packaging §spec:governance-schema
-
-### §road:rehome-notation-contract
-
-Confirm the root `.github/workflows/governance-lint.yml` enforces the full
-notation contract — status line and `§`-slug on every `##`/`###` heading,
-`§`-reference resolution, Vale-when-present, CHANGELOG excluded — and
-re-point notation's `lint` command and docs to notation as its owner.
-§spec:notation-contract
-
-**Verify:** `/plugin marketplace add repentsinner/symphonize` lists
-notation; installing notation alone exposes `/notation:init` and
-`/notation:lint` and no other commands; `/notation:init` scaffolds a repo;
-`/notation:lint` runs markdownlint; a SPEC heading missing a status line or
-a dangling `§`-reference fails governance-lint in CI.
-
 ## compose plugin
 
-The tastemaking layer, carved out of `plugins/symphonize/`. Depends on
-§road:extract-notation-plugin (declares `dependencies: [notation]`). Its
+The tastemaking layer, carved out of `plugins/symphonize/`. Declares
+`dependencies: [notation]` (notation is extracted and available). Its
 authoring methodology already lives inline in the compose commands
 (CONVENTIONS.md split landed).
 
@@ -92,8 +63,8 @@ resolve.
 
 ## conduct plugin
 
-The execution layer, carved out of `plugins/symphonize/`. Depends on
-§road:extract-notation-plugin (declares `dependencies: [notation]`). After
+The execution layer, carved out of `plugins/symphonize/`. Declares
+`dependencies: [notation]` (notation is extracted and available). After
 this carve-out `plugins/symphonize/` holds only `feedback`.
 
 ### §road:extract-conduct-plugin

@@ -5,6 +5,11 @@
   },
   "plugins": [
     {
+      "name": "notation",
+      "description": "Governance schema: file formats, slug rules, status-line contract, and the init scaffolder",
+      "source": "./plugins/notation"
+    },
+    {
       "name": "symphonize",
       "description": "Depth-first roadmap execution engine",
       "source": "./plugins/symphonize"

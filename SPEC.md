@@ -901,7 +901,7 @@ drift check prevents the divergence a manual copy would invite.
   adopters of a single layer ask for `feedback`.
 
 ## Notation contract §spec:notation-contract
-*Status: not started*
+*Status: in progress*
 
 notation defines what a well-formed governance document *is*: the
 governance file formats, the `§req:`/`§spec:`/`§road:` slug rules, the
@@ -926,14 +926,16 @@ prevent.
 
 - governance-lint enforces, on every invocation with no opt-in switches:
   markdownlint over the governance documents; a valid status line on every
-  `##` SPEC/REQUIREMENTS heading and `###` ROADMAP heading; a `§`-slug on
-  every such heading; and resolution of every `§`-reference to a defined
-  slug, code spans exempt — a dangling reference fails the job. Vale runs
-  when a `.vale.ini` exists, else is a silent no-op. CHANGELOG.md is
-  excluded: release-please generates it, so enforcing its shape fights the
-  generator.
-- These checks already run in symphonize's `governance-lint.yml`; the
-  decomposition re-homes them under notation rather than rebuilding them.
+  `##` SPEC heading; a `§`-slug on every `##` SPEC/REQUIREMENTS and `###`
+  ROADMAP heading; and resolution of every `§`-reference to a defined slug,
+  code spans exempt — a dangling reference fails the job. Vale runs when a
+  `.vale.ini` exists, else is a silent no-op. CHANGELOG.md is excluded from
+  the status-line and slug checks (release-please generates it, so enforcing
+  its shape fights the generator); the workflow validates only its
+  `[Unreleased]`/`[N.N.N]` version-heading structure.
+- These checks already run in symphonize's `governance-lint.yml`, which
+  notation now owns; the decomposition re-homes them rather than rebuilding
+  them.
 
 ### Version coherence
 
