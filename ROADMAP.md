@@ -40,25 +40,3 @@ the contract; governance-lint passes. The dependabot scaffolding lives with
 the `init` scaffolder — `plugins/symphonize/commands/init.md` today, the
 notation plugin once the
 decomposition (§spec:governance-schema) builds it out.
-
-## Coordinated release
-
-One shared version line across the four plugins, tagged together. All four
-plugins now exist.
-
-### §road:coordinate-plugin-release
-
-Reconfigure `release-please-config.json` and `.release-please-manifest.json`
-for the four `plugins/<name>/plugin.json` packages on one shared version,
-emit a `{plugin}--v{version}` git tag per plugin, pin compose's and
-conduct's notation `dependencies` range and symphonize's compose/conduct
-range to that version, and keep `update-major-tag.yml` moving notation's
-floating major for adopters' `governance-lint.yml@<major>` pin.
-§spec:plugin-packaging
-
-**Verify:** a release PR bumps all four `plugin.json` versions together;
-merging it publishes `notation--vX.Y.Z`, `compose--vX.Y.Z`,
-`conduct--vX.Y.Z`, and `symphonize--vX.Y.Z`; compose and conduct
-`dependencies` resolve notation, and symphonize resolves compose and
-conduct, at the shared version; a fresh scaffold's
-`governance-lint.yml@<major>` ref points at the released workflow.
