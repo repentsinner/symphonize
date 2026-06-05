@@ -10,9 +10,11 @@ pre-flight steps below.
 
 Resolve the governance root before selecting work:
 
+<!-- assembled:governance-root -->
 1. Walk up from the current working directory to find the nearest
    ancestor directory containing SPEC.md.
 2. If no ancestor contains SPEC.md, fall back to the repository root.
+<!-- /assembled:governance-root -->
 3. All governance file reads (ROADMAP.md, SPEC.md, REQUIREMENTS.md)
    and writes (progress file) in subsequent steps are relative to
    the governance root, not the repository root.

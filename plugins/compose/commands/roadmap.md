@@ -6,9 +6,11 @@ description: Break spec sections into ROADMAP.md workstreams
 
 Resolve the governance root before reading or writing governance files:
 
+<!-- assembled:governance-root -->
 1. Walk up from the current working directory to find the nearest
    ancestor directory containing SPEC.md.
 2. If no ancestor contains SPEC.md, fall back to the repository root.
+<!-- /assembled:governance-root -->
 3. All governance file reads and writes in subsequent steps are
    relative to the governance root, not the repository root.
 
