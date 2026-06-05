@@ -13,10 +13,10 @@ otherwise.
 
 ## Lite mode (minimal between-iteration cleanup)
 
-`/symphonize:next` pre-flight handles git fetch, branch pruning, and
-worktree removal. Lite mode exists for anything `/symphonize:next`
+`/conduct:next` pre-flight handles git fetch, branch pruning, and
+worktree removal. Lite mode exists for anything `/conduct:next`
 doesn't cover — e.g., manual cleanup between interactive
-`/symphonize:next` calls without ralph-loop.
+`/conduct:next` calls without ralph-loop.
 
 1. Fetch origin, prune remote-tracking branches (`git fetch --prune`).
 2. Delete local branches tracking pruned remotes.
@@ -50,7 +50,7 @@ git status --porcelain
   proceed.
 - If other files are dirty, print the `git status` output as a
   warning and abort. Tell the user to resolve uncommitted changes
-  before re-running `/symphonize:clean --full`.
+  before re-running `/conduct:clean --full`.
 
 Do not stash, force-checkout, or silently discard uncommitted work.
 
@@ -123,7 +123,7 @@ recent commit history (`git log --oneline -20`). Check:
 - **CHANGELOG.md**: `[Unreleased]` section reflects what merged
   since the last release. If release-please manages this, verify
   it will pick up the new commits.
-- Run `/symphonize:lint` and fix any violations before committing.
+- Run `/notation:lint` and fix any violations before committing.
 
 Commit governance doc changes to a `docs/post-merge-cleanup` branch
 and open a PR (or push directly to main if the project allows).

@@ -16,10 +16,9 @@ and guiding verification against the roadmap `**Verify:**` criteria —
 lives in `/compose:review`. Run this half to land the branch; run
 the compose half to judge whether the change is correct.
 
-> This command holds only the integration/merge responsibilities.
-> The conduct plugin extracts this half into `/conduct:review` in a
-> later workstream (§road:extract-conduct-plugin); until then it
-> stays under the `/symphonize:` namespace.
+> This command holds only the integration/merge responsibilities and
+> ships in the conduct plugin as `/conduct:review`. The
+> correctness/taste half ships in compose as `/compose:review`.
 
 ```
 /next → PR → /review (merge) + /compose:review (taste) → merge → /clean
