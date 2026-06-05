@@ -13,6 +13,10 @@ jobs:
 
   fragment-drift:
     runs-on: ubuntu-latest
+    # Least-privilege: this job only reads the checked-out tree (re-assemble
+    # fragments, diff for drift). No write to contents/checks/PRs needed.
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v5
 
