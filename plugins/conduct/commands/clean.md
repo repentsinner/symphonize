@@ -3,9 +3,13 @@ argument-hint: [--lite | --full]
 description: Cleans up after executing batch workstreams
 ---
 
-Resolve the governance root before operating: walk up from the current
-working directory to the nearest ancestor containing SPEC.md; if none
-is found, fall back to the repository root.
+Resolve the governance root before operating:
+
+<!-- assembled:governance-root -->
+1. Walk up from the current working directory to find the nearest
+   ancestor directory containing SPEC.md.
+2. If no ancestor contains SPEC.md, fall back to the repository root.
+<!-- /assembled:governance-root -->
 
 Two modes: `--lite` and `--full`. If no flag is passed, auto-detect:
 use `--lite` if `.claude/ralph-loop.local.md` exists, `--full`
