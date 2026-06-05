@@ -6,9 +6,6 @@ You are the dispatch layer, not the orchestrator. Do not perform any
 orchestration or git work in the current working tree beyond the
 pre-flight steps below.
 
-Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` § Governance root for
-the resolution algorithm.
-
 ## 0. Resolve governance root
 
 Resolve the governance root before selecting work:
@@ -160,8 +157,7 @@ Read the batch agent protocol at
 Spawn a single Agent with `isolation: "worktree"` and pass it:
 - The full contents of the batch agent protocol you just read
 - The symphonize plugin root: `${CLAUDE_PLUGIN_ROOT}` (so the
-  batch agent can read CONVENTIONS.md at
-  `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md`)
+  batch agent can read `protocols/batch-agent.md`)
 - The workstream target(s) selected in step 3
 - If `unattended`: the flag `--unattended`
 - Instruction: "Follow the orchestrator protocol to implement this

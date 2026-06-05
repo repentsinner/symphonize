@@ -7,8 +7,9 @@ markdownlint against all matches. Uses the project's
 `.markdownlint.json` if present (markdownlint resolves config by
 walking up the directory tree natively).
 
-Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` § Governance root for
-the resolution algorithm.
+Resolve the governance root by walking up from the current working
+directory to the nearest ancestor containing SPEC.md; fall back to the
+repository root.
 
 ## Procedure
 

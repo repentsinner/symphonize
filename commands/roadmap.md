@@ -2,9 +2,6 @@
 argument-hint: [spec section or feature area]
 description: Break spec sections into ROADMAP.md workstreams
 ---
-Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` for roadmap format rules
-(§ Roadmap format, § Governance root).
-
 ## 0. Resolve governance root
 
 Resolve the governance root before reading or writing governance files:
@@ -52,6 +49,46 @@ is none of these — it ships inventory, not value.
 References: Cockburn, *Crystal Clear* (2004) — walking skeleton;
 Wake, "INVEST in Good Stories" (2003) — the "V" is Valuable;
 Cockburn, "Elephant Carpaccio" exercise — thin vertical slicing.
+
+## Roadmap format
+
+ROADMAP.md is imperative: it describes the work remaining to close
+the gap between current state and the spec's target state.
+Read a roadmap as "we need to do X" — not "the system is X."
+The roadmap is a work queue, not a history log. It should stay small.
+
+Rules:
+
+- Derive from SPEC.md. Every roadmap item traces to a spec gap.
+- Un-numbered `##` sections in build-dependency order. Earlier sections
+  validate assumptions that later sections depend on.
+- New work enters at the tail. Completed work leaves from the head.
+- When a section or workstream completes, delete it from the roadmap.
+  Conventional commit messages feed release-please, which records the
+  history in CHANGELOG.md. The roadmap does not duplicate that record.
+  Presence in the roadmap means the work is not done.
+- Workstreams are `### §road:slug` headings under each section.
+  Slugs are lowercase, hyphenated, grep-friendly
+  (e.g. `§road:delete-noise-tests`, `§road:extract-protocol`).
+- Size each workstream to fit one agent session (~200k tokens).
+  If a workstream is too large, split it.
+- Blocked workstreams stay under the section they belong to, annotated
+  inline ("Blocked — reason. Unblocked when condition.").
+- Dependencies between workstreams are stated inline
+  (e.g., `Depends on §road:extract-core`).
+- Update the roadmap when work starts and when it finishes. Stale
+  entries erode trust in the document.
+- Lives at the governance root alongside SPEC.md.
+- Workstream descriptions are one sentence stating the deliverable and
+  the affected file(s), plus a `§spec:` citation. Rationale, procedures,
+  constraints, and implementation detail live in the cited spec section —
+  not in the roadmap. The batch agent reads SPEC.md in Phase 1;
+  duplicating context in the roadmap wastes tokens and creates divergence
+  risk.
+- `**Verify:**` blocks remain at the section level, not per-workstream.
+
+Reference: CNCF open source roadmap best practices;
+Mozilla Open Science "Intro to Roadmapping."
 
 ## Phase 1: Check upstream
 

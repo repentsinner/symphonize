@@ -158,9 +158,14 @@ workflow. The repo's `.github/workflows/ci.yml` uses
 ## Self-contained conventions §spec:self-contained-conventions
 *Status: complete*
 
-The plugin ships `CONVENTIONS.md` defining governance file formats,
-commit conventions, and quality gate rules. Commands reference this
-file instead of deferring to the user's CLAUDE.md.
+Superseded by §spec:governance-schema. The conventions content is no
+longer a shared `CONVENTIONS.md`: authoring methodology (spec, roadmap,
+and requirements formats; spec compression; interview frameworks) is
+inline in the compose commands, process discipline (branching, commit
+conventions, quality gate) is inline in the conduct commands and
+`protocols/batch-agent.md`, and the structural grammar is enforced by
+governance-lint. Commands carry their own contract inline rather than
+deferring to the user's CLAUDE.md.
 
 **Why self-contained:** conventions are part of the plugin's
 contract, not the user's personal configuration. Any user who
@@ -237,8 +242,8 @@ flow into REQUIREMENTS.md as prose.
 **Why frameworks as prompts:** users describe *what* they want
 without explaining *why*. Framework-derived questions produce
 richer problem statements and priority rationale without imposing
-structured output forms. CONVENTIONS.md documents both taxonomies
-as interviewer references.
+structured output forms. `commands/discover.md` documents both
+taxonomies inline as interviewer references.
 
 ## Product-type-agnostic discovery §spec:product-type-agnostic-discovery
 *Status: complete*
@@ -413,20 +418,20 @@ natively. The switch removes:
 Governance files, commands, and scaffolding templates are
 internally consistent. Specifically:
 
-- init.md scaffolding templates match CONVENTIONS.md format
-  rules (slug-style headings, status lines, `§prefix:slug`
-  suffixes)
-- CONVENTIONS.md documents the standard REQUIREMENTS.md
-  sections (not just the discover command)
+- init.md scaffolding templates match the format rules
+  governance-lint enforces (slug-style headings, status lines,
+  `§prefix:slug` suffixes)
+- `commands/discover.md` documents the standard REQUIREMENTS.md
+  sections inline
 - The lint command documents which checks it runs vs. which
   checks CI runs (lint is a subset of governance-lint.yml)
-- The governance files table is consistent across README.md,
-  SPEC.md, and CONVENTIONS.md (four files, same descriptions)
+- The governance files table is consistent across README.md and
+  SPEC.md (four files, same descriptions)
 - markdownlint globs include REQUIREMENTS.md and CHANGELOG.md
 
 **Why:** inconsistencies between documents erode trust. An agent
-that reads init.md and CONVENTIONS.md should not get conflicting
-instructions.
+that reads init.md and the authoring commands should not get
+conflicting instructions.
 
 ## Issue triage command §spec:issue-triage
 *Status: complete*
@@ -658,9 +663,9 @@ Governance files scope to the directory subtree they live in. A
 SPEC.md in `packages/auth/` governs that subtree; a SPEC.md at the
 repo root governs the project as a whole. Any directory containing
 SPEC.md is a governance root. Commands resolve governance root by
-CWD walk-up (nearest SPEC.md ancestor, repo root fallback). The
-resolution algorithm and scoping rules live in CONVENTIONS.md
-§ Governance root.
+CWD walk-up (nearest SPEC.md ancestor, repo root fallback). Each
+command inlines the resolution algorithm in its governance-root
+step; governance-lint enforces the scoping rules.
 
 **Why pull, not push:** packages pull root governance as upstream
 context. Push would require root to enumerate packages and
@@ -758,15 +763,19 @@ on its own side; that seam stays unbuilt until a second schema exists.
 
 ### Where today's CONVENTIONS.md content goes
 
-Symphonize's current `CONVENTIONS.md` bundles three contracts the
-decomposition separates:
+The former shared `CONVENTIONS.md` bundled three contracts the
+decomposition separates. The content split has landed (the file is
+deleted); the plugin restructure that gives each group its own plugin
+home is still pending:
 
 - **Structural grammar** → notation enforces it; the linter is its
   executable form, so notation ships no per-repo conventions document.
 - **Authoring methodology** (declarative spec writing, vertical slicing,
-  interview frameworks, compression) → inline in the compose commands.
+  interview frameworks, compression) → inline in the compose commands
+  (`discover`, `plan`, `roadmap`).
 - **Process discipline** (branching, commit conventions, quality gate) →
-  inline in the conduct commands and the batch-agent protocol.
+  inline in the conduct commands (`next`, `clean`) and the batch-agent
+  protocol.
 
 **Rejected alternatives:**
 

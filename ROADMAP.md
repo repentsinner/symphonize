@@ -24,27 +24,6 @@ no stop-hook directives fire from ralph-loop. Finally,
 return no matches in active code paths (CHANGELOG.md may retain
 historical references).
 
-## Relocate CONVENTIONS.md content
-
-Not blocked — proceeds against today's command files, which become the
-compose and conduct plugins. Implements the content split in
-§spec:governance-schema ("Where today's CONVENTIONS.md content goes"): the
-structural grammar needs no replacement file because notation's linter is
-its executable form, so only the methodology and process content move.
-
-### §road:relocate-conventions-content
-
-Move `CONVENTIONS.md`'s authoring methodology inline into the compose
-commands (`discover`/`plan`/`roadmap`) and its process discipline into the
-conduct commands (`next`/`orchestrate`/`clean`) and
-`protocols/batch-agent.md`, then delete `CONVENTIONS.md`.
-§spec:governance-schema
-
-**Verify:** `discover`/`plan`/`roadmap` carry the authoring methodology
-inline; `next`/`orchestrate`/`clean` and `batch-agent.md` carry the process
-discipline; `CONVENTIONS.md` is deleted with no command referencing it;
-governance-lint passes.
-
 ## Scaffolding freshness
 
 ### §road:scaffold-consumer-dependabot
@@ -71,9 +50,9 @@ root-sourced plugin in a repo that also nests `plugins/*` is an
 undocumented, untested case that would drag sibling trees into the
 umbrella's cache. notation, compose, and conduct are then carved out of
 `plugins/symphonize/`; what remains is the umbrella — the same plugin,
-relocated once and drained, never deleted or recreated. Depends on
-§road:relocate-conventions-content (command files self-contained before they
-move).
+relocated once and drained, never deleted or recreated. The command files
+are already self-contained (CONVENTIONS.md inlined into them) and ready to
+move.
 
 ### §road:relocate-monolith
 
@@ -121,9 +100,9 @@ a dangling `§`-reference fails governance-lint in CI.
 ## compose plugin
 
 The tastemaking layer, carved out of `plugins/symphonize/`. Depends on
-§road:extract-notation-plugin (declares `dependencies: [notation]`) and
-§road:relocate-conventions-content (its authoring methodology is what moves
-inline here).
+§road:extract-notation-plugin (declares `dependencies: [notation]`). Its
+authoring methodology already lives inline in the compose commands
+(CONVENTIONS.md split landed).
 
 ### §road:extract-compose-plugin
 

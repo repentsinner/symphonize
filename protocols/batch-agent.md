@@ -6,8 +6,7 @@ layer (`/next`), manages sub-agent workers, merges their results,
 and delivers a single PR as a **thin vertical slice** — a complete
 path from internal logic through to a user-facing surface.
 Project-agnostic — depends on projects following the SPEC.md/
-ROADMAP.md convention defined in the symphonize CONVENTIONS.md
-(path provided by the dispatch layer).
+ROADMAP.md governance convention.
 
 ## Prerequisite
 
@@ -25,9 +24,9 @@ does not mean unchecked.
 
 ## Phase 1: Plan (in plan mode)
 
-1. Resolve the governance root per the symphonize CONVENTIONS.md
-   § Governance root (walk up from CWD to find nearest SPEC.md,
-   fallback to repo root). Read REQUIREMENTS.md (if present),
+1. Resolve the governance root: walk up from CWD to the nearest
+   ancestor containing SPEC.md; fall back to the repository root.
+   Read REQUIREMENTS.md (if present),
    SPEC.md, ROADMAP.md at the governance root, and project rules.
    If operating on a package (governance root is not the repo root),
    also read root SPEC.md as upstream architectural context. All
@@ -142,9 +141,17 @@ When all workstreams are merged:
 6. Remove completed workstreams from ROADMAP.md.
 7. Update SPEC.md status lines for any sections now complete or
    newly in progress.
-8. Compress newly completed spec sections per the symphonize
-   CONVENTIONS.md § Spec compression (path provided by the
-   dispatch layer).
+8. Compress newly completed spec sections. A completed section
+   shifts from guiding implementation to documenting the running
+   system. **Retain** design rationale (constraints, tradeoffs,
+   rejected alternatives), observable behavior, state machines and
+   transition tables, and cross-references. **Remove** wire formats
+   and protocol tables (point to the protocol's own docs), algorithm
+   pseudocode and step-by-step detail (the code owns *how*), edge
+   cases obvious from tests, and "shall" language that restates the
+   code without rationale. Heuristic: cover a paragraph with your
+   thumb — if the design intent survives, cut it; if the *why*
+   disappears, keep it.
 
 ## Phase 5a: Simplify Gate (mandatory)
 
@@ -244,10 +251,40 @@ After Phase 5a completes (or is skipped) and before pushing:
   worktree. Monitor for shared-state pollution and correct
   immediately.
 
+## Branching and commits
+
+The batch agent owns the git work for the slice:
+
+- Work on a feature branch — never commit to main. One logical unit
+  of work per branch (the batch). Branch naming
+  `<type>/<short-description>` matches the commit scope (e.g.
+  `feat/buffer-aware-execution`). Create from `origin/main`.
+- One logical change per commit. If a commit message needs "and,"
+  split it into two commits. Use conventional commits:
+  `<type>(<scope>): <description>`, where type is one of
+  feat fix docs style refactor perf test build ci chore revert.
+  Semver mapping: feat = minor, fix = patch, `BREAKING CHANGE`
+  footer or `!` = major.
+- Final history: one squashed commit per workstream (Phase 4).
+
 ## Quality Gate
 
-See the symphonize CONVENTIONS.md § Quality gate. The same rules apply to batch
-work with two additions:
+A branch is not ready to merge until analysis and tests pass with
+zero failures and zero warnings from new code. Zero is the only
+sustainable baseline — every "known failure" that ships becomes
+invisible within a session; within two batches the failure count
+drifts and real regressions hide behind the noise floor.
+
+- Never merge with failing tests. "Pre-existing" is not an excuse —
+  fix it or delete it in the same branch.
+- Never skip a failing test to unblock a merge. A flaky, broken, or
+  vacuous test is a defect. Fix or remove it with a commit
+  explaining why.
+- Warnings from new or modified code must be resolved. Warnings from
+  untouched code may be deferred to a lint-hardening workstream, but
+  document them.
+
+Two additions for batch work:
 
 - After each cherry-pick during Phase 4, run the CI command. Fix
   failures before merging the next workstream. Do not accumulate

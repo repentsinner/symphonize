@@ -3,9 +3,11 @@ argument-hint: [issue number]
 description: Classify a GitHub issue and route it to the appropriate governance file
 ---
 
-Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` for governance file formats
-(§ Cross-document traceability, § Roadmap format, § Spec format,
-§ Requirements format).
+`/triage` writes governance documents. It follows the same formats the
+authoring commands own — spec format (`/plan`), roadmap format
+(`/roadmap`), and requirements format (`/discover`) — and the `§`-slug
+and status-line grammar that governance-lint enforces. The drafting
+steps below embed the relevant structure inline.
 
 ## Responsibility
 

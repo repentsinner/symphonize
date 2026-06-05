@@ -2,9 +2,6 @@
 argument-hint: [task or feature area]
 description: Technical decisions — explore design options and produce SPEC.md sections
 ---
-Read `${CLAUDE_PLUGIN_ROOT}/CONVENTIONS.md` for spec format rules
-(§ Spec format, § Governance root).
-
 ## 0. Resolve governance root
 
 Resolve the governance root before reading or writing governance files:
@@ -50,6 +47,82 @@ will produce horizontal workstreams that ship dead code.
 References: Cockburn, *Crystal Clear* (2004) — walking skeleton;
 Wake, "INVEST in Good Stories" (2003) — the "V" is Valuable;
 Cockburn, "Elephant Carpaccio" exercise — thin vertical slicing.
+
+## Spec format
+
+SPEC.md is declarative: it describes the desired end state of the system,
+not the steps to reach it. Read a spec as "the system is X" — not "do X."
+After implementation, every statement in the spec should still read as a
+true description of the running system.
+
+Rules:
+
+- State the problem first: what fails or is missing for the end user.
+- Write declaratively. Describe what the system does, not what to change.
+  "The API returns 404 for unknown IDs" — not "Add a 404 response for
+  unknown IDs."
+- Each section shall answer "why" — what decision was made and what
+  constraint drove it. If the rationale is missing, the section is
+  incomplete.
+- When wrapping or integrating an external system, reference it — don't
+  re-spec it. Document only deviations, scope boundaries, and decisions
+  specific to this project.
+- Write each criterion as observable behavior: "the system shall…" or
+  "when X, the system shall Y." Model after EARS for structure, but
+  don't force every line into rigid templates.
+- Criteria must remain valid after implementation. If a criterion becomes
+  nonsensical once the work is complete, it belongs in a commit message,
+  not a spec.
+- No implementation details. The spec survives if you swap the underlying
+  mechanism.
+- The spec shall be sufficient to reconstruct the project's design intent.
+  A reader with no conversation history should understand what was built
+  and why.
+- Each `##` section shall carry a bare status line immediately after the
+  heading (before body content):
+  `*Status: not started | in progress | complete*`
+  No additional detail (PR numbers, dates, descriptions) on the status
+  line. Update status when work begins and when it merges. CI validates
+  placement and values via governance-lint.
+- Headings use slug-style `##` (unnumbered). `## Plugin commands` not
+  `## 1. Plugin commands`. Each `##` heading carries a `§spec:slug`
+  suffix, and cites `§req:` sources inline.
+
+Reference: Alistair Mavin et al., "EARS (Easy Approach to Requirements
+Syntax)" (2009).
+
+### Spec compression
+
+A spec section serves two audiences at different times. Before
+implementation, it guides the developer — the more detail, the fewer
+ambiguities. After implementation, it serves as a verifiable description
+of the running system and a record of design rationale.
+
+When a spec section reaches `complete`, compress it. The section shifts
+from guiding implementation to documenting the running system.
+
+**Retain**:
+
+- Design rationale ("Why X"): constraints, tradeoffs, rejected
+  alternatives. Expensive to reconstruct; prevents re-litigation.
+- Observable behavior: verifiable statements a reviewer can check
+  against the running system.
+- State machines and transition tables: compact, high-signal.
+- Cross-references to other spec sections.
+
+**Remove**:
+
+- Protocol byte values, command tables, wire formats: reference material
+  for the underlying protocol, not spec. Replace with a pointer to the
+  protocol's own documentation.
+- Algorithm pseudocode and step-by-step implementation detail: the code
+  is the source of truth for *how*. The spec owns *what* and *why*.
+- Enumerated edge cases obvious from the implementation or tests.
+- "Shall" language that restates what the code does without adding
+  rationale.
+
+**Heuristic**: cover a paragraph with your thumb. If the section's
+design intent survives, cut it. If the *why* disappears, keep it.
 
 ## Phase 1: Check upstream
 
