@@ -41,26 +41,6 @@ the `init` scaffolder — `plugins/symphonize/commands/init.md` today, the
 notation plugin once the
 decomposition (§spec:governance-schema) builds it out.
 
-## compose plugin
-
-The tastemaking layer, carved out of `plugins/symphonize/`. Declares
-`dependencies: [notation]` (notation is extracted and available). Its
-authoring methodology already lives inline in the compose commands
-(CONVENTIONS.md split landed).
-
-### §road:extract-compose-plugin
-
-Create `plugins/compose/` with a `plugin.json` declaring
-`dependencies: [notation]`, move `discover`/`plan`/`roadmap`/`triage` and
-the correctness/taste half of `review` out of `plugins/symphonize/` into it
-under `/compose:*` — splitting `review` so the taste half lands here.
-§spec:plugin-packaging §spec:governance-schema
-
-**Verify:** installing compose auto-installs notation; `/compose:discover`,
-`/compose:plan`, `/compose:roadmap`, `/compose:triage`, and `/compose:review`
-appear and run; the former `/symphonize:plan` and siblings no longer
-resolve.
-
 ## conduct plugin
 
 The execution layer, carved out of `plugins/symphonize/`. Declares
@@ -85,8 +65,8 @@ retains only `feedback`.
 
 With notation, compose, and conduct carved out, `plugins/symphonize/` holds
 only `feedback` (and later `yolo`). It becomes the umbrella by declaring its
-dependencies — no extraction, no new plugin. Depends on
-§road:extract-compose-plugin and §road:extract-conduct-plugin. `yolo`'s
+dependencies — no extraction, no new plugin. compose is already extracted;
+this depends on §road:extract-conduct-plugin. `yolo`'s
 implementation is a separate, not-yet-roadmapped section (§spec:yolo-mode);
 this workstream only wires the dependencies `yolo` will need — the command
 lands later under its own roadmap pass.

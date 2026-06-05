@@ -1,0 +1,19 @@
+{
+  "name": "compose",
+  "version": "0.1.39",
+  "description": "Tastemaking layer for symphonize: discover, plan, roadmap, triage, and taste review. Produces the governance documents.",
+  "author": {
+    "name": "repentsinner"
+  },
+  "repository": "https://github.com/repentsinner/symphonize",
+  "license": "MIT",
+  "keywords": [
+    "governance",
+    "planning",
+    "roadmap",
+    "requirements"
+  ],
+  "dependencies": [
+    { "name": "notation", "version": "0.1.39" }
+  ]
+}

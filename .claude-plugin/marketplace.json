@@ -10,6 +10,11 @@
       "source": "./plugins/notation"
     },
     {
+      "name": "compose",
+      "description": "Tastemaking layer: discover, plan, roadmap, triage, and taste review. Produces the governance documents.",
+      "source": "./plugins/compose"
+    },
+    {
       "name": "symphonize",
       "description": "Depth-first roadmap execution engine",
       "source": "./plugins/symphonize"
