@@ -52,7 +52,7 @@ The command creates:
 - `CHANGELOG.md` — with `## [Unreleased]` section
 - `.markdownlint.json` — default config
 - `.github/workflows/governance-lint.yml` — caller workflow
-  referencing `repentsinner/symphonize/.github/workflows/governance-lint.yml@v1`
+  referencing `repentsinner/symphonize/.github/workflows/governance-lint.yml@notation--v0`
 - `.github/workflows/release-please.yml` — release-please action
   with config and manifest files
 - `.github/workflows/auto-merge-release.yml` — auto-merge for
@@ -101,8 +101,10 @@ github-actions[bot] with the `autorelease: pending` label.
 
 ### update-major-tag.yml
 
-Template workflow that moves a floating major version tag
-(e.g., `v1`) on each release.
+Template workflow that moves a floating major version tag on each
+release. In symphonize it is gated to the notation release, moving
+`notation--v<major>` (e.g. `notation--v0`) — the adopter-facing ref
+for the reusable `governance-lint.yml`.
 
 ## Scaffolding freshness §spec:scaffold-freshness
 *Status: in progress*
@@ -115,7 +117,8 @@ later evolution. Two freshness concerns follow from that boundary, with
 different owners.
 
 Symphonize ships its workflow templates two ways (§spec:reusable-ci):
-`governance-lint.yml` is scaffolded as a `@v1` reusable caller, so a
+`governance-lint.yml` is scaffolded as a `@notation--v0` reusable caller
+(the notation-scoped floating major; pre-1.0, so `v0`, not `v1`), so a
 consumer picks up symphonize's internal action bumps transitively; the
 release, auto-merge, and major-tag workflows are copied verbatim because
 each needs project-specific manifests and tokens, so a consumer holds a
@@ -800,9 +803,9 @@ home is still pending:
   linter later would mean re-extracting it. Accepted given the
   symphonize-specific decision.
 - Adopter projects reference the reusable `governance-lint.yml` cross-repo
-  via a notation-scoped major tag rather than a dedicated repository's
-  `@v1`. The tag name carries the version; the cosmetic difference is
-  accepted.
+  via a notation-scoped major tag (`@notation--v0`) rather than a dedicated
+  repository's `@v1`. The tag name carries the version; the cosmetic
+  difference is accepted.
 
 ## Plugin packaging and distribution §spec:plugin-packaging
 *Status: in progress*

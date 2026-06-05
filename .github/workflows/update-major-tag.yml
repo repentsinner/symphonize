@@ -9,12 +9,22 @@ permissions:
 
 jobs:
   update-major-tag:
+    # Only the notation release moves a floating major tag. Adopters pin the
+    # reusable governance-lint.yml workflow cross-repo via
+    # `@notation--v<major>` (§spec:plugin-packaging, §spec:notation-contract);
+    # compose/conduct/symphonize reach adopters through marketplace plugin
+    # installs (dependency ranges), not a git ref, so floating majors for them
+    # would be unused. The coordinated version line guarantees notation--v<major>
+    # names the same release as the other three plugins' tags.
+    if: startsWith(github.ref_name, 'notation--v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
 
       - name: Move floating major tag
         run: |
+          # GITHUB_REF_NAME is the released tag, e.g. notation--v0.2.0.
+          # Strip at the first '.' to get the floating major, e.g. notation--v0.
           version="${GITHUB_REF_NAME}"
           major="${version%%.*}"
 

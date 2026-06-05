@@ -141,7 +141,7 @@ on:
 
 jobs:
   lint:
-    uses: repentsinner/symphonize/.github/workflows/governance-lint.yml@v1
+    uses: repentsinner/symphonize/.github/workflows/governance-lint.yml@notation--v0
     with:
       readme-type: library  # or "application", or "" to skip
 ```
