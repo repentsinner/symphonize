@@ -653,6 +653,8 @@ Roadmap workstreams are thin pointers into SPEC.md. A workstream
 description is one sentence stating the deliverable and affected
 file(s), plus a `§spec:` citation. `**Verify:**` blocks remain at
 the section level. The `### §road:slug` heading format is retained.
+§spec:heading-addressing revises this to suffix placement; until it ships,
+the slug-first format is enforced.
 
 **Why:** verbose workstream descriptions duplicate the spec and
 diverge when the spec is updated. The batch agent reads SPEC.md
@@ -907,7 +909,9 @@ governance file formats, the `§req:`/`§spec:`/`§road:` slug rules, the
 status-line format and placement, the cross-reference rules, and the
 governance-root definition. The contract is content-agnostic — it governs
 document *structure*, not authoring methodology (compose's) or development
-process (conduct's).
+process (conduct's). §spec:heading-addressing revises the slug coverage and
+placement rules; until it ships, the rules below describe the enforced
+contract.
 
 ### Expressed, not distributed
 
@@ -1165,3 +1169,129 @@ current view of the repo. §req:modular-adoption
 - The response remains model-judged. Injecting the contradiction raises
   the floor but does not force the agent to act on it. Acceptable — the
   alternative (no fresh state at all) is strictly worse.
+
+## Heading addressing §spec:heading-addressing
+*Status: not started*
+
+A governance document addresses its units by slug. Today only top-level
+sections carry slugs — `##` in SPEC/REQUIREMENTS, `###` in ROADMAP — so a
+subsection has no address: a reference to a subtopic collapses to its parent
+section and loses precision, and a spec organized as chapters with topical
+subsections cannot be cross-referenced at the grain its own work happens.
+§req:large-spec-addressing
+
+This section defines the addressing grammar. It supersedes the slug-coverage
+and placement rules stated in §spec:notation-contract and the `### §road:slug`
+heading format retained by §spec:thin-roadmap-workstreams. The cross-reference
+resolution, status-line, and CHANGELOG rules of §spec:notation-contract are
+unchanged.
+
+### Observable behavior
+
+- **A slug on every section, optional below it.** Every `##` heading in
+  SPEC.md, REQUIREMENTS.md, and ROADMAP.md carries a `§<prefix>:slug` — `§spec:`,
+  `§req:`, `§road:` respectively. A heading deeper than `##` may carry one; it is
+  required only to make that heading referenceable. The `#` document title is
+  exempt — the filename addresses it. §req:low-friction-governance
+- **Suffix placement, uniform across the three documents.** A slug sits at the
+  end of its heading text: `### Tool change workflow §road:tool-change`. ROADMAP
+  no longer writes the slug first with no title.
+- **Flat, unique namespace.** A slug encodes no hierarchy — `§spec:tool-change`,
+  never `§spec:machine-control/tool-change`. Each slug is unique within its
+  prefix across the governance root; a duplicate definition fails
+  governance-lint. Markdown depth is presentation, the slug is identity, so an
+  address survives promotion, demotion, and reordering untouched.
+- **Every reference resolves to exactly one heading.** A `§`-reference that
+  matches no defined slug, or more than one, fails governance-lint. Code spans
+  and fenced blocks are exempt, as today. One resolver subsumes the uniqueness
+  and dangling-reference checks.
+- **Positional addressing is rejected.** A heading whose text begins with a
+  numeric ordinal (`## 8. Machine control`) fails governance-lint; a topic name
+  that merely starts with a digit (`## 3D visualization`) passes. A `§`-reference
+  to a numeric address (`§8.9`) fails at the same gate, code spans and fenced
+  blocks exempt. A heading numbered in prose (`### Stage 1 — envelope check`)
+  draws a Vale warning, not a failure: the number may describe the system
+  (`Stage 2 bootloader`) rather than the document's structure, so a human
+  accepts or renames it.
+- **Status lines stay orthogonal.** A valid status line is still required on
+  every `##` SPEC heading and nowhere else; slugs and status lines compose
+  without interacting. §spec:notation-contract
+
+| Document | Slug prefix | Slug required on | Status line |
+|----------|-------------|------------------|-------------|
+| REQUIREMENTS.md | `§req:` | every `##`; deeper optional | none |
+| SPEC.md | `§spec:` | every `##`; deeper optional | every `##` |
+| ROADMAP.md | `§road:` | every `##`; deeper optional | none |
+
+### Why explicit slugs, not slugs inferred from heading text
+
+An inferred slug — `slugify(heading text)` — would drop the slug from the
+heading and read it from the title instead. It is rejected because a slug is a
+stable identity and a title is presentation this project edits routinely (prose
+passes, compression). Deriving identity from the title recouples the two, so a
+heading copyedit churns every reference that cited it — the renumbering disease
+transposed from numbers to words. Repeated subsection titles ("Observable
+behavior", "Rejected alternatives") would also collide, forcing positional
+disambiguation, the fragility this grammar exists to remove. An explicit slug is
+decoupled from its title: a heading reworded for prose keeps its address.
+§req:quality-attributes
+
+### Why optional below the section level
+
+Requiring a slug on every heading at every depth would tax every document
+forever — symphonize's own spec would slug dozens of "Observable behavior" and
+"Rejected alternatives" subsections that nothing cites, against
+§req:low-friction-governance. Optional deeper slugs make precision available and
+cheap rather than mandatory: an author slugs a subsection when, and only when,
+something references it. A large adopter slugs the subtopics its roadmap cites
+and leaves the rest bare; a small project slugs almost nothing below its
+sections. The resolver guarantees that whatever is cited is addressable and
+resolves. §req:large-spec-addressing
+
+### Why retire positional addressing
+
+A number keyed to a section's position breaks the moment a section is inserted,
+removed, or reordered, and tooling keyed to the old positions then matches
+nothing and reports success — the silent false green §spec:notation-contract
+guards against. Rejecting numbered headings and numeric references at the lint
+gate, alongside the slug grammar, closes that failure mode for an adopter
+migrating off a numbered scheme. §req:large-spec-addressing §req:modular-adoption
+
+### Adopter migration
+
+Retiring ordinals breaks anything keyed to section numbers outside the
+governance files — `@spec §8.9` test annotations, coverage tooling that greps
+them against `## N.` headings. Left unconverted, such tooling matches zero
+sections and reports success. An adopter's migration converts heading numbers to
+slugs and the external annotations and tooling that referenced them in the same
+change. notation's adopter documentation and the `init` scaffolder own this
+guidance; symphonize's own documents already use slug headings, so its migration
+is the placement and coverage change only. §req:modular-adoption
+
+### Rejected alternatives
+
+- **Mandatory slug on every heading at every depth.** Uniform and maximally
+  addressable, but it taxes every document with slugs on uncited boilerplate and
+  forces unique names on repeated subsection titles. Rejected against
+  §req:low-friction-governance — optional deeper slugs give the same
+  addressability where it is used.
+- **Slugs inferred from heading text** (see above). Rejected: recouples identity
+  to presentation and collides on repeated titles.
+- **Inferred slugs matching a Git host's anchor algorithm** (e.g. GitHub's).
+  Rejected: it would weld a host-agnostic contract to one host's mutable,
+  position-deduped rule, and the apparent benefit — references that double as
+  clickable anchors — does not exist while references are plain text rather than
+  markdown links.
+- **Hierarchical slugs** (`§spec:machine-control/tool-change`). Rejected:
+  encoding containment in the identifier reimports the renumbering disease —
+  promoting a subsection to a section breaks every reference. Flat slugs survive
+  restructuring.
+
+### Tradeoffs accepted
+
+- Optional deeper slugs let an author cite a parent section when the precise
+  subsection is unslugged, losing precision. This is a discipline matter, not a
+  correctness one; the authoring commands encourage slugging the unit cited.
+- An explicit slug duplicates words from its heading when the author picks a slug
+  that echoes the title. The duplication is benign — the slug is the stable
+  identifier, deliberately allowed to differ — and avoidable with a short slug.
