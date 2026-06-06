@@ -652,9 +652,8 @@ concerns. Spending three agent spawns on prose is noise.
 Roadmap workstreams are thin pointers into SPEC.md. A workstream
 description is one sentence stating the deliverable and affected
 file(s), plus a `§spec:` citation. `**Verify:**` blocks remain at
-the section level. The `### §road:slug` heading format is retained.
-§spec:heading-addressing revises this to suffix placement; until it ships,
-the slug-first format is enforced.
+the section level. Workstream headings use suffix placement
+(`### <Title> §road:slug`) per §spec:heading-addressing.
 
 **Why:** verbose workstream descriptions duplicate the spec and
 diverge when the spec is updated. The batch agent reads SPEC.md
@@ -909,9 +908,8 @@ governance file formats, the `§req:`/`§spec:`/`§road:` slug rules, the
 status-line format and placement, the cross-reference rules, and the
 governance-root definition. The contract is content-agnostic — it governs
 document *structure*, not authoring methodology (compose's) or development
-process (conduct's). §spec:heading-addressing revises the slug coverage and
-placement rules; until it ships, the rules below describe the enforced
-contract.
+process (conduct's). §spec:heading-addressing defines the slug coverage and
+placement rules this contract enforces.
 
 ### Expressed, not distributed
 
@@ -929,10 +927,12 @@ prevent.
 
 - governance-lint enforces, on every invocation with no opt-in switches:
   markdownlint over the governance documents; a valid status line on every
-  `##` SPEC heading; a `§`-slug on every `##` SPEC/REQUIREMENTS and `###`
-  ROADMAP heading; and resolution of every `§`-reference to a defined slug,
-  code spans exempt — a dangling reference fails the job. Vale runs when a
-  `.vale.ini` exists, else is a silent no-op. CHANGELOG.md is excluded
+  `##` SPEC heading; the slug grammar of §spec:heading-addressing (a
+  `§`-slug suffix on every `##` heading, unique within its prefix, every
+  `§`-reference resolving to exactly one definition, positional addressing
+  rejected); code spans and fenced blocks exempt from reference resolution.
+  Vale runs when a `.vale.ini` exists, else is a silent no-op. CHANGELOG.md
+  is excluded
   entirely (markdownlint and the structural checks both skip it):
   release-please generates it, so enforcing its shape fights the generator.
 - These checks already run in symphonize's `governance-lint.yml`, which
@@ -1171,7 +1171,7 @@ current view of the repo. §req:modular-adoption
   alternative (no fresh state at all) is strictly worse.
 
 ## Heading addressing §spec:heading-addressing
-*Status: not started*
+*Status: complete*
 
 A governance document addresses its units by slug. Today only top-level
 sections carry slugs — `##` in SPEC/REQUIREMENTS, `###` in ROADMAP — so a
