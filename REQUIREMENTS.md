@@ -221,3 +221,43 @@ Success looks like:
 CHANGELOG.md is out of scope: release-please generates it, so it is
 neither authored by the tastemaking process nor interpreted as
 instructions.
+
+## Large-spec addressing §req:large-spec-addressing
+
+**As a maintainer of a large specification,** I want every meaningful
+unit of my governance documents to be individually addressable, and
+those addresses to survive reorganization, so that I can adopt the
+governance loop on a spec organized as chapters with topical
+subsections — not only on a small, flat one.
+
+The governance loop's traceability presumes every referenced unit has
+a stable identity (§req:quality-attributes, auditability). In a large
+spec organized as chapters with subsections, most cross-references
+point at subsections, not whole chapters. When only top-level sections
+carry identity, subsection references collapse to their parent and lose
+precision: distinct subtopics of one chapter become indistinguishable,
+and the traceability chain reads as coarser than the work it tracks.
+
+Positional addressing compounds the problem. An address keyed to a
+section's ordinal position breaks the moment a section is inserted,
+removed, or reordered — renumbering churn that erodes the traceability
+the loop depends on. Tooling keyed to the old positions then matches
+nothing and reports success: a silent false green, the failure mode
+§spec:notation-contract already guards against.
+
+External adopters arrive with specifications already larger and more
+deeply structured than symphonize's own (§req:modular-adoption). An
+addressing scheme that implicitly assumes many small flat sections
+forces those adopters to either flatten their documents or maintain
+project-local tooling that duplicates what the governance contract
+should own.
+
+Success looks like:
+
+- An adopter references any meaningful unit of a governance document,
+  at any depth, and the reference resolves.
+- A reference survives reorganization — promotion, demotion,
+  reordering — without manual fix-up. The address means the same unit
+  before and after the document is restructured.
+- Cross-document validation catches a broken reference rather than
+  letting it silently resolve to the wrong unit.
