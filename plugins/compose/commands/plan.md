@@ -88,7 +88,9 @@ Rules:
   placement and values via governance-lint.
 - Headings use slug-style `##` (unnumbered). `## Plugin commands` not
   `## 1. Plugin commands`. Each `##` heading carries a `§spec:slug`
-  suffix, and cites `§req:` sources inline.
+  suffix (title then slug), and cites `§req:` sources inline. A heading
+  deeper than `##` may carry a `§spec:slug` suffix; it is required only
+  to make that heading referenceable.
 
 Reference: Alistair Mavin et al., "EARS (Easy Approach to Requirements
 Syntax)" (2009).

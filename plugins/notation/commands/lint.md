@@ -32,10 +32,14 @@ executable form is the reusable `governance-lint.yml` workflow
 **Scope difference:** this command runs markdownlint only — it checks
 markdown formatting (heading structure, line length, etc.). The CI
 workflow `governance-lint.yml` runs markdownlint plus the rest of the
-notation contract: SPEC.md status lines, `§spec:`/`§road:`/`§req:` slug
-formats, cross-document reference resolution (code spans exempt;
-dangling references fail), CHANGELOG.md structure, and README heading
-checks. To get the full validation suite, push and let CI run, or
-inspect `governance-lint.yml` directly.
+notation contract: SPEC.md status lines; a `§spec:`/`§road:`/`§req:`
+slug suffix on every `##` heading (deeper headings may carry one); a
+flat, unique slug namespace (a duplicate slug definition fails); every
+`§`-reference resolving to exactly one defined slug (code spans and
+fenced blocks exempt; zero or multiple matches fail); rejection of
+positional addressing (a heading beginning with a numeric ordinal, or
+any `§<number>` reference, hard-fails); CHANGELOG.md structure; and
+README heading checks. To get the full validation suite, push and let
+CI run, or inspect `governance-lint.yml` directly.
 
 $1
