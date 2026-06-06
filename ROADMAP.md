@@ -38,3 +38,41 @@ delegate-freshness contract in `plugins/notation/commands/init.md`.
 `plugins/notation/commands/init.md` and §spec:scaffold-freshness agree on
 the contract; governance-lint passes. The dependabot scaffolding lives with
 the `init` scaffolder, now in `plugins/notation/commands/init.md`.
+
+## Heading addressing grammar
+
+### §road:ordinal-prose-vale
+
+Add an ordinal-prose heading warning to the Vale `Requirements` style
+(`styles/Requirements/`). §spec:heading-addressing
+
+### §road:notation-scaffold-grammar
+
+Update the `/notation:init` skeletons to emit `##`-mandatory, suffix-placed
+slugs in all three governance files (`plugins/notation/commands/init.md`).
+§spec:heading-addressing
+
+### §road:authoring-grammar-sync
+
+Revise the compose authoring formats and the notation lint scope text to the
+suffix-placement, optional-deeper-slug grammar
+(`plugins/compose/commands/plan.md`, `plugins/compose/commands/roadmap.md`,
+`plugins/notation/commands/lint.md`). §spec:heading-addressing
+
+### §road:heading-addressing-lint
+
+Extend `governance-lint.yml` to enforce the addressing grammar and migrate
+`ROADMAP.md` to conform (`.github/workflows/governance-lint.yml`, `ROADMAP.md`).
+§spec:heading-addressing. Depends on §road:notation-scaffold-grammar and
+§road:authoring-grammar-sync — the scaffolder and authoring docs describe the
+grammar before CI enforces it, per §spec:governance-consistency.
+
+**Verify:** on a scratch branch, push governance-doc edits and confirm
+governance-lint (CI) behaves as specified: a `## Foo` ROADMAP section with no
+`§road:` slug fails; two headings defining the same `§spec:` slug fail the
+uniqueness check; a heading `## 9. Numbered thing` fails; a `§9.9` reference
+outside a code span fails while the same text inside backticks passes; a
+`### Stage 1 — x` heading draws a Vale warning, not a failure; and
+symphonize's own `SPEC.md`, `ROADMAP.md`, and `REQUIREMENTS.md` pass clean.
+Run `/notation:init` in an empty directory and confirm the scaffolded
+`ROADMAP.md` uses `## Title §road:slug` suffix placement.
