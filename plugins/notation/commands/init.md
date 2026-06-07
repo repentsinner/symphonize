@@ -29,6 +29,10 @@ Create at the governance root (CWD):
   ```markdown
   # <project-name> — Specification
 
+  <!-- Each ## section carries a §spec:slug suffix (title then slug). -->
+  <!-- Headings deeper than ## may carry a slug — required only to make -->
+  <!-- them referenceable. -->
+
   ## <first section> §spec:<slug>
   *Status: not started*
 
@@ -38,15 +42,23 @@ Create at the governance root (CWD):
   ```markdown
   # <project-name> — Roadmap
 
-  <!-- Sections in build-dependency order. -->
-  <!-- Workstreams as `- **slug**: description` bullets. -->
+  <!-- Sections in build-dependency order. Each ## section carries a -->
+  <!-- §road:slug suffix (title then slug). Workstreams are ### headings -->
+  <!-- in suffix form: ### <Title> §road:<slug>. -->
+
+  ## <first section> §road:<slug>
+
+  ### <first workstream> §road:<slug>
   ```
 - **REQUIREMENTS.md** — skeleton:
   ```markdown
   # <project-name> — Requirements
 
-  <!-- Problem-space document. Each ## section carries a §req:slug suffix. -->
-  <!-- Run /symphonize:discover to populate through a structured interview. -->
+  <!-- Problem-space document. Each ## section carries a §req:slug suffix -->
+  <!-- (title then slug). Run /compose:discover to populate through a -->
+  <!-- structured interview. -->
+
+  ## <first section> §req:<slug>
   ```
 - **CHANGELOG.md** — skeleton:
   ```markdown
@@ -114,6 +126,16 @@ Create at the governance root (CWD):
     - 'it is important to note'
     - 'at this point in time'
     - 'for the purpose of'
+  ```
+- **styles/Requirements/OrdinalHeadings.yml** — warns on ordinal-prose headings:
+  ```yaml
+  extends: existence
+  message: "Heading '%s' is numbered in prose. If the number is document structure, address by §slug instead; if it describes the system, keep it."
+  level: warning
+  scope: heading
+  nonword: true
+  tokens:
+    - '^(Stage|Phase|Step|Part|Pass|Round|Tier|Level|Iteration)\s+([0-9]+[a-z]?|[IVXivx]+)\b'
   ```
 
 ### CI workflows

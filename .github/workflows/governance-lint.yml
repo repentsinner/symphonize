@@ -125,158 +125,151 @@ jobs:
 
           echo "All required README headings present for type '$readme_type'"
 
-      - name: Validate SPEC.md heading slugs
+      # Heading addressing grammar (SPEC §spec:heading-addressing).
+      #
+      # A §<prefix>:slug suffix is REQUIRED on every ## heading in SPEC.md
+      # (§spec:), REQUIREMENTS.md (§req:), and ROADMAP.md (§road:). A heading
+      # deeper than ## MAY carry a slug — optional, but when present it joins
+      # the namespace. The # h1 title is exempt.
+      #
+      # The namespace is flat and unique: each slug is unique within its prefix
+      # across the governance root; a duplicate definition fails. Every
+      # §-reference resolves to exactly one defined slug (zero or multiple
+      # matches fail). Code spans and fenced blocks are exempt.
+      #
+      # Positional addressing is rejected: a heading whose text begins with a
+      # numeric ordinal hard-fails, as does any §<number> reference.
+      - name: Validate heading addressing grammar
         run: |
           errors=0
-          for specfile in $(find . -name 'SPEC.md' -not -path './.git/*' | sort); do
-            echo "Checking $specfile"
-            while IFS= read -r line; do
-              if ! echo "$line" | grep -qE '§spec:[a-z0-9-]+'; then
-                echo "::error file=${specfile}::Heading missing §spec: slug: $line"
-                errors=$((errors + 1))
-              fi
-            done < <(grep -E '^## ' "$specfile" | tr -d '\r')
-          done
+          defs_file=$(mktemp)   # one "prefix:slug" per line (definitions)
 
-          if [ "$errors" -gt 0 ]; then
-            echo "$errors SPEC.md heading slug error(s) found"
-            exit 1
-          fi
+          # Map a governance filename to its required ## slug prefix.
+          prefix_for() {
+            case "$1" in
+              SPEC.md) echo "spec" ;;
+              REQUIREMENTS.md) echo "req" ;;
+              ROADMAP.md) echo "road" ;;
+              *) echo "" ;;
+            esac
+          }
 
-          echo "All SPEC.md headings have §spec: slugs"
+          govfiles=$(find . \( -name 'SPEC.md' -o -name 'ROADMAP.md' -o -name 'REQUIREMENTS.md' \) -not -path './.git/*' | sort)
 
-      - name: Validate ROADMAP.md heading slugs
-        run: |
-          errors=0
-          for roadmapfile in $(find . -name 'ROADMAP.md' -not -path './.git/*' | sort); do
-            echo "Checking $roadmapfile"
-            while IFS= read -r line; do
-              if ! echo "$line" | grep -qE '^### §road:[a-z0-9-]+'; then
-                echo "::error file=${roadmapfile}::Heading missing §road: slug pattern: $line"
-                errors=$((errors + 1))
-              fi
-            done < <(grep -E '^### ' "$roadmapfile" | tr -d '\r')
-          done
-
-          if [ "$errors" -gt 0 ]; then
-            echo "$errors ROADMAP.md heading slug error(s) found"
-            exit 1
-          fi
-
-          echo "All ROADMAP.md headings have §road: slugs"
-
-      - name: Validate REQUIREMENTS.md heading slugs
-        run: |
-          errors=0
-          for reqfile in $(find . -name 'REQUIREMENTS.md' -not -path './.git/*' | sort); do
-            echo "Checking $reqfile"
-            while IFS= read -r line; do
-              if ! echo "$line" | grep -qE '§req:[a-z0-9-]+'; then
-                echo "::error file=${reqfile}::Heading missing §req: slug: $line"
-                errors=$((errors + 1))
-              fi
-            done < <(grep -E '^## ' "$reqfile" | tr -d '\r')
-          done
-
-          if [ "$errors" -gt 0 ]; then
-            echo "$errors REQUIREMENTS.md heading slug error(s) found"
-            exit 1
-          fi
-
-          echo "All REQUIREMENTS.md headings have §req: slugs"
-
-      - name: Validate cross-document references
-        run: |
-          errors=0
-          slugs_file=$(mktemp)
-
-          # Extract §prefix:slug from heading lines across all governance roots.
-          # §spec: from ## headings in all SPEC.md files
-          for f in $(find . -name 'SPEC.md' -not -path './.git/*'); do
-            grep -E '^## ' "$f" | grep -oE '§spec:[a-z0-9-]+' >> "$slugs_file" || true
-          done
-
-          # §road: from ### headings in all ROADMAP.md files
-          for f in $(find . -name 'ROADMAP.md' -not -path './.git/*'); do
-            grep -E '^### ' "$f" | grep -oE '§road:[a-z0-9-]+' >> "$slugs_file" || true
-          done
-
-          # §req: from ## headings in all REQUIREMENTS.md files
-          for f in $(find . -name 'REQUIREMENTS.md' -not -path './.git/*'); do
-            grep -E '^## ' "$f" | grep -oE '§req:[a-z0-9-]+' >> "$slugs_file" || true
-          done
-
-          echo "Defined slugs:"
-          cat "$slugs_file"
-
-          # Scan governance files for references and validate them
-          govfiles=$(find . -name 'SPEC.md' -o -name 'ROADMAP.md' -o -name 'CONVENTIONS.md' -o -name 'REQUIREMENTS.md' | grep -v './.git/' | sort)
+          # Pass 1 — per heading: enforce required ## slug, reject positional
+          # ordinals, and collect slug definitions (any heading depth >= ##).
           for govfile in $govfiles; do
+            echo "Checking $govfile"
+            base=$(basename "$govfile")
+            prefix=$(prefix_for "$base")
+            [ -z "$prefix" ] && continue
 
             lineno=0
             in_fenced_block=false
             while IFS= read -r line; do
               lineno=$((lineno + 1))
 
-              # Track fenced code blocks
               if echo "$line" | grep -qE '^```'; then
-                if $in_fenced_block; then
-                  in_fenced_block=false
-                else
-                  in_fenced_block=true
+                if $in_fenced_block; then in_fenced_block=false; else in_fenced_block=true; fi
+                continue
+              fi
+              $in_fenced_block && continue
+
+              # Heading lines only (## or deeper; the # h1 title is exempt).
+              echo "$line" | grep -qE '^##+ ' || continue
+
+              # Positional addressing: heading text begins with a numeric
+              # ordinal (## 8. Machine control, ### 3.1 Foo). A topic name that
+              # merely starts with a digit (## 3D visualization) passes.
+              if echo "$line" | grep -qE '^#+ [0-9]+(\.[0-9]+)*[. ]'; then
+                echo "::error file=${govfile},line=${lineno}::Positional heading rejected (numeric ordinal): $line"
+                errors=$((errors + 1))
+              fi
+
+              # Collect any slug defined on this heading (any prefix).
+              heading_slugs=$(echo "$line" | grep -oE '§(spec|req|road):[a-z0-9-]+' || true)
+
+              # Every ## heading must carry the doc's required prefix slug.
+              if echo "$line" | grep -qE '^## '; then
+                if ! echo "$line" | grep -qE "§${prefix}:[a-z0-9-]+"; then
+                  echo "::error file=${govfile},line=${lineno}::## heading missing §${prefix}: slug: $line"
+                  errors=$((errors + 1))
                 fi
-                continue
               fi
 
-              # Skip lines inside fenced code blocks
-              if $in_fenced_block; then
+              for s in $heading_slugs; do
+                echo "${s#§}" >> "$defs_file"
+              done
+            done < <(tr -d '\r' < "$govfile")
+          done
+
+          # Uniqueness: each prefix:slug defined exactly once.
+          dupes=$(sort "$defs_file" | uniq -d)
+          if [ -n "$dupes" ]; then
+            while IFS= read -r d; do
+              [ -z "$d" ] && continue
+              echo "::error::Duplicate slug definition: §${d} (defined more than once)"
+              errors=$((errors + 1))
+            done <<< "$dupes"
+          fi
+
+          echo "Defined slugs:"
+          sort -u "$defs_file" | sed 's/^/  §/'
+
+          # Pass 2 — references: every §-reference resolves to exactly one
+          # definition; numeric references are rejected. Code spans and fenced
+          # blocks are exempt. A heading's own definition is not a reference.
+          for govfile in $govfiles; do
+            lineno=0
+            in_fenced_block=false
+            while IFS= read -r line; do
+              lineno=$((lineno + 1))
+
+              if echo "$line" | grep -qE '^```'; then
+                if $in_fenced_block; then in_fenced_block=false; else in_fenced_block=true; fi
                 continue
               fi
+              $in_fenced_block && continue
 
-              # Strip inline code spans before scanning for references
+              # Strip inline code spans before scanning.
               stripped=$(echo "$line" | sed 's/`[^`]*`//g')
 
-              # Find all §prefix:slug references on the stripped line
-              refs=$(echo "$stripped" | grep -oE '§(spec|req|road):[a-z0-9-]+' || true)
-              if [ -z "$refs" ]; then
-                continue
+              # Numeric reference (§8.9, §3): positional addressing, rejected.
+              if echo "$stripped" | grep -qE '§[0-9]'; then
+                echo "::error file=${govfile},line=${lineno}::Positional reference rejected (numeric address): $line"
+                errors=$((errors + 1))
               fi
 
+              # On a heading line, the prefix:slug pair(s) at the END are this
+              # heading's own definition(s), not references — drop them so a
+              # heading does not "reference" itself.
+              scan="$stripped"
+              if echo "$stripped" | grep -qE '^##+ '; then
+                scan=$(echo "$stripped" | sed -E 's/§(spec|req|road):[a-z0-9-]+//g')
+              fi
+
+              refs=$(echo "$scan" | grep -oE '§(spec|req|road):[a-z0-9-]+' || true)
+              [ -z "$refs" ] && continue
+
               for ref in $refs; do
-                prefix="${ref%%:*}"
-                prefix="${prefix#§}"
-
-                # Skip heading definitions (not references)
-                basename=$(basename "$govfile")
-                case "$prefix" in
-                  spec)
-                    if [ "$basename" = "SPEC.md" ] && echo "$line" | grep -q '^## '; then
-                      continue
-                    fi ;;
-                  road)
-                    if [ "$basename" = "ROADMAP.md" ] && echo "$line" | grep -q '^### '; then
-                      continue
-                    fi ;;
-                  req)
-                    if [ "$basename" = "REQUIREMENTS.md" ] && echo "$line" | grep -q '^## '; then
-                      continue
-                    fi ;;
-                esac
-
-                # Check that the reference resolves to a defined slug
-                if ! grep -qxF "$ref" "$slugs_file"; then
-                  echo "::error file=${govfile},line=${lineno}::Dangling reference ${ref} — no matching heading found"
+                key="${ref#§}"
+                count=$(grep -cxF "$key" "$defs_file" || true)
+                if [ "$count" -eq 0 ]; then
+                  echo "::error file=${govfile},line=${lineno}::Dangling reference ${ref} — no matching heading"
+                  errors=$((errors + 1))
+                elif [ "$count" -gt 1 ]; then
+                  echo "::error file=${govfile},line=${lineno}::Ambiguous reference ${ref} — resolves to ${count} headings"
                   errors=$((errors + 1))
                 fi
               done
             done < <(tr -d '\r' < "$govfile")
           done
 
-          rm -f "$slugs_file"
+          rm -f "$defs_file"
 
           if [ "$errors" -gt 0 ]; then
-            echo "$errors cross-document reference error(s) found"
+            echo "$errors heading-addressing error(s) found"
             exit 1
           fi
 
-          echo "All cross-document references resolved"
+          echo "Heading addressing grammar valid"
