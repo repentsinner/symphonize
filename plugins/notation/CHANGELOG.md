@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/repentsinner/symphonize/compare/notation--v0.2.0...notation--v0.2.1) (2026-06-07)
+
+
+### Features
+
+* batch — slug-on-every-heading addressing grammar ([#165](https://github.com/repentsinner/symphonize/issues/165)) ([eda81ac](https://github.com/repentsinner/symphonize/commit/eda81ac0d724d50828365bae1161e8ecdbb517a0))
+
 ## [0.2.0](https://github.com/repentsinner/symphonize/compare/notation--v0.1.39...notation--v0.2.0) (2026-06-05)
 
 
