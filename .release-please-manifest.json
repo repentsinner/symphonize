@@ -1,6 +1,6 @@
 {
-  "plugins/notation": "0.2.0",
-  "plugins/compose": "0.2.0",
-  "plugins/conduct": "0.2.0",
-  "plugins/symphonize": "0.2.0"
+  "plugins/notation": "0.2.1",
+  "plugins/compose": "0.2.1",
+  "plugins/conduct": "0.2.1",
+  "plugins/symphonize": "0.2.1"
 }
