@@ -38,3 +38,25 @@ delegate-freshness contract in `plugins/notation/commands/init.md`.
 `plugins/notation/commands/init.md` and §spec:scaffold-freshness agree on
 the contract; governance-lint passes. The dependabot scaffolding lives with
 the `init` scaffolder, now in `plugins/notation/commands/init.md`.
+
+## Batch delivery robustness §road:batch-delivery-robustness
+
+### Harden Phase 6 delivery and add dispatch recovery §road:harden-batch-delivery
+
+Make Phase 6 a hard completion gate and add a dispatch-layer recovery path in
+`plugins/conduct/protocols/batch-agent.md` and `plugins/conduct/commands/next.md`
+— a batch agent does not return without a pushed conventional branch, an opened
+PR, and the shipped workstream removed from ROADMAP.md; when it does, `/conduct:next`
+adopts the worktree and finishes delivery itself; document that `SendMessage`
+resume is not assumable. §spec:batch-delivery. Reported in #132.
+
+**Verify:** `plugins/conduct/protocols/batch-agent.md` states Phase 6 as a hard
+gate (no return without a PR URL) and notes `SendMessage` resume is not
+assumable; `plugins/conduct/commands/next.md` has a "Recovery — incomplete
+delivery" path that adopts the worktree, removes the shipped ROADMAP workstream,
+re-runs CI, pushes to a `<type>/<scope>-<slug>` branch, and opens the PR.
+Exercise it: dispatch a batch; if the agent returns a PR URL, delivery worked
+end-to-end; if it returns without one, confirm `/conduct:next` detects the
+missing URL and delivers from the worktree (conventional branch, ROADMAP bullet
+gone, PR open, CI green) — the manual workaround used for #165 and #171 becomes
+the documented path.

@@ -1366,3 +1366,56 @@ The hardcoded trunk spans conduct (`next.md`, `review.md`, `clean.md`,
 `main`-relative descriptions in §spec:clean-supersession-safety and
 §spec:repo-state-reconciliation. The change is cross-plugin and touches the
 shared branching convention every agent inherits.
+
+## Batch delivery §spec:batch-delivery
+*Status: not started*
+
+A batch agent dispatched by `/conduct:next` (an `Agent` worktree) sometimes
+completes the work — implementing the workstream, passing the Phase 5 gates,
+committing in its worktree — yet returns without pushing a branch or opening a
+PR, and without removing the shipped workstream from ROADMAP.md. The dispatch
+layer is then left with no PR to track, a ROADMAP that still lists shipped work,
+and no reliable way to nudge the stalled sub-agent to finish. The premise that
+every batch yields a reviewable PR (§req:success-criteria) breaks silently — the
+loop proceeds as though delivery happened.
+
+### Observable behavior
+
+- **Delivery is a hard completion gate.** A batch agent does not report success
+  until it has pushed its branch and opened a PR; a return without a PR URL is a
+  failure, not a partial success. Removing the shipped workstream from
+  ROADMAP.md is part of the same gate.
+- **The dispatch layer owns recovery.** When a batch agent returns without a PR
+  URL, `/conduct:next` adopts the worktree's committed work and finishes
+  delivery itself — remove the shipped ROADMAP workstream, re-run CI, push to a
+  conventional branch, open the PR — rather than resuming the sub-agent. The
+  worktree's commits are the source of truth; delivery completes deterministically
+  from them.
+- **Delivered branches use the conventional name.** A delivered branch follows
+  `<type>/<scope>-<slug>`, never the `worktree-agent-<id>` name the isolation
+  harness assigns to the sub-agent's worktree.
+
+### Why the dispatch layer recovers rather than resumes
+
+In-band resumption of a stalled sub-agent is not assumable. `SendMessage`-based
+resume is gated behind Claude Code's `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`,
+which is off by default and — because the gate is read at module init — takes
+effect only through a shell-level environment export before launch, not through
+`settings.json`. It is also version-dependent. So in the common configuration
+there is no way to drive a stalled batch agent to completion. Recovery from the
+worktree is harness-independent: the commits already exist, and the dispatch
+layer finishes delivery from them without depending on any resume mechanism.
+
+### Why delivery is a hard gate
+
+A partial success that reads as completion is the worst failure mode — the loop
+advances believing a PR exists, the ROADMAP keeps listing shipped work, and the
+gap surfaces only on a later manual check. A hard gate paired with dispatch-layer
+recovery guarantees every attempted batch ends in a reviewable PR or an explicit
+failure, never a silent no-op. §req:success-criteria
+
+### Scope
+
+The contract spans `plugins/conduct/protocols/batch-agent.md` (Phase 5 step 6
+and Phase 6) and the dispatch layer `plugins/conduct/commands/next.md`
+(recovery). Reported by the maintainer after the failure recurred across batches.
