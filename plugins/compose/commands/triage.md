@@ -156,15 +156,20 @@ proceeding.
 
 ## Phase 4: Commit and push
 
-1. Create a feature branch from `origin/main`. Triage edits
-   governance documents only and ships no behavior, so every
-   committing classification uses a `docs/` branch:
+1. Create a feature branch from the integration trunk. Resolve the
+   trunk from the repository's own default branch (do not hardcode
+   `main`); for symphonize's own repository it resolves to `main`.
+   Triage edits governance documents only and ships no behavior, so
+   every committing classification uses a `docs/` branch:
 
    - Bug → `docs/triage-N-slug`
    - Feature → `docs/triage-N-slug`
 
    ```bash
-   git checkout -b docs/triage-<issue-number>-<slug> origin/main
+   trunk="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')"
+   [ -z "$trunk" ] && trunk="$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null)"
+   [ -z "$trunk" ] && trunk=main
+   git checkout -b "docs/triage-<issue-number>-<slug>" "origin/$trunk"
    ```
 
 2. Write the governance file updates.

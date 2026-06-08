@@ -327,6 +327,42 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# Test 10: trunk resolved from default branch (develop) -> reports behind develop
+# ---------------------------------------------------------------------------
+# A repo whose default branch is `develop`, not `main`. The hook must compare
+# HEAD against origin/develop (resolved from origin/HEAD), not a non-existent
+# origin/main. Regression for §spec:integration-ref.
+STAMP_DIR="$ROOT/stamps10"
+remote10="$ROOT/develop-remote.git"
+work10="$ROOT/develop"
+tgit init --quiet --bare "$remote10"
+# Make `develop` the remote's default branch (HEAD).
+tgit -C "$remote10" symbolic-ref HEAD refs/heads/develop
+tgit init --quiet "$work10"
+tgit -C "$work10" checkout -q -b develop
+echo "seed" >"$work10/file"
+tgit -C "$work10" add file
+tgit -C "$work10" commit --quiet -m "seed"
+tgit -C "$work10" remote add origin "$remote10"
+tgit -C "$work10" push --quiet -u origin develop
+# Record origin/HEAD locally so the hook can resolve the default branch.
+tgit -C "$work10" remote set-head origin develop
+# Advance origin/develop from a clone, then move the local feature branch behind it.
+clone10="$ROOT/develop-clone"
+tgit clone --quiet "$remote10" "$clone10"
+echo "more" >"$clone10/file2"
+tgit -C "$clone10" add file2
+tgit -C "$clone10" commit --quiet -m "advance develop"
+tgit -C "$clone10" push --quiet origin develop
+tgit -C "$work10" checkout -q -b feature-x
+tgit -C "$work10" fetch --quiet origin
+ghdir="$ROOT/gh-none10"
+make_gh_stub "$ghdir" NONE
+out="$(RECONCILE_FETCH_DISABLE=1 run_hook "$work10" "$ghdir")"
+assert_contains "behind report names resolved trunk origin/develop" "$out" "origin/develop"
+assert_not_contains "behind report does not name origin/main" "$out" "origin/main"
+
+# ---------------------------------------------------------------------------
 echo
 echo "passed: $pass  failed: $fail"
 [ "$fail" -eq 0 ]

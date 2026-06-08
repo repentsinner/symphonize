@@ -98,8 +98,17 @@ Mozilla Open Science "Intro to Roadmapping."
 Before decomposing, assess the state of the spec. Apply
 backpressure proportional to the gap.
 
-1. Create a planning worktree. Fetch origin and start from tip of
-   main.
+1. Create a planning worktree. Fetch origin and start from the tip of
+   the integration trunk — the repository's own default branch (do
+   not hardcode `main`):
+
+   ```sh
+   trunk="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')"
+   [ -z "$trunk" ] && trunk="$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null)"
+   [ -z "$trunk" ] && trunk=main
+   ```
+
+   For symphonize's own repository this resolves to `main`.
 2. Read REQUIREMENTS.md (if present), SPEC.md, and ROADMAP.md at
    the governance root. If operating on a package, also read root
    SPEC.md as upstream architectural context.
