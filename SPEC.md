@@ -1300,3 +1300,65 @@ is the placement and coverage change only. §req:modular-adoption
 - An explicit slug duplicates words from its heading when the author picks a slug
   that echoes the title. The duplication is benign — the slug is the stable
   identifier, deliberately allowed to differ — and avoidable with a short slug.
+
+## Integration-ref resolution §spec:integration-ref
+*Status: not started*
+
+symphonize's commands and the batch-agent protocol hardcode `main` as the
+integration branch: `git checkout -b … origin/main`, "verify main is current",
+`git log main..<branch>`, reading ROADMAP.md from `origin/main`, rebasing onto
+`origin/main`. Two failures follow, reported by an external adopter whose trunk
+is not `main`.
+
+A project whose trunk is `develop` — or anything other than `main` — targets the
+wrong branch in every command (§req:modular-adoption). And worktree-isolated
+sub-agents fork from the repository's default branch rather than the batch branch
+they should extend, so serial workstreams within one batch miss the planning
+foundation and each other's already-integrated work — producing the cherry-pick
+conflicts and CI breakage that contradict the vertical-slice execution model
+(§spec:vertical-first-batch-selection).
+
+### Observable behavior
+
+- **The integration trunk is resolved once, not hardcoded.** Commands and
+  protocols reference a single resolved trunk branch rather than the literal
+  `main`, defaulting to the repository's own default branch so a non-`main` trunk
+  works without per-command edits. The `main`-relative comparisons in
+  §spec:clean-supersession-safety and §spec:repo-state-reconciliation use the
+  resolved trunk.
+- **Worktree sub-agents descend from the batch integration HEAD, not the trunk.**
+  When the dispatch layer spawns a workstream sub-agent in an isolated worktree,
+  that sub-agent's work is based on the batch branch's current commit,
+  inheriting the planning foundation and every earlier-integrated workstream in
+  the same batch. The base advances as serial workstreams integrate.
+- **Trunk and batch integration HEAD are distinct refs.** The trunk is where a
+  finished batch lands; the batch integration HEAD is the in-flight commit a
+  batch's sub-agents extend. Basing children on the trunk discards in-batch
+  integration — the defect this section closes.
+
+### Why resolve rather than hardcode
+
+The contract serves adopters beyond symphonize's own repository
+(§req:modular-adoption), and those adopters do not all use `main`. Resolving the
+trunk from the repository's default branch — rather than introducing a
+configuration file — keeps the "no state beyond governance documents" constraint
+intact while removing the wrong-branch failure for every non-`main` project.
+
+### Why the worktree base needs explicit handling
+
+The agent worktree-isolation harness bases a new worktree on the repository's
+default branch, and the batch branch is already checked out in the parent
+worktree, so a child cannot check it out by name. symphonize cannot change the
+harness, so the protocol makes the base explicit: the dispatch layer passes the
+batch branch's commit to each sub-agent, which positions its worktree at that
+commit before working. Linked worktrees share one object store, so the commit
+resolves by SHA. The exact mechanism is an implementation detail; the contract
+is that children extend the batch integration HEAD.
+
+### Scope
+
+The hardcoded trunk spans conduct (`next.md`, `review.md`, `clean.md`,
+`protocols/batch-agent.md`) and compose (`triage.md`, `roadmap.md`), plus the
+`main`-relative descriptions in §spec:clean-supersession-safety and
+§spec:repo-state-reconciliation. The change is cross-plugin and touches the
+shared branching convention every agent inherits.
