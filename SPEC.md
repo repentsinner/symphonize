@@ -1368,7 +1368,7 @@ The hardcoded trunk spans conduct (`next.md`, `review.md`, `clean.md`,
 shared branching convention every agent inherits.
 
 ## Batch delivery §spec:batch-delivery
-*Status: not started*
+*Status: complete*
 
 A batch agent dispatched by `/conduct:next` (an `Agent` worktree) implements its
 workstream and commits in its worktree, then — while running its mandatory
