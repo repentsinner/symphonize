@@ -43,12 +43,13 @@ the `init` scaffolder, now in `plugins/notation/commands/init.md`.
 
 ### Harden Phase 6 delivery and add dispatch recovery §road:harden-batch-delivery
 
-Make Phase 6 a hard completion gate and add a dispatch-layer recovery path in
-`plugins/conduct/protocols/batch-agent.md` and `plugins/conduct/commands/next.md`
-— a batch agent does not return without a pushed conventional branch, an opened
-PR, and the shipped workstream removed from ROADMAP.md; when it does, `/conduct:next`
-adopts the worktree and finishes delivery itself; document that `SendMessage`
-resume is not assumable. §spec:batch-delivery. Reported in #132.
+Harden batch delivery in `plugins/conduct/protocols/batch-agent.md` and
+`plugins/conduct/commands/next.md`: keep the quality gates from ending the
+agent's turn before Phase 6, make Phase 6 a hard completion gate (no return
+without a pushed conventional branch, an opened PR, and the shipped workstream
+removed from ROADMAP.md), and add a dispatch-layer recovery path that adopts the
+worktree and finishes delivery when an agent returns without a PR; document that
+`SendMessage` resume is not assumable. §spec:batch-delivery. Reported in #132.
 
 **Verify:** `plugins/conduct/protocols/batch-agent.md` states Phase 6 as a hard
 gate (no return without a PR URL) and notes `SendMessage` resume is not

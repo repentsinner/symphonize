@@ -1370,14 +1370,26 @@ shared branching convention every agent inherits.
 ## Batch delivery §spec:batch-delivery
 *Status: not started*
 
-A batch agent dispatched by `/conduct:next` (an `Agent` worktree) sometimes
-completes the work — implementing the workstream, passing the Phase 5 gates,
-committing in its worktree — yet returns without pushing a branch or opening a
-PR, and without removing the shipped workstream from ROADMAP.md. The dispatch
-layer is then left with no PR to track, a ROADMAP that still lists shipped work,
-and no reliable way to nudge the stalled sub-agent to finish. The premise that
-every batch yields a reviewable PR (§req:success-criteria) breaks silently — the
-loop proceeds as though delivery happened.
+A batch agent dispatched by `/conduct:next` (an `Agent` worktree) implements its
+workstream and commits in its worktree, then — while running its mandatory
+quality gates — stops without pushing a branch, opening a PR, or removing the
+shipped workstream from ROADMAP.md. The dispatch layer is then left with no PR to
+track, a ROADMAP that still lists shipped work, and no reliable way to nudge the
+stalled sub-agent to finish. The premise that every batch yields a reviewable PR
+(§req:success-criteria) breaks silently — the loop proceeds as though delivery
+happened.
+
+### Why agents stall before delivery
+
+The batch agent's mandatory gates (`/security-review`, `/simplify`) are Skills.
+Invoking a Skill inside a sub-agent injects a self-contained task prompt; the
+agent answers that prompt and ends its turn. In the main session the session
+loop drives the next turn, so control returns after a Skill — but a sub-agent
+has no such driver, so it stops, and every protocol phase sequenced after a Skill
+invocation is unreachable. Observed twice: each agent committed its work, invoked
+`/security-review`, emitted the review, and ended its turn — Phase 6 never ran.
+The corrected behavior is that the quality gates do not cost the agent its turn
+before delivery; the mechanism that achieves it is an implementation choice.
 
 ### Observable behavior
 
@@ -1395,7 +1407,7 @@ loop proceeds as though delivery happened.
   `<type>/<scope>-<slug>`, never the `worktree-agent-<id>` name the isolation
   harness assigns to the sub-agent's worktree.
 
-### Why the dispatch layer recovers rather than resumes
+### Why recovery, not resume
 
 In-band resumption of a stalled sub-agent is not assumable. `SendMessage`-based
 resume is gated behind Claude Code's `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`,
@@ -1416,6 +1428,7 @@ failure, never a silent no-op. §req:success-criteria
 
 ### Scope
 
-The contract spans `plugins/conduct/protocols/batch-agent.md` (Phase 5 step 6
-and Phase 6) and the dispatch layer `plugins/conduct/commands/next.md`
-(recovery). Reported by the maintainer after the failure recurred across batches.
+The contract spans `plugins/conduct/protocols/batch-agent.md` (the quality gates,
+Phase 5 step 6, and Phase 6) and the dispatch layer
+`plugins/conduct/commands/next.md` (recovery). Reported by the maintainer (#132)
+and corroborated by two stalls observed in practice.
