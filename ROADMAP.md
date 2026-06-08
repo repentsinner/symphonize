@@ -38,30 +38,3 @@ delegate-freshness contract in `plugins/notation/commands/init.md`.
 `plugins/notation/commands/init.md` and §spec:scaffold-freshness agree on
 the contract; governance-lint passes. The dependabot scaffolding lives with
 the `init` scaffolder, now in `plugins/notation/commands/init.md`.
-
-## Integration-ref resolution §road:integration-ref-resolution
-
-### Resolve the integration trunk across conduct and compose §road:resolve-trunk
-
-Replace hardcoded `main` with a trunk resolved from the repository default
-branch across `plugins/conduct/commands/{next,review,clean}.md`,
-`plugins/conduct/protocols/batch-agent.md`, and
-`plugins/compose/commands/{triage,roadmap}.md`, and update the `main`-relative
-wording in §spec:clean-supersession-safety and §spec:repo-state-reconciliation.
-§spec:integration-ref. Reported in #167.
-
-### Base worktree sub-agents on the batch integration HEAD §road:worktree-base-ref
-
-Make the dispatch and batch-agent protocol pass the batch branch commit to each
-worktree sub-agent and base its work there rather than the default branch
-(`plugins/conduct/commands/next.md`, `plugins/conduct/protocols/batch-agent.md`).
-§spec:integration-ref. Depends on §road:resolve-trunk. Reported in #167.
-
-**Verify:** in a scratch repo whose default branch is `develop`, run
-`/conduct:next` on a populated ROADMAP and confirm the batch branch is cut from
-`develop` and the PR targets `develop` (no reference to a non-existent `main`).
-In a batch of two serial workstreams touching the same file, confirm the second
-sub-agent's worktree already contains the first workstream's integrated commit
-(its work builds on it without a cherry-pick conflict) and CI passes after each
-integration. `grep -rn 'origin/main' plugins/` returns no hardcoded trunk in
-active command and protocol paths.

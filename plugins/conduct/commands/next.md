@@ -30,10 +30,24 @@ Ensure local state is current before selecting work.
 3. Remove any leftover worktrees from `.claude/worktrees/` and their
    backing git worktrees (`git worktree list`, `git worktree remove`
    for any linked worktrees that are no longer needed).
-4. Read ROADMAP.md from `origin/main` at the governance root path
-   (use `git show origin/main:<governance-root-relative>/ROADMAP.md`)
+4. Resolve the integration **trunk** — the branch a finished batch
+   lands on — from the repository's own default branch; do not
+   hardcode `main`. Read the remote's recorded default branch, falling
+   back to `gh`, then to `main`:
+
+   ```sh
+   trunk="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')"
+   [ -z "$trunk" ] && trunk="$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null)"
+   [ -z "$trunk" ] && trunk=main
+   ```
+
+   Use `$trunk` and `origin/$trunk` wherever a trunk branch is
+   referenced below, and pass `$trunk` to the batch agent. For
+   symphonize's own repository this resolves to `main`.
+5. Read ROADMAP.md from `origin/$trunk` at the governance root path
+   (`git show "origin/$trunk:<governance-root-relative>/ROADMAP.md"`)
    — not the local working copy, which may be stale. For the repo
-   root governance, this is `git show origin/main:ROADMAP.md`.
+   root governance, this is `git show "origin/$trunk:ROADMAP.md"`.
 
 ## 2. Detect unattended mode
 
@@ -49,7 +63,7 @@ to cross-check.
 ## 3. Select workstream target (chain-preferring)
 
 If `$1` is provided, use it. Otherwise, using the ROADMAP.md content
-from step 1.4, select workstreams by building dependency chains that
+from step 1.5, select workstreams by building dependency chains that
 reach the user-facing surface. §spec:vertical-first-batch-selection
 
 ### 3.1 Identify the active section
@@ -160,6 +174,9 @@ Spawn a single Agent with `isolation: "worktree"` and pass it:
 - The full contents of the batch agent protocol you just read
 - The conduct plugin root: `${CLAUDE_PLUGIN_ROOT}` (so the
   batch agent can read `protocols/batch-agent.md`)
+- The resolved integration trunk `$trunk` (step 1.4) — the branch
+  the batch lands on; the agent cuts its branch from `origin/$trunk`
+  and targets the PR there
 - The workstream target(s) selected in step 3
 - If `unattended`: the flag `--unattended`
 - Instruction: "Follow the orchestrator protocol to implement this

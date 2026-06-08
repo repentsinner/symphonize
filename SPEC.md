@@ -490,16 +490,18 @@ deleted remote branch cannot be reopened.
 
 The clean command shall not close a PR or delete its remote branch
 based on title similarity, topic overlap, or heuristic matching.
-A PR is superseded only when every file it touches exists in main
-with equivalent changes. Verification procedure:
+A PR is superseded only when every file it touches exists in the
+integration trunk (the repository's resolved default branch,
+§spec:integration-ref) with equivalent changes. Verification
+procedure:
 
 1. For each open sub-agent PR, list unmerged commits
-   (`git log --oneline main..<branch>`).
+   (`git log --oneline <trunk>..<branch>`).
 2. For each unmerged commit, inspect the diff and confirm the
-   classes, functions, and files introduced exist in main.
-3. If any introduced symbol or file does not exist in main, the
+   classes, functions, and files introduced exist in the trunk.
+3. If any introduced symbol or file does not exist in the trunk, the
    PR is not superseded — leave it open.
-4. Only after all changes are confirmed present in main, close
+4. Only after all changes are confirmed present in the trunk, close
    the PR with a comment citing the merge commit or batch PR
    that landed the work.
 
@@ -1102,12 +1104,14 @@ context via `hookSpecificOutput.additionalContext`.
 
 - Before each user turn, the hook performs a **read-only** reconcile: a
   rate-limited `git fetch --prune`, then a comparison of the current branch
-  against its upstream and `origin/main`, and of the branch's pull request
+  against its upstream and the integration trunk (the repository's resolved
+  default branch, §spec:integration-ref), and of the branch's pull request
   against its remote state.
 - The hook injects context **only when reality diverges** from the naive
   "nothing changed since I last looked" assumption — the current branch's
-  PR is merged or closed; the branch is behind `origin/main`; the branch no
-  longer exists on the remote. When nothing diverges, it injects nothing.
+  PR is merged or closed; the branch is behind the resolved trunk; the
+  branch no longer exists on the remote. When nothing diverges, it injects
+  nothing.
 - The divergence is reported as a specific contradiction at the point of use
   (e.g. "PR #118 for this branch is MERGED"), not a status dump.
 - The hook never blocks the prompt and never mutates the working tree or the
@@ -1302,7 +1306,7 @@ is the placement and coverage change only. §req:modular-adoption
   identifier, deliberately allowed to differ — and avoidable with a short slug.
 
 ## Integration-ref resolution §spec:integration-ref
-*Status: not started*
+*Status: complete*
 
 symphonize's commands and the batch-agent protocol hardcode `main` as the
 integration branch: `git checkout -b … origin/main`, "verify main is current",

@@ -66,7 +66,20 @@ does not mean unchecked.
 
 ## Phase 2: Setup
 
-1. Fetch origin and verify main is current.
+1. Fetch origin and resolve the integration **trunk** — the branch a
+   finished batch lands on. The dispatch layer passes `$trunk`; if it
+   did not, resolve it from the repository's own default branch (do
+   not hardcode `main`):
+
+   ```sh
+   trunk="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')"
+   [ -z "$trunk" ] && trunk="$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null)"
+   [ -z "$trunk" ] && trunk=main
+   ```
+
+   Verify `origin/$trunk` is current. Use `$trunk` and `origin/$trunk`
+   everywhere a trunk branch is referenced below. For symphonize's own
+   repository this resolves to `main`.
 2. Verify you are in a worktree (not the user's main checkout).
    Confirm with: `git worktree list` — your working directory
    should appear as a linked worktree, not the main working tree.
@@ -88,8 +101,23 @@ does not mean unchecked.
 - Parallel dispatch (multiple Agent calls in one message) for
   workstreams with no file overlap. Serial for workstreams that
   touch shared files or depend on earlier results.
+- **Base each sub-agent on the batch integration HEAD, not the
+  trunk.** The worktree-isolation harness cuts a new worktree from
+  the repository's default branch, and the batch branch is already
+  checked out in this (parent) worktree, so a child cannot check it
+  out by name. Immediately before spawning a sub-agent, capture the
+  batch branch's current commit (`base_sha="$(git rev-parse HEAD)"`)
+  and pass that SHA to the sub-agent. Instruct it to position its
+  worktree there as its **first action**, before any work:
+  `git reset --hard <base_sha>`. Linked worktrees share one object
+  store, so the SHA is reachable even though the branch name is not.
+  This makes the child inherit the planning foundation and every
+  earlier-integrated workstream. For **serial** workstreams,
+  re-capture `base_sha` after each cherry-pick (Phase 4) so the next
+  child descends from the just-integrated commit — never from the
+  bare trunk.
 - Each sub-agent receives: the workstream slug, its ROADMAP.md
-  description, and the project rules.
+  description, the base commit SHA (above), and the project rules.
 - Sub-agents follow the project's standard workflow (test-first
   for code tasks, verify for operational tasks).
 
@@ -159,7 +187,7 @@ After Phase 5 verification passes and before `/security-review`.
 Implements §spec:simplify-gate.
 
 1. **Skip-condition check.** Compute the changed-file list with
-   `git diff --name-only $(git merge-base HEAD origin/main) HEAD`.
+   `git diff --name-only "$(git merge-base HEAD "origin/$trunk")" HEAD`.
    If every changed path is a non-source file (markdown, YAML, or
    governance documents — SPEC.md, ROADMAP.md, REQUIREMENTS.md,
    CHANGELOG.md), skip the gate and record the skip in the batch
@@ -255,10 +283,11 @@ After Phase 5a completes (or is skipped) and before pushing:
 
 The batch agent owns the git work for the slice:
 
-- Work on a feature branch — never commit to main. One logical unit
-  of work per branch (the batch). Branch naming
+- Work on a feature branch — never commit to the trunk. One logical
+  unit of work per branch (the batch). Branch naming
   `<type>/<short-description>` matches the commit scope (e.g.
-  `feat/buffer-aware-execution`). Create from `origin/main`.
+  `feat/buffer-aware-execution`). Create from `origin/$trunk` (the
+  resolved trunk, Phase 2).
 - One logical change per commit. If a commit message needs "and,"
   split it into two commits. Use conventional commits:
   `<type>(<scope>): <description>`, where type is one of

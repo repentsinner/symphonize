@@ -32,8 +32,20 @@ Do NOT update governance docs, run verification, or sync chezmoi.
 
 ## Full mode (post-merge cleanup)
 
-Run after PRs merge to main — either after a single batch or after
-reviewing all ralph-loop PRs.
+Run after PRs merge to the integration trunk — either after a single
+batch or after reviewing all ralph-loop PRs.
+
+Resolve the **trunk** — the branch finished work lands on — from the
+repository's own default branch; do not hardcode `main`:
+
+```sh
+trunk="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')"
+[ -z "$trunk" ] && trunk="$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null)"
+[ -z "$trunk" ] && trunk=main
+```
+
+Use `$trunk` and `origin/$trunk` wherever the trunk is referenced
+below. For symphonize's own repository this resolves to `main`.
 
 Never run `git stash` under any circumstance. Stashes created by
 branch-switching during cleanup accumulate silently — the pop or
@@ -73,25 +85,25 @@ Do not stash, force-checkout, or silently discard uncommitted work.
 - Close open sub-agent PRs only after diff-level supersession
   verification. Do not close based on title similarity or topic
   overlap. For each open sub-agent PR (`gh pr list --author @me`):
-  1. List unmerged commits (`git log --oneline main..<branch>`).
+  1. List unmerged commits (`git log --oneline "$trunk..<branch>"`).
   2. For each unmerged commit, inspect the diff and confirm the
-     classes, functions, and files introduced exist in main.
-  3. If any introduced symbol or file does not exist in main, the
-     PR is not superseded — leave it open.
-  4. Only after all changes are confirmed present in main, close
+     classes, functions, and files introduced exist in `$trunk`.
+  3. If any introduced symbol or file does not exist in `$trunk`,
+     the PR is not superseded — leave it open.
+  4. Only after all changes are confirmed present in `$trunk`, close
      the PR with a comment citing the merge commit or batch PR
      that landed the work.
 
-### 2. Checkout main and fast-forward
+### 2. Check out the trunk and fast-forward
 
-Switch to `main` and pull:
+Switch to `$trunk` and pull:
 
 ```sh
-git checkout main
+git checkout "$trunk"
 git pull --ff-only
 ```
 
-If fast-forward fails, warn and abort — main has diverged and
+If fast-forward fails, warn and abort — the trunk has diverged and
 needs manual resolution.
 
 Re-run the dirty-state guard (step 0 logic) after checkout. Lock
@@ -130,11 +142,11 @@ recent commit history (`git log --oneline -20`). Check:
 - Run `/notation:lint` and fix any violations before committing.
 
 Commit governance doc changes to a `docs/post-merge-cleanup` branch
-and open a PR (or push directly to main if the project allows).
+and open a PR (or push directly to the trunk if the project allows).
 
 ### 5. Verify
 
-Run verification against main — not a branch. The quality gate is
+Run verification against the trunk — not a branch. The quality gate is
 zero failures and zero warnings — the only sustainable baseline. A
 "pre-existing" failure is not an excuse: every known failure that
 ships becomes invisible within a session, and within two batches the
@@ -142,4 +154,4 @@ failure count drifts so real regressions hide behind the noise floor.
 
 - Run the project's analysis tool — zero warnings.
 - Run the project's test suite — zero failures.
-- `git log --oneline -5` — confirm HEAD is clean main.
+- `git log --oneline -5` — confirm HEAD is the clean trunk.

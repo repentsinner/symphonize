@@ -5,7 +5,10 @@
 # Before each turn, reconcile the agent's view of the repo with the remote and
 # inject context ONLY when reality diverges from the naive "nothing changed
 # since I last looked" assumption: the current branch's PR is merged/closed,
-# the branch is behind origin/main, or the branch is gone from the remote.
+# the branch is behind the integration trunk, or the branch is gone from the
+# remote. The trunk is the repository's own default branch (not hardcoded
+# main), so the comparison is correct for projects whose trunk is not main
+# (SPEC §spec:integration-ref).
 #
 # Contract (see SPEC.md §spec:repo-state-reconciliation):
 #   - Read-only. Performs at most a rate-limited `git fetch`; never checks out,
@@ -109,7 +112,7 @@ if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
   fi
 fi
 
-# 2/3. Branch position relative to its upstream and to origin/main, using
+# 2/3. Branch position relative to its upstream and to the integration trunk,
 #      local remote-tracking refs (no network — works without gh).
 upstream="$(git -C "$cwd" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)"
 if [ -n "$upstream" ]; then
@@ -119,15 +122,19 @@ if [ -n "$upstream" ]; then
   fi
 fi
 
-# Behind origin/main: commits on origin/main not reachable from HEAD. Only
-# meaningful when origin/main exists and is not the current branch itself.
-if git -C "$cwd" rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
+# Behind the integration trunk: commits on the trunk not reachable from HEAD.
+# The trunk is the repository's default branch (no network — read the
+# remote-tracking HEAD ref), falling back to main. Only meaningful when the
+# trunk ref exists and is not the current branch itself.
+trunk="$(git -C "$cwd" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')"
+[ -z "$trunk" ] && trunk=main
+if git -C "$cwd" rev-parse --verify --quiet "origin/$trunk" >/dev/null 2>&1; then
   head_sha="$(git -C "$cwd" rev-parse HEAD 2>/dev/null || true)"
-  main_sha="$(git -C "$cwd" rev-parse origin/main 2>/dev/null || true)"
-  if [ -n "$head_sha" ] && [ "$head_sha" != "$main_sha" ]; then
-    behind="$(git -C "$cwd" rev-list --count "HEAD..origin/main" 2>/dev/null || echo 0)"
+  trunk_sha="$(git -C "$cwd" rev-parse "origin/$trunk" 2>/dev/null || true)"
+  if [ -n "$head_sha" ] && [ "$head_sha" != "$trunk_sha" ]; then
+    behind="$(git -C "$cwd" rev-list --count "HEAD..origin/$trunk" 2>/dev/null || echo 0)"
     if [ "${behind:-0}" -gt 0 ]; then
-      messages+=("This branch is ${behind} commit(s) behind \`origin/main\`. Its base is stale; rebase or merge \`origin/main\` before relying on it being current.")
+      messages+=("This branch is ${behind} commit(s) behind \`origin/${trunk}\`. Its base is stale; rebase or merge \`origin/${trunk}\` before relying on it being current.")
     fi
   fi
 fi
