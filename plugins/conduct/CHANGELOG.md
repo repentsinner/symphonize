@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/repentsinner/symphonize/compare/conduct--v0.2.1...conduct--v0.2.2) (2026-06-08)
+
+
+### Features
+
+* batch — integration-ref resolution (configurable trunk + worktree base) ([#171](https://github.com/repentsinner/symphonize/issues/171)) ([cc03380](https://github.com/repentsinner/symphonize/commit/cc0338023cc69241d3667e65fc6a45766a5ba242))
+
 ## [0.2.1](https://github.com/repentsinner/symphonize/compare/conduct--v0.2.0...conduct--v0.2.1) (2026-06-07)
 
 

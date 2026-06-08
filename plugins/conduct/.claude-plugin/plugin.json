@@ -1,6 +1,6 @@
 {
   "name": "conduct",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Execution layer for symphonize: next, orchestrate, clean, and integration review. Performs the governance score into landed PRs.",
   "author": {
     "name": "repentsinner"
@@ -16,7 +16,7 @@
   "dependencies": [
     {
       "name": "notation",
-      "version": "0.2.1"
+      "version": "0.2.2"
     }
   ]
 }
