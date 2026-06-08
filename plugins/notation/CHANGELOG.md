@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/repentsinner/symphonize/compare/notation--v0.2.1...notation--v0.2.2) (2026-06-08)
+
+
+### Miscellaneous Chores
+
+* **notation:** Synchronize symphonize-plugins versions
+
 ## [0.2.1](https://github.com/repentsinner/symphonize/compare/notation--v0.2.0...notation--v0.2.1) (2026-06-07)
 
 

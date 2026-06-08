@@ -1,6 +1,6 @@
 {
   "name": "notation",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Governance schema for symphonize: governance file formats, §req:/§spec:/§road: slug rules, the status-line contract, and the init scaffolder that installs them.",
   "author": {
     "name": "repentsinner"
