@@ -101,8 +101,23 @@ does not mean unchecked.
 - Parallel dispatch (multiple Agent calls in one message) for
   workstreams with no file overlap. Serial for workstreams that
   touch shared files or depend on earlier results.
+- **Base each sub-agent on the batch integration HEAD, not the
+  trunk.** The worktree-isolation harness cuts a new worktree from
+  the repository's default branch, and the batch branch is already
+  checked out in this (parent) worktree, so a child cannot check it
+  out by name. Immediately before spawning a sub-agent, capture the
+  batch branch's current commit (`base_sha="$(git rev-parse HEAD)"`)
+  and pass that SHA to the sub-agent. Instruct it to position its
+  worktree there as its **first action**, before any work:
+  `git reset --hard <base_sha>`. Linked worktrees share one object
+  store, so the SHA is reachable even though the branch name is not.
+  This makes the child inherit the planning foundation and every
+  earlier-integrated workstream. For **serial** workstreams,
+  re-capture `base_sha` after each cherry-pick (Phase 4) so the next
+  child descends from the just-integrated commit — never from the
+  bare trunk.
 - Each sub-agent receives: the workstream slug, its ROADMAP.md
-  description, and the project rules.
+  description, the base commit SHA (above), and the project rules.
 - Sub-agents follow the project's standard workflow (test-first
   for code tasks, verify for operational tasks).
 
