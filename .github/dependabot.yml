@@ -1,7 +1,7 @@
 version: 2
 updates:
   # Keep the GitHub Actions pinned in .github/workflows current. These
-  # workflow files are also the templates /symphonize:init copies into
+  # workflow files are also the templates /notation:init copies into
   # consuming repos, so keeping them fresh here keeps new scaffolds from
   # shipping stale action versions.
   - package-ecosystem: "github-actions"
