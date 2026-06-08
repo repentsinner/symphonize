@@ -62,16 +62,17 @@ The roadmap is a work queue, not a history log. It should stay small.
 Rules:
 
 - Derive from SPEC.md. Every roadmap item traces to a spec gap.
-- Un-numbered `##` sections in build-dependency order. Earlier sections
-  validate assumptions that later sections depend on.
+- Un-numbered `##` sections in build-dependency order, each carrying a
+  `§road:slug` suffix (title then slug). Earlier sections validate
+  assumptions that later sections depend on.
 - New work enters at the tail. Completed work leaves from the head.
 - When a section or workstream completes, delete it from the roadmap.
   Conventional commit messages feed release-please, which records the
   history in CHANGELOG.md. The roadmap does not duplicate that record.
   Presence in the roadmap means the work is not done.
-- Workstreams are `### §road:slug` headings under each section.
-  Slugs are lowercase, hyphenated, grep-friendly
-  (e.g. `§road:delete-noise-tests`, `§road:extract-protocol`).
+- Workstreams are `### <Title> §road:slug` headings (suffix placement —
+  title then slug) under each section. Slugs are lowercase, hyphenated,
+  grep-friendly (e.g. `§road:delete-noise-tests`, `§road:extract-protocol`).
 - Size each workstream to fit one agent session (~200k tokens).
   If a workstream is too large, split it.
 - Blocked workstreams stay under the section they belong to, annotated
@@ -143,7 +144,9 @@ backpressure proportional to the gap.
    infrastructure workstreams first, surface workstream last. The
    surface workstream is the integration point that wires
    everything beneath it into a testable feature.
-   - Each workstream gets a `### §road:slug` heading, one sentence
+   - Each section gets a `## <Title> §road:slug` heading (suffix
+     placement). Each workstream gets a `### <Title> §road:slug`
+     heading (suffix placement — title then slug), one sentence
      stating the deliverable and the affected file(s), a `§spec:`
      citation, and explicit dependency annotations. Rationale,
      procedures, and implementation detail live in the cited spec

@@ -1,8 +1,8 @@
 # symphonize — Roadmap
 
-## Orchestration loop via /goal
+## Orchestration loop via /goal §road:orchestration-loop
 
-### §road:migrate-orchestrate-to-goal
+### Migrate orchestrate to /goal §road:migrate-orchestrate-to-goal
 
 Replace `/ralph-loop:ralph-loop` with `/goal` in
 `plugins/conduct/commands/orchestrate.md`, and retire residual ralph-loop
@@ -24,9 +24,9 @@ no stop-hook directives fire from ralph-loop. Finally,
 return no matches in active code paths (CHANGELOG.md may retain
 historical references).
 
-## Scaffolding freshness
+## Scaffolding freshness §road:scaffolding-freshness
 
-### §road:scaffold-consumer-dependabot
+### Scaffold consumer dependabot §road:scaffold-consumer-dependabot
 
 Add a `.github/dependabot.yml` (`github-actions`) to the files
 `/notation:init` scaffolds, and document the scaffold-current-state /
