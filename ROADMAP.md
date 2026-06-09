@@ -39,3 +39,28 @@ delegate-freshness contract in `plugins/notation/commands/init.md`.
 the contract; governance-lint passes. The dependabot scaffolding lives with
 the `init` scaffolder, now in `plugins/notation/commands/init.md`.
 
+## Prose-linting scope alignment §road:prose-linting-scope
+
+### Align modal-verb guidance with document-wide Vale rule §road:modal-verb-scope
+
+The writing guidance in `plugins/compose/commands/plan.md` and
+`plugins/compose/commands/discover.md` scopes `shall` to *criteria*
+only, while the `/notation:init`-scaffolded Vale rule
+(`styles/Requirements/MustDeprecated.yml`) flags `must` document-wide
+at error level. `/discover` and `/plan` write idiomatic narrative
+`must`, which is green locally (the governance-lint script skips
+Vale) but fails CI. Broaden the modal-verb guidance in both commands
+to steer *all* SPEC.md / REQUIREMENTS.md prose — narrative included —
+away from `must`/`will`, and reconcile the README claim
+(README.md:126) with the document-wide scope. Reported in #131.
+§spec:prose-linting
+
+**Verify:** In a project scaffolded by `/notation:init`, run
+`/compose:discover` and `/compose:plan` to produce REQUIREMENTS.md /
+SPEC.md containing narrative that would idiomatically use `must`.
+Confirm the generated prose uses `shall`/`should` (or rephrases) and
+that `vale SPEC.md REQUIREMENTS.md` reports zero
+`Requirements.MustDeprecated` errors. Confirm `plan.md`,
+`discover.md`, and §spec:prose-linting agree that modal discipline
+is document-wide. Governance-lint passes.
+

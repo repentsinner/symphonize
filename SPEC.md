@@ -210,13 +210,30 @@ translation from requirements to spec is where design decisions
 happen — that boundary should be explicit.
 
 ## Prose linting §spec:prose-linting
-*Status: complete*
+*Status: in progress*
 
 The governance-lint workflow validates structure (markdownlint) and
 cross-references (slug resolution), but not prose quality. SPEC.md
 and REQUIREMENTS.md use IEEE modal verbs — "shall" for mandatory
 requirements, "should" for recommendations, "may" for permission.
 `Must` and `will` are deprecated per IEEE SA Standards Style Manual.
+
+Modal-verb discipline applies document-wide, not only to criteria.
+The scaffolded `Requirements` Vale style flags `must` (and `will`)
+in any sentence of SPEC.md / REQUIREMENTS.md, including narrative
+problem statements, context, and rationale. The writing commands
+(`/compose:discover`, `/compose:plan`) therefore steer all prose in
+these files away from `must`/`will` — not the criteria alone — so
+generated documents pass the scaffolded Vale style on the first
+push.
+
+**Why document-wide:** Vale matches tokens per sentence; it cannot
+reliably tell a requirement line ("the system shall…") from
+narrative (`the user must re-map each header`). Scoping the rule to
+criteria-only is not mechanically feasible, so the prose guidance
+matches the rule's actual reach. Aligning the guidance to the
+linter is cheaper and more robust than weakening the linter
+(reported in #131).
 
 Vale (<https://vale.sh>) enforces prose rules via custom YAML
 styles. A `Requirements` style checks modal verb compliance, flags
