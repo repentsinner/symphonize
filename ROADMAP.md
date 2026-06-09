@@ -64,3 +64,26 @@ that `vale SPEC.md REQUIREMENTS.md` reports zero
 `discover.md`, and §spec:prose-linting agree that modal discipline
 is document-wide. Governance-lint passes.
 
+## Batch delivery branch-type inference §road:batch-branch-type
+
+### Infer delivered branch and PR title type from batch commits §road:batch-delivery-type-inference
+
+`plugins/conduct/protocols/batch-agent.md` Phase 6 hardcodes the
+delivery type to `feat` — the branch example is `feat/<slug>` (step 1)
+and the PR title is `feat: batch — <summary>` (step 2) — even when the
+batch contains only `fix` commits. Under conventional-commit
+semantics the umbrella type should match the batch's highest-severity
+commit type, so release-please versions the squashed merge correctly
+(a fix-only batch cuts a patch, not a minor). Derive `<type>` for both
+the delivered branch name and the PR title from the batch's actual
+commit types. Surfaced while triaging #128, whose primary defect — the
+`worktree-agent-<id>` branch leak — is already fixed by
+§spec:batch-delivery (PR #174). §spec:batch-delivery
+
+**Verify:** Run a batch whose workstreams produce only `fix` commits;
+confirm the delivered branch is `fix/<scope>-<slug>` and the PR title
+is `fix: batch — <summary>`. Run a batch containing at least one
+`feat`; confirm the umbrella type is `feat`. `batch-agent.md` Phase 6
+and §spec:batch-delivery agree the delivered type is derived, not
+hardcoded. Governance-lint passes.
+
