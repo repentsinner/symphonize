@@ -191,11 +191,54 @@ Spawn a single Agent with `isolation: "worktree"` and pass it:
 
 Wait for the agent to complete.
 
-## 5. Record progress
+## 5. Recovery — incomplete delivery
 
-If the agent returned a PR URL:
+Delivery is a hard gate for the batch agent (`protocols/batch-agent.md`
+Phase 6): a return without a PR URL is a failure, not a partial success.
+When the agent returns **without a PR URL**, the dispatch layer adopts
+the agent's committed worktree and finishes delivery itself rather than
+resuming the sub-agent. In-band resume is not assumable — `SendMessage`
+resume is gated behind `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` (off by
+default, read at module init so it needs a shell export, version-
+dependent) — so recovery works from the durable commits the agent left
+behind. §spec:batch-delivery
+
+If the agent's result contains no PR URL:
+
+1. **Locate the worktree.** Find the agent's worktree under
+   `.claude/worktrees/` (`git worktree list`); its branch is the
+   harness-assigned `worktree-agent-<id>`. Its commits are the source of
+   truth.
+2. **Verify there is work to deliver.** Confirm the worktree has commits
+   ahead of `origin/$trunk`
+   (`git -C <worktree> log --oneline "origin/$trunk..HEAD"`). If it has
+   none, there is nothing to recover — report the failure to the user
+   and stop; do not open an empty PR.
+3. **Remove the shipped ROADMAP workstream(s)** for this batch from
+   ROADMAP.md in the worktree, if the agent did not already
+   (Phase 5 step 6), and commit that change.
+4. **Re-run CI** (the command from `.github/workflows/ci.yml`) in the
+   worktree. Do not push until it passes; fix or report blockers.
+5. **Push to a conventional branch.** Create `<type>/<scope>-<slug>`
+   from the worktree HEAD (never push the `worktree-agent-<id>` name)
+   and push it to origin.
+6. **Open the PR.** Single PR targeting `$trunk`, body listing each
+   shipped workstream and including:
+
+   ```text
+   > Run /review --comment to post code-quality findings as PR comments.
+   ```
+
+7. Treat the resulting PR URL as the batch result for step 6 below.
+
+## 6. Record progress
+
+If a PR URL exists (returned by the agent, or produced by recovery in
+step 5):
 - Append a line to `.symphonize-progress.local.md` at the governance
   root: `- <workstream-slug>: <PR-URL>`
 - Create the file if it doesn't exist.
 
-Relay the agent's result (PR URL, errors, or status) to the user.
+Relay the result (PR URL, errors, or status) to the user. If recovery
+ran, note that the batch agent stalled before delivery and the dispatch
+layer completed it from the worktree.

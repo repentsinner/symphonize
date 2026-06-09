@@ -181,9 +181,32 @@ When all workstreams are merged:
    thumb — if the design intent survives, cut it; if the *why*
    disappears, keep it.
 
+## Quality gates run as sub-agents, never as Skills
+
+Phases 5a and 5b are mandatory quality gates, but the batch agent
+**must not invoke `/simplify` or `/security-review` as Skills.** A Skill
+invoked inside a sub-agent injects a self-contained task prompt; the
+agent answers it and **ends its turn**. The main session has a session
+loop that drives the next turn, so control returns after a Skill — but a
+batch agent is itself a sub-agent with no such driver, so it stops, and
+every protocol phase sequenced after the Skill (including Phase 6
+delivery) becomes unreachable. This stall was observed twice in practice
+(#165, #171): each agent committed its work, ran the gate as a Skill,
+emitted the result, and ended its turn — Phase 6 never ran.
+§spec:batch-delivery (skill-ends-sub-agent-turn).
+
+Therefore each gate runs as an **`Agent` sub-agent** (`isolation:
+"worktree"`), not as a Skill. A sub-agent's result returns to the batch
+agent as a tool result, so control comes back and the protocol
+continues. Instruct the reviewer sub-agent to perform the corresponding
+review over the batch diff and **report findings as its final message**;
+the batch agent then acts on those findings in its own turn. The
+batch agent does not invoke the `/simplify` or `/security-review` Skills
+directly under any circumstance.
+
 ## Phase 5a: Simplify Gate (mandatory)
 
-After Phase 5 verification passes and before `/security-review`.
+After Phase 5 verification passes and before Phase 5b.
 Implements §spec:simplify-gate.
 
 1. **Skip-condition check.** Compute the changed-file list with
@@ -193,33 +216,54 @@ Implements §spec:simplify-gate.
    CHANGELOG.md), skip the gate and record the skip in the batch
    agent's status report so the reviewer knows why Phase 5a did not
    execute. Proceed directly to Phase 5b.
-2. **Single `/simplify` invocation.** Run `/simplify` exactly once
-   over the batch diff. Do not loop until clean — `/simplify` is an
-   actuator, and iteration risks re-refactoring its own output.
-3. **Fix review with revert-on-conflict.** After `/simplify` applies
-   fixes, inspect the resulting diff. If any fix contradicts a
-   deliberate design choice made during implementation (intentional
-   inlining, deliberate duplication for independence, readability
-   over DRY), revert that fix in a separate commit whose message
-   explains the reversion.
+2. **Single simplify sub-agent.** Spawn one `Agent` sub-agent to run a
+   simplify pass over the batch diff and report its suggested fixes as
+   its final message. Run it exactly once — simplify is an actuator, and
+   iteration risks re-refactoring its own output. Do **not** invoke the
+   `/simplify` Skill (it would end this agent's turn before Phase 6).
+3. **Fix review with revert-on-conflict.** The batch agent applies the
+   reviewer's fixes in its own turn, then inspects the diff. If any fix
+   contradicts a deliberate design choice made during implementation
+   (intentional inlining, deliberate duplication for independence,
+   readability over DRY), revert that fix in a separate commit whose
+   message explains the reversion.
 4. **Mandatory CI re-run.** Run the CI command discovered in Phase 2
    after fixes (and any reversions) settle. Simplify-introduced
    regressions shall be diagnosed and fixed before proceeding.
-5. **Handoff to Phase 5b.** Phase 5a transitions to `/security-review`
-   so security scans the final, simplified code.
+5. **Handoff to Phase 5b.** Phase 5a transitions to the security gate so
+   security scans the final, simplified code.
 
 ## Phase 5b: Security Review (mandatory gate)
 
 After Phase 5a completes (or is skipped) and before pushing:
 
-1. Run `/security-review`.
-2. If `/security-review` reports findings, resolve them before
-   proceeding. Iterate until the review passes clean.
+1. Spawn one `Agent` sub-agent to perform a security review of the batch
+   diff and report findings as its final message. Do **not** invoke the
+   `/security-review` Skill (it would end this agent's turn before
+   Phase 6). For a diff that is entirely non-executable text (markdown,
+   governance docs) with no attack surface, a brief inline assessment by
+   the batch agent suffices in place of spawning the reviewer; record
+   that judgement in the status report.
+2. If the review reports findings, the batch agent resolves them in its
+   own turn before proceeding. Re-review until clean.
 3. A PR shall not be created with known security findings.
 
-## Phase 6: Deliver
+## Phase 6: Deliver (HARD COMPLETION GATE)
 
-1. Push the batch branch to origin.
+Delivery is a hard gate, not a best-effort final step. **The batch agent
+does not report success until it has pushed a branch and opened a PR.**
+A return without a PR URL is a failure, not a partial success — even if
+every prior phase passed and the work is committed. Removing the shipped
+workstream from ROADMAP.md (Phase 5 step 6) is part of this gate: the PR
+that ships the work must also remove its ROADMAP bullet. §spec:batch-delivery
+
+1. Push the batch branch to origin under its **conventional name**
+   (`<type>/<scope>-<slug>`, e.g. `feat/harden-batch-delivery`). Never
+   push under the `worktree-agent-<id>` name the isolation harness
+   assigned to this worktree — that name is an implementation artifact,
+   not a delivery branch. Create the conventional branch from the
+   current HEAD before pushing if the checked-out branch is the
+   harness-assigned one.
 2. Open a single PR. Title: `feat: batch — <summary>`.
    Body lists each workstream as a bullet with its commit message.
    Include a recommendation for the reviewer:
@@ -228,13 +272,31 @@ After Phase 5a completes (or is skipped) and before pushing:
    > Run /review --comment to post code-quality findings as PR comments.
    ```
 
-3. If `--unattended`, return the PR URL and workstream slug(s) to
-   the dispatch layer. Do not wait for review.
-   Otherwise, ask the user to review. If the project has a live-test
-   protocol (e.g., Dart MCP + DTD), prompt the user with specific
-   things to test and regressions to check.
-4. The worktree is cleaned up automatically by the Agent tool
-   when the batch agent exits.
+3. **Return the PR URL and workstream slug(s) as your final message.**
+   This is the gate's success signal. Do not end your turn before the PR
+   exists. If `--unattended`, do not wait for review; otherwise ask the
+   user to review (and, if the project has a live-test protocol such as
+   Dart MCP + DTD, prompt for specific things to test).
+4. **If delivery cannot complete** — push fails, `gh pr create` fails, or
+   any blocker prevents opening the PR — say so explicitly in your final
+   message and leave the worktree committed. Do not report success. The
+   dispatch layer's recovery path (see `commands/next.md`) adopts the
+   committed worktree and finishes delivery from there.
+5. The worktree is cleaned up automatically by the Agent tool when the
+   batch agent exits.
+
+### Why recovery, not resume
+
+Delivery cannot depend on the dispatch layer resuming a stalled batch
+agent in-band. `SendMessage`-based resume is gated behind Claude Code's
+`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`, which is off by default and —
+because the gate is read at module init — takes effect only through a
+shell-level environment export before launch, not through
+`settings.json`. It is also version-dependent. So in the common
+configuration there is no way to drive a stalled batch agent to
+completion. The batch agent's commits in the worktree are the durable
+source of truth; if this agent fails to deliver, recovery happens from
+those commits, not by resuming this turn. §spec:batch-delivery
 
 ## Principles
 
@@ -285,9 +347,11 @@ The batch agent owns the git work for the slice:
 
 - Work on a feature branch — never commit to the trunk. One logical
   unit of work per branch (the batch). Branch naming
-  `<type>/<short-description>` matches the commit scope (e.g.
-  `feat/buffer-aware-execution`). Create from `origin/$trunk` (the
-  resolved trunk, Phase 2).
+  `<type>/<scope>-<slug>` matches the commit scope (e.g.
+  `feat/buffer-aware-execution`), never the `worktree-agent-<id>` name
+  the isolation harness assigns. Create from `origin/$trunk` (the
+  resolved trunk, Phase 2); deliver under the conventional name
+  (Phase 6).
 - One logical change per commit. If a commit message needs "and,"
   split it into two commits. Use conventional commits:
   `<type>(<scope>): <description>`, where type is one of
