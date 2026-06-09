@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/repentsinner/symphonize/compare/conduct--v0.2.2...conduct--v0.2.3) (2026-06-09)
+
+
+### Features
+
+* batch — harden batch delivery ([#132](https://github.com/repentsinner/symphonize/issues/132)) ([#174](https://github.com/repentsinner/symphonize/issues/174)) ([dd7a41a](https://github.com/repentsinner/symphonize/commit/dd7a41aaa127d7091b0c5cd95a5257b9caa0b4be))
+
 ## [0.2.2](https://github.com/repentsinner/symphonize/compare/conduct--v0.2.1...conduct--v0.2.2) (2026-06-08)
 
 
