@@ -87,3 +87,33 @@ is `fix: batch — <summary>`. Run a batch containing at least one
 and §spec:batch-delivery agree the delivered type is derived, not
 hardcoded. Governance-lint passes.
 
+## Batch agent fan-out locus §road:batch-agent-leaf
+
+### Relocate review gates and delivery to the dispatch layer §road:relocate-gates-to-dispatch
+
+Rewrite `plugins/conduct/protocols/batch-agent.md` so the batch agent is a
+fan-out leaf: Phase 3 executes workstreams inline and sequentially (no
+per-workstream sub-agent spawn); Phases 5a (`/simplify`) and 5b
+(`/security-review`) leave the protocol; Phase 6 returns a committed branch and
+status report instead of opening a PR. Move the review gates and PR delivery
+into `plugins/conduct/commands/next.md` as the dispatch layer's primary path —
+run `/simplify` then `/security-review` against the returned branch, apply
+fixes, re-run CI, then open the PR — generalizing the existing recovery path
+(§spec:batch-delivery) into the standard delivery path. Revise
+§spec:simplify-gate, §spec:pre-pr-review-gates, and §spec:batch-delivery to
+relocate the gate locus, flipping each with §spec:batch-agent-leaf as it reaches
+completion. Sequence after or coordinate with §road:migrate-orchestrate-to-goal
+and §road:batch-delivery-type-inference, which also edit batch-agent.md.
+§spec:batch-agent-leaf
+
+**Verify:** Run `/conduct:next` on a populated ROADMAP section. Confirm: (1) the
+batch agent spawns no sub-agents and returns a committed branch with no PR; (2)
+the dispatch layer runs `/simplify` and `/security-review` against that branch
+and applies fixes; (3) a single PR opens only after the gates pass, with the
+shipped workstream removed from ROADMAP.md; (4) a batch carrying a security
+finding does not reach an open PR until resolved.
+`grep -n 'Phase 5a\|Phase 5b\|/simplify\|/security-review' plugins/conduct/protocols/batch-agent.md`
+returns no matches; the gate steps live in `next.md`. batch-agent.md, next.md,
+and the three revised spec sections agree the batch agent is a leaf.
+Governance-lint passes.
+
