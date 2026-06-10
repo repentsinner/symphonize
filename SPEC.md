@@ -580,10 +580,13 @@ updates ensures tests run against the shipped state.
 ## Pre-PR review gates §spec:pre-pr-review-gates
 *Status: complete*
 
-The batch agent protocol (`plugins/conduct/protocols/batch-agent.md`) includes
-review gates between Phase 5 (Verify) and Phase 6 (Deliver):
-`/security-review` as a mandatory gate, `/review --comment` as a
-recommendation in the PR body.
+The dispatch layer (`plugins/conduct/commands/next.md`) runs review gates
+against the branch the batch agent returns, after the `/simplify` gate and
+before opening the PR: `/security-review` as a mandatory gate,
+`/review --comment` as a recommendation in the PR body. The gates run as
+Skills in the main session, which has a session loop — not in the batch
+agent, a leaf that cannot survive a gate Skill (§spec:batch-agent-leaf). A
+PR shall not open with known security findings.
 
 **Why security is mandatory:** vulnerabilities in merged code are
 expensive to remediate and may ship before review. A local
@@ -598,142 +601,110 @@ positives or require auto-dismissal — defeating the purpose.
 ## Simplify gate §spec:simplify-gate
 *Status: complete*
 
-The batch agent protocol includes a mandatory `/simplify` gate as
-Phase 5a, between Phase 5 (Verify) and Phase 5b (`/security-review`).
-`/simplify` spawns three parallel review agents for code reuse,
-quality, and efficiency and applies fixes to recently changed files.
+The dispatch layer (`plugins/conduct/commands/next.md`) runs a mandatory
+`/simplify` gate against the branch the batch agent returns, before
+`/security-review` and before opening the PR. `/simplify` spawns parallel
+review agents for code reuse, quality, and efficiency and applies fixes.
+The gate runs as a Skill in the main session, which has a session loop —
+not in the batch agent, a leaf that cannot survive a gate Skill or spawn
+the reviewers `/simplify` needs (§spec:batch-agent-leaf).
 §req:quality-attributes
 
-The gate flow (skip-condition check, single invocation, fix review
-with revert-on-conflict, mandatory CI re-run, handoff) is defined in
-`plugins/conduct/protocols/batch-agent.md` Phase 5a.
+The gate runs once (simplify is an actuator; iterating re-refactors its
+own output), reverts fixes that contradict a deliberate design choice,
+re-runs CI, and skips when every changed path is a non-source file.
 
-**Why mandatory:** reuse, duplication, and inefficiency violations
-are objective and mechanically detectable. Gating enforces
-brownfield-bias at machine speed rather than relying on batch-agent
-discretion. Symmetry with `/security-review`: both are native skills
-whose output is deterministic enough to gate on.
+**Why mandatory:** reuse, duplication, and inefficiency violations are
+objective and mechanically detectable. Gating enforces brownfield-bias at
+machine speed rather than relying on agent discretion. Symmetry with
+`/security-review`: both are native skills whose output is deterministic
+enough to gate on.
 
-**Why Phase 5a, not a Phase 5 step:** `/simplify` mutates code and
-requires a CI re-run. Embedding it inside Phase 5's verify steps
-would interleave verification with mutation. A dedicated phase
-makes the mutate-then-revalidate cycle explicit.
+**Why before `/security-review`, not after:** security-review inspects the
+code that ships. If `/simplify` ran after, security would review
+pre-simplify code and miss vulnerabilities introduced by the refactor.
+Running simplify first ensures security sees the final state. Running
+security twice doubles cost without commensurate benefit.
 
-**Why after Phase 5, not before:** Phase 5 verifies the batch's
-vertical integration against the spec. `/simplify` optimizes *how*
-the code is written, not *what* it does. Running simplify before
-integration verification risks the skill refactoring incomplete
-work. Verify the slice works, then optimize its shape.
-
-**Why before `/security-review`, not after:** security-review
-inspects the code that ships. If `/simplify` ran after, security
-would review pre-simplify code and miss vulnerabilities introduced
-by the refactor. Running simplify first ensures security sees the
-final state. Running security twice doubles cost without
-commensurate benefit.
-
-**Why batch-agent reviews fixes before CI re-run:** `/simplify` has
-no visibility into design intent. A batch agent may have
-deliberately inlined a helper for readability or duplicated logic
-across two sites for independence. Blindly accepting fixes overrides
-intent. Review-then-revert preserves the agent's architectural
-choices.
+**Why review fixes before the CI re-run:** `/simplify` has no visibility
+into design intent. The batch agent may have deliberately inlined a helper
+for readability or duplicated logic across two sites for independence.
+Blindly accepting fixes overrides intent; review-then-revert preserves the
+architectural choices.
 
 **Why skip for doc-only batches:** `/simplify` reviews "code reuse,
-quality, and efficiency." Markdown and YAML have none of these
-concerns. Spending three agent spawns on prose is noise.
-§req:quality-attributes (proportionality).
+quality, and efficiency." Markdown and YAML have none of these concerns.
+Spending the agent spawns on prose is noise. §req:quality-attributes
+(proportionality).
 
 **Rejected alternatives:**
 
-- **Recommended, not mandatory.** Matches `/review --comment`'s
-  posture. Rejected: recommended gates are silently skipped in
-  unattended mode, which defeats the enforcement goal. Reuse
-  violations are objective enough to gate on.
-- **Iterate until clean.** Matches `/security-review`'s loop.
-  Rejected: `/simplify` applies fixes, so subsequent iterations
-  see a modified diff and may reverse prior work. Security-review
-  is a reporter — its "iterate until clean" is a fixpoint on
-  findings. Simplify is an actuator — its fixpoint is unstable.
-- **Replace Phase 5 step 5 (Boy Scout cleanup) with `/simplify`.**
-  Rejected: Boy Scout cleanup operates on *files the batch already
-  touches*, encouraging incremental improvement as a side-effect of
-  implementation work. `/simplify` operates on *recently changed
-  files*. Overlap is substantial but not identical; manual cleanup
-  remains valuable for code the batch agent understands in context.
+- **Recommended, not mandatory.** Matches `/review --comment`'s posture.
+  Rejected: recommended gates are silently skipped in unattended mode,
+  defeating the enforcement goal. Reuse violations are objective enough to
+  gate on.
+- **Iterate until clean.** Matches `/security-review`'s loop. Rejected:
+  `/simplify` applies fixes, so subsequent iterations see a modified diff
+  and may reverse prior work. Security-review is a reporter — its "iterate
+  until clean" is a fixpoint on findings. Simplify is an actuator — its
+  fixpoint is unstable.
+- **Run the gate inside the batch agent.** Rejected: the batch agent is a
+  leaf; a gate Skill ends its turn before delivery, and it cannot spawn
+  `/simplify`'s parallel reviewers. The gate runs at the dispatch layer
+  instead (§spec:batch-agent-leaf).
 
 **Tradeoffs accepted:**
 
-- Three additional parallel agent spawns per batch, charged against
-  the batch agent's token budget.
-- CI runs twice per batch (end of Phase 4, end of Phase 5a).
-- Simplify may propose fixes the batch agent must revert, costing
-  review time. Bounded by running simplify once.
+- Parallel agent spawns per batch, charged against the dispatch layer's
+  token budget.
+- CI runs again after the gate mutates the branch.
+- Simplify may propose fixes the dispatch layer must revert, costing review
+  time. Bounded by running simplify once.
 
 ## Batch agent is a fan-out leaf §spec:batch-agent-leaf
-*Status: not started*
+*Status: complete*
 
-Claude Code permits one level of sub-agent delegation. A sub-agent has no Agent
-tool and cannot spawn further sub-agents (Claude Code subagents documentation:
-"Subagents cannot spawn other subagents"). The batch agent dispatched by
-`/conduct:next` is itself a sub-agent (an `Agent` worktree), so it is a leaf: it
-cannot fan out.
-
-The conduct protocol assumed two levels of delegation: the dispatch layer spawns
-the batch agent, which spawns workstream and reviewer sub-agents. The second
-level cannot run, and the defect is not confined to the review gates —
-`plugins/conduct/protocols/batch-agent.md` Phase 3 ("spawn one sub-agent per
-workstream") is equally unspawnable and degrades silently to inline work. Three
-further `complete` sections specify behavior that depends on the forbidden second
-level:
-
-- `§spec:simplify-gate` runs `/simplify` as Phase 5a — "spawns three parallel
-  review agents" — inside the batch agent.
-- `§spec:pre-pr-review-gates` runs `/security-review` as a gate between Phase 5
-  and Phase 6, inside the batch agent.
-- `§spec:batch-delivery` resolves the Skill-ends-turn stall by running the gates
-  as `Agent` sub-agents rather than Skills — a mechanism a leaf cannot invoke.
-
-Each gate therefore has no legal in-batch implementation: a Skill ends the
-agent's turn before delivery (the original stall), and an `Agent` reviewer
-cannot be spawned at all, degrading to an inline self-review that forfeits the
-independent-reviewer signal the gate exists to provide.
+Claude Code permits one level of sub-agent delegation: a sub-agent has no Agent
+tool and cannot spawn further sub-agents ("Subagents cannot spawn other
+subagents"). The batch agent dispatched by `/conduct:next` is itself a sub-agent,
+so it is a leaf and cannot fan out. The prior protocol assumed two levels — the
+dispatch layer spawns the batch agent, which spawns workstream and reviewer
+sub-agents — and the second level could not run: Phase 3's "one sub-agent per
+workstream" degraded silently to inline work, and the review gates had no legal
+in-batch form (a Skill ends the agent's turn before delivery; an `Agent` reviewer
+cannot be spawned at all).
 
 ### The dispatch layer is the orchestrator
 
-Anything that needs to fan out, or needs a session loop to survive a Skill
-invocation, runs at the top-level orchestrator — the `/conduct:next` dispatch
-layer, which executes in the main session. The batch agent is a leaf worker; the
-dispatch layer owns every operation the leaf cannot perform. This reframes the
-dispatch layer from a thin selector that spawns one agent and recovers on failure
-into the orchestrator of work, review, and delivery.
+Anything that fans out, or needs a session loop to survive a Skill invocation,
+runs at the `/conduct:next` dispatch layer in the main session. The batch agent is
+a leaf worker; the dispatch layer owns every operation the leaf cannot perform —
+review and delivery — making it the orchestrator of work, review, and delivery,
+not a thin selector.
 
 ### Observable behavior
 
-- **The batch agent executes inline and returns a branch.** It plans,
-  implements, integrates, and verifies its workstreams sequentially in its own
-  turn (Phases 1–5), spawning no sub-agents. Its completion signal is a pushed
-  branch and a status report, not a PR. Vertical-first selection
-  (`§spec:vertical-first-batch-selection`) makes each batch a dependency chain,
-  sequential by construction, so inline execution forfeits no available
-  parallelism.
+- **The batch agent executes inline and returns a branch.** It plans, implements,
+  and verifies its workstreams sequentially in its own turn, spawning no
+  sub-agents. Its completion signal is a pushed branch and a status report, not a
+  PR. Vertical-first selection (`§spec:vertical-first-batch-selection`) makes each
+  batch a dependency chain, sequential by construction, so inline execution
+  forfeits no available parallelism.
 - **Review gates run at the dispatch layer as Skills.** After the batch agent
   returns, the dispatch layer runs `/simplify` then `/security-review` as Skills.
   The main session has a session loop, so a Skill returns control rather than
   ending the turn, and the Skills run at full fidelity — `/simplify`'s own
-  parallel review agents fan out because the main session can spawn them. The
-  reviewers are cold: they did not write the code, which is the property a gate
-  exists to provide.
-- **Review and delivery never touch the user's main checkout.** The dispatch
-  layer runs the gates and applies fixes against the batch's branch in an
-  isolated worktree, not the user's working tree, preserving worktree-only
-  execution.
-- **Delivery runs at the dispatch layer.** Once the gates pass, the dispatch
-  layer applies fixes, re-runs CI, removes the shipped ROADMAP workstream, and
-  opens the PR. Review precedes PR creation, so "a PR shall not be created with
-  known security findings" (`§spec:pre-pr-review-gates`) holds. Every batch ends
-  in a reviewed PR or an explicit failure — the guarantee `§spec:batch-delivery`
-  established, relocated from the batch agent to the dispatch layer.
+  parallel review agents fan out. The reviewers are cold: they did not write the
+  code, the property a gate exists to provide.
+- **Review and delivery never touch the user's main checkout.** The dispatch layer
+  runs the gates and applies fixes against the batch's branch in an isolated
+  worktree, preserving worktree-only execution.
+- **Delivery runs at the dispatch layer.** Once the gates pass, the dispatch layer
+  re-runs CI, removes the shipped ROADMAP workstream, and opens the PR. Review
+  precedes PR creation, so "a PR shall not open with known security findings"
+  (`§spec:pre-pr-review-gates`) holds. Every batch ends in a reviewed PR or an
+  explicit failure — the `§spec:batch-delivery` guarantee, relocated to the
+  dispatch layer.
 
 ### Why gates are Skills at the dispatch layer
 
@@ -743,59 +714,36 @@ correctly but reimplemented the gates as `Agent` sub-agents to keep them inside
 the batch agent — a mechanism a leaf cannot invoke. Relocating the gates to the
 session that has a loop removes the reimplementation: the native `/simplify` and
 `/security-review` Skills run unchanged. The fix is simpler than the design it
-replaces, not more complex.
+replaces.
 
 ### Why warm worker, cold reviewers
 
 The batch agent stays warm: it carries the plan and integration context across
-Phases 1–5 in one window, so inline sequential work is cheap. The reviewers are
+all phases in one window, so inline sequential work is cheap. The reviewers are
 cold by design — independence is the purpose of a review gate, and a reviewer
 sharing the author's context cannot supply it. The seam between warm and cold is
-the branch the batch agent returns. Splitting the worker into cold fragments
+the branch the batch agent returns; splitting the worker into cold fragments
 would harm the worker and add nothing for the reviewers.
 
 ### Why dispatch-layer delivery, not batch-agent delivery
 
-`§spec:batch-delivery` already has the dispatch layer adopt a batch agent's
-committed worktree and finish delivery when the agent returns without a PR —
-today a recovery path from a stall. This section promotes it from fallback to
-primary: the batch agent always stops at a returned branch, and the dispatch
-layer always gates and delivers. One delivery path, exercised every batch,
-replaces a primary path that could not run and a recovery path that ran only on
-failure. The hard-completion guarantee is unchanged in force; only its locus
-moves.
+`§spec:batch-delivery` already had the dispatch layer adopt a batch agent's
+committed worktree and finish delivery when the agent returned without a PR — a
+recovery path from a stall. This section promotes it from fallback to primary: the
+batch agent always stops at a returned branch, and the dispatch layer always gates
+and delivers. One delivery path, exercised every batch, replaces a primary path
+that could not run and a recovery path that ran only on failure. The
+hard-completion guarantee is unchanged in force; only its locus moves.
 
 ### Rejected alternative: full flatten
 
 Dissolve the batch agent; have the dispatch layer spawn workstream workers and
 reviewers directly. Rejected: it fragments the warm worker into cold per-step
-boundaries (higher token and latency cost), moves integration churn —
-cherry-picks, conflict resolution, CI loops — into the interactive session the
-batch agent exists to isolate, and distributes the recovery anchor across many
-worktrees. Its sole gain is workstream parallelism, which vertical-chain
-selection is built not to produce. Revisit only if batch selection changes to
-prefer wide independent sets over vertical chains.
-
-### Scope
-
-Implementing this design:
-
-- Rewrites `plugins/conduct/protocols/batch-agent.md`: Phase 3 becomes inline
-  sequential execution; Phases 5a, 5b, and the "Quality gates run as sub-agents,
-  never as Skills" section are removed; Phase 6 returns a pushed branch instead
-  of opening a PR.
-- Rewrites `plugins/conduct/commands/next.md`: the dispatch layer gains the gate
-  and delivery steps as its primary path, replacing the "not the orchestrator"
-  framing.
-- Relocates the gate locus in `§spec:simplify-gate` and
-  `§spec:pre-pr-review-gates` — the gates run as dispatch-layer Skills; their
-  why-mandatory and ordering rationale survive.
-- Supersedes `§spec:batch-delivery`'s "run gates as `Agent` sub-agents" mechanism
-  and moves its hard-completion gate to the dispatch layer.
-- Obsoletes the "worktree sub-agents descend from the batch integration HEAD"
-  contract in `§spec:integration-ref`: with no workstream sub-agents, there is no
-  sub-agent base to manage. The trunk-resolution half of that section is
-  unaffected.
+boundaries (higher token and latency cost), moves integration churn into the
+interactive session the batch agent exists to isolate, and distributes the
+recovery anchor across many worktrees. Its sole gain is workstream parallelism,
+which vertical-chain selection is built not to produce. Revisit only if batch
+selection changes to prefer wide independent sets over vertical chains.
 
 Reported by the maintainer during architecture review, corroborated by an
 observed inline-review fallback in a batch run.
@@ -1458,16 +1406,9 @@ is the placement and coverage change only. §req:modular-adoption
 symphonize's commands and the batch-agent protocol hardcode `main` as the
 integration branch: `git checkout -b … origin/main`, "verify main is current",
 `git log main..<branch>`, reading ROADMAP.md from `origin/main`, rebasing onto
-`origin/main`. Two failures follow, reported by an external adopter whose trunk
-is not `main`.
-
-A project whose trunk is `develop` — or anything other than `main` — targets the
-wrong branch in every command (§req:modular-adoption). And worktree-isolated
-sub-agents fork from the repository's default branch rather than the batch branch
-they should extend, so serial workstreams within one batch miss the planning
-foundation and each other's already-integrated work — producing the cherry-pick
-conflicts and CI breakage that contradict the vertical-slice execution model
-(§spec:vertical-first-batch-selection).
+`origin/main`. A project whose trunk is `develop` — or anything other than
+`main` — targets the wrong branch in every command (§req:modular-adoption).
+Reported by an external adopter whose trunk is not `main`.
 
 ### Observable behavior
 
@@ -1477,15 +1418,6 @@ conflicts and CI breakage that contradict the vertical-slice execution model
   works without per-command edits. The `main`-relative comparisons in
   §spec:clean-supersession-safety and §spec:repo-state-reconciliation use the
   resolved trunk.
-- **Worktree sub-agents descend from the batch integration HEAD, not the trunk.**
-  When the dispatch layer spawns a workstream sub-agent in an isolated worktree,
-  that sub-agent's work is based on the batch branch's current commit,
-  inheriting the planning foundation and every earlier-integrated workstream in
-  the same batch. The base advances as serial workstreams integrate.
-- **Trunk and batch integration HEAD are distinct refs.** The trunk is where a
-  finished batch lands; the batch integration HEAD is the in-flight commit a
-  batch's sub-agents extend. Basing children on the trunk discards in-batch
-  integration — the defect this section closes.
 
 ### Why resolve rather than hardcode
 
@@ -1494,17 +1426,6 @@ The contract serves adopters beyond symphonize's own repository
 trunk from the repository's default branch — rather than introducing a
 configuration file — keeps the "no state beyond governance documents" constraint
 intact while removing the wrong-branch failure for every non-`main` project.
-
-### Why the worktree base needs explicit handling
-
-The agent worktree-isolation harness bases a new worktree on the repository's
-default branch, and the batch branch is already checked out in the parent
-worktree, so a child cannot check it out by name. symphonize cannot change the
-harness, so the protocol makes the base explicit: the dispatch layer passes the
-batch branch's commit to each sub-agent, which positions its worktree at that
-commit before working. Linked worktrees share one object store, so the commit
-resolves by SHA. The exact mechanism is an implementation detail; the contract
-is that children extend the batch integration HEAD.
 
 ### Scope
 
@@ -1517,65 +1438,44 @@ shared branching convention every agent inherits.
 ## Batch delivery §spec:batch-delivery
 *Status: complete*
 
-A batch agent dispatched by `/conduct:next` (an `Agent` worktree) implements its
-workstream and commits in its worktree, then — while running its mandatory
-quality gates — stops without pushing a branch, opening a PR, or removing the
-shipped workstream from ROADMAP.md. The dispatch layer is then left with no PR to
-track, a ROADMAP that still lists shipped work, and no reliable way to nudge the
-stalled sub-agent to finish. The premise that every batch yields a reviewable PR
-(§req:success-criteria) breaks silently — the loop proceeds as though delivery
-happened.
+Every attempted batch ends in a reviewable PR or an explicit failure, never a
+silent no-op. A partial success that reads as completion is the worst failure
+mode — the loop advances believing a PR exists, the ROADMAP keeps listing shipped
+work, and the gap surfaces only on a later manual check. Delivery is therefore a
+hard completion gate, owned by the dispatch layer. §req:success-criteria
 
-### Why agents stall before delivery
-
-The batch agent's mandatory gates (`/security-review`, `/simplify`) are Skills.
-Invoking a Skill inside a sub-agent injects a self-contained task prompt; the
-agent answers that prompt and ends its turn. In the main session the session
-loop drives the next turn, so control returns after a Skill — but a sub-agent
-has no such driver, so it stops, and every protocol phase sequenced after a Skill
-invocation is unreachable. Observed twice: each agent committed its work, invoked
-`/security-review`, emitted the review, and ended its turn — Phase 6 never ran.
-The corrected behavior is that the quality gates do not cost the agent its turn
-before delivery; the mechanism that achieves it is an implementation choice.
+The original defect: a batch agent ran its mandatory quality gates as Skills and
+stalled, because a Skill ends a sub-agent's turn before delivery — it committed
+its work, emitted the review, and stopped (observed twice, #132). The gates now
+run at the dispatch layer, where the session loop survives a Skill
+(§spec:batch-agent-leaf), so the stall cannot recur. The dispatch layer's
+former *recovery* path — adopt the committed worktree and finish delivery — is
+now the *primary* delivery path, exercised every batch.
 
 ### Observable behavior
 
-- **Delivery is a hard completion gate.** A batch agent does not report success
-  until it has pushed its branch and opened a PR; a return without a PR URL is a
-  failure, not a partial success. Removing the shipped workstream from
-  ROADMAP.md is part of the same gate.
-- **The dispatch layer owns recovery.** When a batch agent returns without a PR
-  URL, `/conduct:next` adopts the worktree's committed work and finishes
-  delivery itself — remove the shipped ROADMAP workstream, re-run CI, push to a
-  conventional branch, open the PR — rather than resuming the sub-agent. The
-  worktree's commits are the source of truth; delivery completes deterministically
-  from them.
+- **Delivery is a hard completion gate.** `/conduct:next` does not report success
+  until a reviewed PR exists; a return without a PR URL is a failure, not a
+  partial success. Removing the shipped workstream from ROADMAP.md is part of the
+  same gate.
+- **The dispatch layer delivers.** The batch agent returns a pushed branch; the
+  dispatch layer runs the review gates against it, re-runs CI, removes the shipped
+  ROADMAP workstream, and opens the PR. When the agent instead returns a failure
+  (no pushed branch), the dispatch layer adopts the worktree's committed work and
+  delivers from it — the commits are the source of truth.
 - **Delivered branches use the conventional name.** A delivered branch follows
   `<type>/<scope>-<slug>`, never the `worktree-agent-<id>` name the isolation
-  harness assigns to the sub-agent's worktree.
+  harness assigns to the worktree.
 
-### Why recovery, not resume
+### Why recovery from commits, not resume
 
 In-band resumption of a stalled sub-agent is not assumable. `SendMessage`-based
 resume is gated behind Claude Code's `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`,
 which is off by default and — because the gate is read at module init — takes
 effect only through a shell-level environment export before launch, not through
-`settings.json`. It is also version-dependent. So in the common configuration
-there is no way to drive a stalled batch agent to completion. Recovery from the
-worktree is harness-independent: the commits already exist, and the dispatch
-layer finishes delivery from them without depending on any resume mechanism.
+`settings.json`. It is also version-dependent. So when an agent fails to push, the
+dispatch layer finishes delivery from the worktree's commits, which already exist,
+without depending on any resume mechanism.
 
-### Why delivery is a hard gate
-
-A partial success that reads as completion is the worst failure mode — the loop
-advances believing a PR exists, the ROADMAP keeps listing shipped work, and the
-gap surfaces only on a later manual check. A hard gate paired with dispatch-layer
-recovery guarantees every attempted batch ends in a reviewable PR or an explicit
-failure, never a silent no-op. §req:success-criteria
-
-### Scope
-
-The contract spans `plugins/conduct/protocols/batch-agent.md` (the quality gates,
-Phase 5 step 6, and Phase 6) and the dispatch layer
-`plugins/conduct/commands/next.md` (recovery). Reported by the maintainer (#132)
-and corroborated by two stalls observed in practice.
+Reported by the maintainer (#132) and corroborated by two stalls observed in
+practice.
