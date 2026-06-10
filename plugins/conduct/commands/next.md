@@ -2,9 +2,14 @@
 argument-hint: [task or workstream]
 description: Execute roadmap workstreams
 ---
-You are the dispatch layer, not the orchestrator. Do not perform any
-orchestration or git work in the current working tree beyond the
-pre-flight steps below.
+You are the orchestrator. You select the batch, dispatch a batch agent
+to implement it, then run the review gates and open the PR yourself
+(§spec:batch-agent-leaf). The batch agent is a fan-out leaf — it
+implements inline and returns a pushed branch; everything that needs to
+fan out or survive a Skill invocation runs here, in the main session,
+which has a session loop. Do all gate and delivery git work in an
+isolated worktree against the returned branch — never in the user's main
+checkout.
 
 ## 0. Resolve governance root
 
@@ -179,66 +184,86 @@ Spawn a single Agent with `isolation: "worktree"` and pass it:
   and targets the PR there
 - The workstream target(s) selected in step 3
 - If `unattended`: the flag `--unattended`
-- Instruction: "Follow the orchestrator protocol to implement this
-  workstream from ROADMAP.md. Deliver thin vertical slices — every
-  batch must wire its code into the product's visible surface (UI,
-  API, CLI, or other user-facing entry point). Code unreachable
-  from any user-facing path is a horizontal layer, not a vertical
-  slice — do not ship it. If you encounter orphaned horizontal
-  layers from prior work (dead code, unintegrated plumbing,
-  unused imports/registrations) in files you are already modifying,
-  clean them up — leave the code better than you found it."
+- Instruction: "Implement this workstream from ROADMAP.md as a batch
+  agent leaf: execute the workstreams inline and sequentially (spawn no
+  sub-agents), then push a branch and return its name with a status
+  report — do not open a PR. Deliver thin vertical slices — every batch
+  must wire its code into the product's visible surface (UI, API, CLI,
+  or other user-facing entry point). Code unreachable from any
+  user-facing path is a horizontal layer, not a vertical slice — do not
+  ship it. If you encounter orphaned horizontal layers from prior work
+  (dead code, unintegrated plumbing, unused imports/registrations) in
+  files you are already modifying, clean them up — leave the code better
+  than you found it."
 
-Wait for the agent to complete.
+Wait for the agent to complete. It returns a pushed branch name and a
+status report, not a PR.
 
-## 5. Recovery — incomplete delivery
+## 5. Gate and deliver (primary path)
 
-Delivery is a hard gate for the batch agent (`protocols/batch-agent.md`
-Phase 6): a return without a PR URL is a failure, not a partial success.
-When the agent returns **without a PR URL**, the dispatch layer adopts
-the agent's committed worktree and finishes delivery itself rather than
-resuming the sub-agent. In-band resume is not assumable — `SendMessage`
-resume is gated behind `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` (off by
-default, read at module init so it needs a shell export, version-
-dependent) — so recovery works from the durable commits the agent left
-behind. §spec:batch-delivery
+The batch agent returns a pushed branch; the orchestrator runs the
+review gates against it and opens the PR. Delivery is a **hard
+completion gate**: `/next` does not report success until a reviewed PR
+exists. A batch that ends without a PR URL is a failure, not a partial
+success. §spec:batch-agent-leaf §spec:batch-delivery
 
-If the agent's result contains no PR URL:
+Run every step below in an **isolated worktree** on the returned branch,
+never in the user's main checkout — gates may mutate files, and
+worktree-only execution lets parallel `/next` invocations coexist.
 
-1. **Locate the worktree.** Find the agent's worktree under
-   `.claude/worktrees/` (`git worktree list`); its branch is the
-   harness-assigned `worktree-agent-<id>`. Its commits are the source of
-   truth.
-2. **Verify there is work to deliver.** Confirm the worktree has commits
+1. **Locate the work.** Take the branch name from the agent's report and
+   check it out in a fresh worktree:
+   `git worktree add <path> <branch>`. If the agent reported a failure
+   (no pushed branch), find its committed work under `.claude/worktrees/`
+   (`git worktree list`); its branch is the harness-assigned
+   `worktree-agent-<id>`, and its commits are the source of truth.
+2. **Verify there is work to deliver.** Confirm the branch has commits
    ahead of `origin/$trunk`
    (`git -C <worktree> log --oneline "origin/$trunk..HEAD"`). If it has
-   none, there is nothing to recover — report the failure to the user
+   none, there is nothing to deliver — report the failure to the user
    and stop; do not open an empty PR.
-3. **Remove the shipped ROADMAP workstream(s)** for this batch from
-   ROADMAP.md in the worktree, if the agent did not already
-   (Phase 5 step 6), and commit that change.
-4. **Re-run CI** (the command from `.github/workflows/ci.yml`) in the
-   worktree. Do not push until it passes; fix or report blockers.
-5. **Push to a conventional branch.** Create `<type>/<scope>-<slug>`
-   from the worktree HEAD (never push the `worktree-agent-<id>` name)
-   and push it to origin.
-6. **Open the PR.** Single PR targeting `$trunk`, body listing each
+3. **Run the simplify gate.** Unless every changed path is a non-source
+   file (markdown, YAML, or governance documents — SPEC.md, ROADMAP.md,
+   REQUIREMENTS.md, CHANGELOG.md), run the `/simplify` Skill against the
+   branch's diff and apply its fixes. Run it once — simplify is an
+   actuator; iterating risks re-refactoring its own output. If a fix
+   contradicts a deliberate design choice the batch agent made
+   (intentional inlining, duplication for independence, readability over
+   DRY), revert that fix in a separate commit explaining the reversion.
+   Record a skip in the result when the diff is doc-only.
+   §spec:simplify-gate
+4. **Run the security gate.** Run the `/security-review` Skill against
+   the branch's diff and resolve every reported finding; re-review until
+   clean. For a diff that is entirely non-executable text with no attack
+   surface, a brief inline assessment suffices in place of the Skill;
+   record that judgement. A PR shall not open with known security
+   findings. §spec:pre-pr-review-gates
+5. **Re-run CI** (the command from `.github/workflows/ci.yml`) after the
+   gates settle. Do not push until it passes; fix or report blockers.
+6. **Remove the shipped ROADMAP workstream(s)** for this batch from
+   ROADMAP.md, if the agent did not already, and commit that change.
+7. **Confirm the conventional branch.** The delivered branch follows
+   `<type>/<scope>-<slug>`; never push the `worktree-agent-<id>` name.
+   If the checked-out branch is the harness-assigned one, create the
+   conventional branch from its HEAD. Push the branch (and any gate or
+   ROADMAP commits) to origin.
+8. **Open the PR.** Single PR targeting `$trunk`, body listing each
    shipped workstream and including:
 
    ```text
    > Run /review --comment to post code-quality findings as PR comments.
    ```
 
-7. Treat the resulting PR URL as the batch result for step 6 below.
+   If `unattended`, do not wait for review. Otherwise ask the user to
+   review.
 
 ## 6. Record progress
 
-If a PR URL exists (returned by the agent, or produced by recovery in
-step 5):
+Once the PR exists:
 - Append a line to `.symphonize-progress.local.md` at the governance
   root: `- <workstream-slug>: <PR-URL>`
 - Create the file if it doesn't exist.
 
-Relay the result (PR URL, errors, or status) to the user. If recovery
-ran, note that the batch agent stalled before delivery and the dispatch
-layer completed it from the worktree.
+Relay the result (PR URL, errors, or status) to the user. If the batch
+agent stalled before pushing and the orchestrator recovered from its
+worktree, note that.
