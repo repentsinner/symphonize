@@ -217,6 +217,13 @@ Success looks like:
   interpreted document is judged by whether it parses and reads
   coherently, not held to the checks compiled code requires.
   §req:quality-attributes
+- The contract CI enforces is verifiable **before the push**, not only
+  after it. A contributor catches a dangling `§`-reference, a missing
+  status line, or a malformed slug at edit time, rather than waiting on
+  a CI round-trip for checks that are cheap to run locally. Local
+  verification and CI enforce one contract — what passes locally
+  predicts what passes in CI — so the two never drift. Surfaced by #115.
+  §req:quality-attributes
 
 CHANGELOG.md is out of scope: release-please generates it, so it is
 neither authored by the tastemaking process nor interpreted as
