@@ -584,9 +584,9 @@ The dispatch layer (`plugins/conduct/commands/next.md`) runs review gates
 against the branch the batch agent returns, after the `/simplify` gate and
 before opening the PR: `/security-review` as a mandatory gate,
 `/review --comment` as a recommendation in the PR body. The gates run as
-Skills in the main session, which has a session loop — not in the batch
-agent, a leaf that cannot survive a gate Skill (§spec:batch-agent-leaf). A
-PR shall not open with known security findings.
+Skills in the main session, which has a session loop — not in the batch agent,
+where a reporter Skill like `/security-review` can end the turn before delivery
+(§spec:batch-agent-leaf). A PR shall not open with known security findings.
 
 **Why security is mandatory:** vulnerabilities in merged code are
 expensive to remediate and may ship before review. A local
@@ -605,10 +605,11 @@ The dispatch layer (`plugins/conduct/commands/next.md`) runs a mandatory
 `/simplify` gate against the branch the batch agent returns, before
 `/security-review` and before opening the PR. `/simplify` spawns parallel
 review agents for code reuse, quality, and efficiency and applies fixes.
-The gate runs as a Skill in the main session, which has a session loop —
-not in the batch agent, a leaf that cannot survive a gate Skill or spawn
-the reviewers `/simplify` needs (§spec:batch-agent-leaf).
-§req:quality-attributes
+The gate runs as a Skill in the main session, alongside `/security-review` at the
+dispatch layer. `/simplify` is an actuator and would survive in the batch agent,
+but co-locating both gates keeps a single review locus where a reporter gate's
+turn-end is survivable and the harness-assumption surface is smallest
+(§spec:batch-agent-leaf). §req:quality-attributes
 
 The gate runs once (simplify is an actuator; iterating re-refactors its
 own output), reverts fixes that contradict a deliberate design choice,
@@ -648,10 +649,11 @@ Spending the agent spawns on prose is noise. §req:quality-attributes
   and may reverse prior work. Security-review is a reporter — its "iterate
   until clean" is a fixpoint on findings. Simplify is an actuator — its
   fixpoint is unstable.
-- **Run the gate inside the batch agent.** Rejected: the batch agent is a
-  leaf; a gate Skill ends its turn before delivery, and it cannot spawn
-  `/simplify`'s parallel reviewers. The gate runs at the dispatch layer
-  instead (§spec:batch-agent-leaf).
+- **Run the gate inside the batch agent.** Rejected: `/security-review` (a
+  reporter) can end a sub-agent's turn before delivery, so gates co-locate at the
+  dispatch layer where a turn-end is survivable. `/simplify` alone would survive
+  in-batch, but splitting the gates buys nothing — the batch must hand back for the
+  reporter gate regardless (§spec:batch-agent-leaf).
 
 **Tradeoffs accepted:**
 
@@ -664,32 +666,35 @@ Spending the agent spawns on prose is noise. §req:quality-attributes
 ## Batch agent is a fan-out leaf §spec:batch-agent-leaf
 *Status: complete*
 
-Claude Code permits one level of sub-agent delegation: a sub-agent has no Agent
-tool and cannot spawn further sub-agents ("Subagents cannot spawn other
-subagents"). The batch agent dispatched by `/conduct:next` is itself a sub-agent,
-so it is a leaf and cannot fan out. The prior protocol assumed two levels — the
-dispatch layer spawns the batch agent, which spawns workstream and reviewer
-sub-agents — and the second level could not run: Phase 3's "one sub-agent per
-workstream" degraded silently to inline work, and the review gates had no legal
-in-batch form (a Skill ends the agent's turn before delivery; an `Agent` reviewer
-cannot be spawned at all).
+The batch agent dispatched by `/conduct:next` returns a pushed branch; the
+dispatch layer runs the review gates (`/simplify`, then `/security-review`) in the
+main session and opens the PR. Gates do not run inside the batch agent. The
+constraint is **turn survival**, not delegation capability: a *reporter* Skill —
+one whose deliverable is a findings report (`/security-review`, default
+`/code-review`) — intermittently ends the invoking agent's turn at completion, so
+any later phase (fix-up, delivery) silently never runs (the #165/#171 stall). An
+*actuator* Skill (`/simplify`) mutates and continues, so it does not end the turn.
+The main session has a loop that survives a turn-end and drives the next turn; the
+dispatch layer is therefore where a reporter gate runs safely, at full fidelity.
+
+The batch agent is a fan-out *leaf* by design, not by incapacity: it executes its
+workstreams inline in one warm turn. It *can* spawn sub-agents, but vertical-first
+selection (`§spec:vertical-first-batch-selection`) makes each batch a dependency
+chain with no available parallelism to exploit.
 
 ### The dispatch layer is the orchestrator
 
-Anything that fans out, or needs a session loop to survive a Skill invocation,
-runs at the `/conduct:next` dispatch layer in the main session. The batch agent is
-a leaf worker; the dispatch layer owns every operation the leaf cannot perform —
-review and delivery — making it the orchestrator of work, review, and delivery,
-not a thin selector.
+Review and delivery run at the `/conduct:next` dispatch layer in the main session,
+not in the batch agent — the locus that survives a reporter Skill's turn-end and
+keeps the harness-assumption surface smallest (above). The dispatch layer is the
+orchestrator of work, review, and delivery, not a thin selector.
 
 ### Observable behavior
 
 - **The batch agent executes inline and returns a branch.** It plans, implements,
   and verifies its workstreams sequentially in its own turn, spawning no
   sub-agents. Its completion signal is a pushed branch and a status report, not a
-  PR. Vertical-first selection (`§spec:vertical-first-batch-selection`) makes each
-  batch a dependency chain, sequential by construction, so inline execution
-  forfeits no available parallelism.
+  PR.
 - **Review gates run at the dispatch layer as Skills.** After the batch agent
   returns, the dispatch layer runs `/simplify` then `/security-review` as Skills.
   The main session has a session loop, so a Skill returns control rather than
@@ -706,15 +711,24 @@ not a thin selector.
   explicit failure — the `§spec:batch-delivery` guarantee, relocated to the
   dispatch layer.
 
-### Why gates are Skills at the dispatch layer
+### Why the dispatch layer, not the batch agent
 
-The gates were always Skills; the prior design's error was running them where a
-Skill cannot survive. `§spec:batch-delivery` diagnosed the Skill-ends-turn stall
-correctly but reimplemented the gates as `Agent` sub-agents to keep them inside
-the batch agent — a mechanism a leaf cannot invoke. Relocating the gates to the
-session that has a loop removes the reimplementation: the native `/simplify` and
-`/security-review` Skills run unchanged. The fix is simpler than the design it
-replaces.
+Two reasons, in force order:
+
+- **Turn survival.** A reporter gate run in the batch agent risks the intermittent
+  turn-end above; in the main session a turn-end is harmless — the loop drives the
+  next turn.
+- **Assumption minimization.** Dispatch-layer gating depends on one stable harness
+  property: the main session survives Skills. The batch agent *could* host the
+  gates — sub-agents may spawn sub-agents (Claude Code 2.1.172, up to 5 levels
+  deep) and invoke fan-out Skills, and a disposable gate worker can absorb a
+  reporter's turn-end because its findings return as the tool result. But that path
+  bets on a stack of harness behaviors: sub-agent spawn depth (now documented) plus
+  non-isolated worktree sharing and reporter-Skill turn-survival (both still
+  emergent and undocumented). That these shift is not hypothetical — sub-agent
+  spawning was absent until 2.1.172, which is why the gates ever stalled on the
+  prior harness (#165/#171). The dispatch layer trades autonomy for the smallest
+  undocumented-assumption surface.
 
 ### Why warm worker, cold reviewers
 
@@ -744,6 +758,25 @@ interactive session the batch agent exists to isolate, and distributes the
 recovery anchor across many worktrees. Its sole gain is workstream parallelism,
 which vertical-chain selection is built not to produce. Revisit only if batch
 selection changes to prefer wide independent sets over vertical chains.
+
+### Deferred alternative: disposable self-gating for autonomous loops
+
+Dispatch-layer gating makes the orchestrator a context accumulator: per batch it
+absorbs gate findings, applied fixes, and CI output. For interactive
+`/conduct:next` — one batch, a human reviewing the PR — this is fine. For sustained
+autonomous loops (`/conduct:orchestrate`, a future `/symphonize:yolo`) it is the
+bottleneck: the orchestrator's window fills over successive batches and exhausts,
+sooner on sub-1M context windows.
+
+Disposable self-gating removes this: the batch agent runs `/simplify` directly and
+delegates each reporter gate to a throwaway sub-sub-agent whose turn-end is benign
+(its findings return as the tool result), then delivers its own PR. The
+orchestrator sees only the delivered PR and stays flat regardless of batch count —
+every task becomes context-disposable, the property sustained autonomy requires.
+Validated end-to-end, but deferred: adopt it only when an autonomous mode makes
+orchestrator-context exhaustion real and the harness-assumption bet (see *Why the
+dispatch layer, not the batch agent*) is accepted. Until then, interactive `/next`
+keeps the lower-assumption dispatch-layer gates.
 
 Reported by the maintainer during architecture review, corroborated by an
 observed inline-review fallback in a batch run.
