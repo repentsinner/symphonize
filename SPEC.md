@@ -720,12 +720,15 @@ Two reasons, in force order:
   next turn.
 - **Assumption minimization.** Dispatch-layer gating depends on one stable harness
   property: the main session survives Skills. The batch agent *could* host the
-  gates — a sub-agent can spawn sub-agents and invoke fan-out Skills (verified by
-  execution), and a disposable gate worker can absorb a reporter's turn-end because
-  its findings return as the tool result — but that path bets on four harness
-  behaviors (sub-agent spawn, depth-3 fan-out, worktree sharing, Skill
-  survivability), any of which can drift between Claude Code releases. The dispatch
-  layer trades autonomy for the smallest assumption surface.
+  gates — sub-agents may spawn sub-agents (Claude Code 2.1.172, up to 5 levels
+  deep) and invoke fan-out Skills, and a disposable gate worker can absorb a
+  reporter's turn-end because its findings return as the tool result. But that path
+  bets on a stack of harness behaviors: sub-agent spawn depth (now documented) plus
+  non-isolated worktree sharing and reporter-Skill turn-survival (both still
+  emergent and undocumented). That these shift is not hypothetical — sub-agent
+  spawning was absent until 2.1.172, which is why the gates ever stalled on the
+  prior harness (#165/#171). The dispatch layer trades autonomy for the smallest
+  undocumented-assumption surface.
 
 ### Why warm worker, cold reviewers
 
@@ -771,9 +774,9 @@ delegates each reporter gate to a throwaway sub-sub-agent whose turn-end is beni
 orchestrator sees only the delivered PR and stays flat regardless of batch count —
 every task becomes context-disposable, the property sustained autonomy requires.
 Validated end-to-end, but deferred: adopt it only when an autonomous mode makes
-orchestrator-context exhaustion real and the four-behavior harness bet (see *Why
-the dispatch layer, not the batch agent*) is accepted. Until then, interactive
-`/next` keeps the lower-assumption dispatch-layer gates.
+orchestrator-context exhaustion real and the harness-assumption bet (see *Why the
+dispatch layer, not the batch agent*) is accepted. Until then, interactive `/next`
+keeps the lower-assumption dispatch-layer gates.
 
 Reported by the maintainer during architecture review, corroborated by an
 observed inline-review fallback in a batch run.
