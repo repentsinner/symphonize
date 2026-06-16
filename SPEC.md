@@ -27,19 +27,52 @@ grouped here by plugin:
 `/symphonize:yolo`, the full-pipeline one-shot, is planned — §spec:yolo-mode.
 
 ## Governance lint command §spec:governance-lint
-*Status: complete*
+*Status: not started*
 
-The plugin provides a `/notation:lint` command that runs
-`npx markdownlint-cli2` against SPEC.md, ROADMAP.md, and
-README.md. It uses the project's `.markdownlint.json` if present.
+The governance contract — markdownlint formatting, SPEC `*Status:*` lines,
+`§spec:`/`§road:`/`§req:` slug grammar and reference resolution, Vale prose
+rules, CHANGELOG structure, and README heading profile — has one executable
+form: a single `governance-lint` script bundled with the notation plugin.
+Every consumer runs that one script, so what passes locally predicts what
+passes in CI and the two cannot drift. §req:quality-attributes
 
-The command delegates entirely to the mechanical linter — it does
-not interpret or reimplement lint rules. Status-line validation
-and README heading checks run in CI via `governance-lint.yml`,
-not in the plugin command.
+Three consumers share it:
 
-**Why a plugin command:** agents can catch markdownlint violations
-before pushing, avoiding a CI round-trip for formatting errors.
+- **CI.** The reusable `governance-lint.yml` (§spec:reusable-ci) runs the
+  bundled script against the caller's governance files, replacing the inline
+  checks it carried before.
+- **`/notation:lint`.** The command runs the full suite via the bundled
+  script — not markdownlint alone — so a contributor sees every contract
+  violation before pushing, not only formatting errors.
+- **The pre-commit hook** (§spec:project-scaffolding). A thin early warning:
+  it runs the bundled script when reachable and otherwise degrades to
+  markdownlint plus the dependency-free checks. It never blocks a commit on
+  an absent optional tool; CI is the authoritative backstop.
+
+When a check's tool is absent locally — Vale ships as a separate binary a
+contributor may not have installed — the script skips that check with a notice
+and runs the rest. CI runs every check unconditionally, so local verification
+is honest about being a subset: it never reports clean on a check it did not
+run.
+
+**Why one script, plugin-bundled:** parity holds only when local and CI run the
+same contract logic, and a single source guarantees that by construction.
+Bundling it with the notation plugin — the same channel that delivers
+`/notation:lint` — keeps the contract symphonize-owned and refreshed through
+plugin and pinned-workflow updates (the owned distribution channels), not a copy
+each consumer holds and maintains.
+
+**Why not commit the script into each consumer repo:** a committed copy is a
+project-owned artifact that drifts (§spec:scaffold-freshness). For workflow
+templates that divergence is intended; for the contract's own logic it is the
+defect — a stale local copy silently disagreeing with CI is exactly the
+local/CI split #115 reports.
+
+**Why the hook stays thin:** commit time is the wrong place to require Node,
+Vale, and a shell all be present; a hook that hard-fails on a missing optional
+tool trains contributors to bypass it. The full local suite belongs to
+`/notation:lint`, which a contributor invokes deliberately; the hook is a cheap
+nudge, and CI is the gate. Reported in #115. §req:quality-attributes
 
 ## Project scaffolding command §spec:project-scaffolding
 *Status: complete*
@@ -150,6 +183,13 @@ the action-version upgrade graph; reimplementing it would be strictly
 worse. A `/doctor`-style command, if built, belongs to governance-document
 drift (status-line validity, dangling slugs, docs-versus-repo-state),
 where symphonize is the source of truth — not to action versions.
+
+The governance-lint contract script (§spec:governance-lint) is **not** a copied
+template subject to this delegation. It is distributed through symphonize's owned
+channels — the notation plugin bundle and the pinned reusable workflow — not
+scaffolded into the consumer as a mutable copy, so it carries no copy-freshness
+concern: there is no project-owned copy to drift. Copied artifacts are the
+project's to mutate; the contract's logic is symphonize's to own.
 
 The `init` scaffolder becomes the notation plugin's under the plugin
 decomposition (§spec:governance-schema); this freshness contract is
