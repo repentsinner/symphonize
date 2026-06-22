@@ -52,6 +52,10 @@ without them.
   change flows through a feature branch and a PR with CI.
 - **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)** —
   CHANGELOG.md format. `[Unreleased]` section always present.
+- **Trunk-based development / [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow)** —
+  one integration trunk (the repo's default branch); short-lived
+  feature branches merge back. Not a GitFlow or GitLab-Flow tool: no
+  long-lived `develop`/`staging` branches or merge-forward cascade.
 - **Feature branches per unit of work** — `/next` creates worktree
   branches, `/clean` prunes them. No long-lived branches.
 - **`gh` CLI as the Git-ops interface** — authenticated `gh` handles

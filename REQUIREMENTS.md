@@ -120,6 +120,18 @@ not an active requirement.
   feature, feedback) guide submitters to provide actionable detail
   at filing time, reducing triage effort. `/feedback` handles the
   Claude Code side; templates handle the GitHub web UI side.
+- **Trunk-based / GitHub Flow only** — symphonize works on a single
+  integration trunk (the repository's default branch,
+  §spec:integration-ref): short-lived feature branches fork from it and
+  merge back. It is not a GitFlow or GitLab-Flow tool — it does not
+  support long-lived `develop`/`staging`/`production` branches or the
+  merge-forward promotion cascade. Modern promotion (dev→staging→prod)
+  moves one immutable artifact through gated environments rather than
+  merging code across long-lived branches, so that cascade is out of
+  symphonize's grain. A non-`main` trunk works by setting that branch as
+  the repository default. Teams committed to GitFlow/GitLab Flow should
+  not adopt symphonize expecting it to honor those branch topologies.
+  (§req:modular-adoption)
 
 ## Priorities §req:priorities
 
