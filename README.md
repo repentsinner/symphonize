@@ -52,7 +52,7 @@ without them.
   change flows through a feature branch and a PR with CI.
 - **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)** —
   CHANGELOG.md format. `[Unreleased]` section always present.
-- **Trunk-based development / [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow)** —
+- **[Trunk-based development](https://trunkbaseddevelopment.com/) / [GitHub Flow](http://scottchacon.com/2011/08/31/github-flow.html)** —
   one integration trunk (the repo's default branch); short-lived
   feature branches merge back. Not a GitFlow or GitLab-Flow tool: no
   long-lived `develop`/`staging` branches or merge-forward cascade.
