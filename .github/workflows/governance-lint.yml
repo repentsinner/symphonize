@@ -19,9 +19,12 @@ jobs:
 
       - name: Run Vale prose linter
         if: hashFiles('.vale.ini') != ''
-        uses: vale-cli/vale-action@v2
+        uses: vale-cli/vale-action@v3
         with:
           fail_on_error: true
+          # Report every finding in the linted files, not only lines the
+          # current diff touches, so CI matches a local `vale` run.
+          filter_mode: nofilter
 
       - uses: DavidAnson/markdownlint-cli2-action@v24
         with:

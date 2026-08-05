@@ -390,6 +390,16 @@ that drifts toward vague, passive, non-testable language.
 Mechanical enforcement catches `the system will...` (deprecated)
 and `it should be noted that...` (filler) before review.
 
+CI evaluates the whole file rather than the diff, and a violation
+fails the job wherever it sits — including lines the current change
+never touched. A push to the trunk is checked on the same terms as a
+pull request. **Why:** a rule added after a document was written
+never meets the existing text under diff-scoped reporting, and a
+branch cut before the rule existed lands violations that stay
+invisible from then on. Document-wide reach in the style earns
+nothing unless enforcement has the same reach; local `vale` and CI
+otherwise disagree about a file they both claim to check.
+
 ## Requirements frameworks §spec:requirements-frameworks
 *Status: complete*
 
