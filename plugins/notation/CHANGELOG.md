@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/repentsinner/symphonize/compare/notation--v0.2.3...notation--v0.2.4) (2026-08-05)
+
+
+### Bug Fixes
+
+* **notation:** scaffolded pre-commit hook blocks every governance commit ([#196](https://github.com/repentsinner/symphonize/issues/196)) ([c7759db](https://github.com/repentsinner/symphonize/commit/c7759dbf98c602993aec115e517f4eb987331f76))
+
 ## [0.2.3](https://github.com/repentsinner/symphonize/compare/notation--v0.2.2...notation--v0.2.3) (2026-06-09)
 
 
