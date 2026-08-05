@@ -1,0 +1,17 @@
+# Flywheel release configuration — single-stream starting point.
+#
+# `release: production` cuts a release on every push to the managed branch.
+# `auto_merge` lists the conventional-commit types that merge without review;
+# every other type gates on a human. Tune the list to the project's taste —
+# `feat` is deliberately absent so features gate on review.
+#
+# `!`-suffixed types are separate entries: `fix` does not imply `fix!`.
+# Recognized types: feat, fix, chore, refactor, perf, style, test, docs,
+# build, ci, revert.
+flywheel:
+  streams:
+    - name: main-line
+      branches:
+        - name: main
+          release: production
+          auto_merge: [fix, chore, docs]

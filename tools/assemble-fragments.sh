@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
-# Assemble canonical fragments into consuming command files.
+# Assemble canonical fragments and template copies into the plugins.
 #
 # Cross-plugin fragment assembly (SPEC §spec:plugin-packaging): installed
 # plugins are copied into ~/.claude/plugins/cache/ and cannot read files
 # outside their own directory, so shared content must physically live inside
 # each plugin. Hand-duplication drifts; this script keeps one canonical
 # source and writes it into every consumer between marker comments.
+#
+# The same isolation applies to the release-please scaffold templates
+# (SPEC §spec:scaffold-freshness): their canonical source is symphonize's own
+# dogfooded .github/workflows/*, which Dependabot keeps current, and the
+# notation plugin ships a copy that /notation:init reads. COPIES below syncs
+# whole files; CONSUMERS syncs marked regions.
 #
 # Idempotent: running it when everything is in sync produces no changes.
 # CI runs it then `git diff --exit-code` to fail on drift (see
@@ -31,6 +37,15 @@ CONSUMERS=(
   "governance-root|plugins/conduct/commands/next.md"
   "governance-root|plugins/notation/commands/lint.md"
   "governance-root|plugins/conduct/commands/clean.md"
+)
+
+# Whole-file copy registry: "canonical/source|plugin/destination".
+# Only workflows an adopter can use verbatim belong here. The templates'
+# update-major-tag.yml is deliberately absent: symphonize's own copy gates the
+# job to its notation release, so the adopter template is hand-maintained.
+COPIES=(
+  ".github/workflows/release-please.yml|plugins/notation/templates/release-please/release-please.yml"
+  ".github/workflows/auto-merge-release.yml|plugins/notation/templates/release-please/auto-merge-release.yml"
 )
 
 # assemble FRAGMENT_NAME TARGET_FILE
@@ -85,10 +100,34 @@ assemble() {
   echo "assembled ${fragment_name} -> ${target_rel}"
 }
 
+# copy_template SOURCE TARGET
+# Copies a canonical workflow verbatim into its plugin template slot.
+copy_template() {
+  local source_rel="$1"
+  local target_rel="$2"
+  local source="${REPO_ROOT}/${source_rel}"
+  local target="${REPO_ROOT}/${target_rel}"
+
+  if [ ! -f "$source" ]; then
+    echo "error: missing canonical source: ${source}" >&2
+    exit 1
+  fi
+
+  mkdir -p "$(dirname -- "$target")"
+  cp "$source" "$target"
+  echo "copied ${source_rel} -> ${target_rel}"
+}
+
 for entry in "${CONSUMERS[@]}"; do
   fragment_name="${entry%%|*}"
   target_rel="${entry#*|}"
   assemble "$fragment_name" "$target_rel"
+done
+
+for entry in "${COPIES[@]}"; do
+  source_rel="${entry%%|*}"
+  target_rel="${entry#*|}"
+  copy_template "$source_rel" "$target_rel"
 done
 
 echo "done"

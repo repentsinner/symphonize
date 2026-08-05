@@ -9,6 +9,10 @@ permissions:
 
 jobs:
   update-major-tag:
+    # The adopter template (plugins/notation/templates/release-please/) is this
+    # workflow without the gate below, so it is hand-maintained rather than
+    # copied by tools/assemble-fragments.sh.
+    #
     # Only the notation release moves a floating major tag. Adopters pin the
     # reusable governance-lint.yml workflow cross-repo via
     # `@notation--v<major>` (§spec:plugin-packaging, §spec:notation-contract);
