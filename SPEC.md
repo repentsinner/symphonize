@@ -188,10 +188,10 @@ a consumer holds a point-in-time snapshot that does not self-update.
   failing on drift. If the source rots, every new scaffold ships stale action
   versions — "init-ing the past." Symphonize keeps the source current with
   Dependabot (`github-actions`), so a fresh scaffold ships current pins. Two
-  templates fall outside that copy: `update-major-tag.yml`, which symphonize
-  gates to its notation release and the adopter form does not, and the
-  flywheel set, which symphonize does not run. Both are hand-maintained and
-  pin floating majors, so they self-update on the action side.
+  template sets fall outside the copy and so outside Dependabot's reach:
+  `update-major-tag.yml`, which symphonize gates to its notation release and
+  the adopter form does not, and the flywheel set, which symphonize does not
+  run. Both are hand-maintained; their action pins need review by hand.
 - **Copy freshness — the consumer's concern.** A consumer's copied
   workflows are theirs to mutate and theirs to keep current. `init`
   scaffolds a `.github/dependabot.yml` (`github-actions`) into the consumer

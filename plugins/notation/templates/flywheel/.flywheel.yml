@@ -6,8 +6,6 @@
 # `feat` is deliberately absent so features gate on review.
 #
 # `!`-suffixed types are separate entries: `fix` does not imply `fix!`.
-# Recognized types: feat, fix, chore, refactor, perf, style, test, docs,
-# build, ci, revert.
 flywheel:
   streams:
     - name: main-line

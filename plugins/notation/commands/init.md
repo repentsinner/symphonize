@@ -166,10 +166,9 @@ Create under `.github/workflows/`:
 
 ### Release automation
 
-Which release-automation files to scaffold depends on the adopter's
-choice of tool. Each option has a template directory at
-`${CLAUDE_PLUGIN_ROOT}/templates/<tool>/`; copy its files verbatim.
-Like every other file, skip one that already exists.
+Each option's templates live at
+`${CLAUDE_PLUGIN_ROOT}/templates/<tool>/`. Copy the files its section
+below names, verbatim — nothing else in that directory is a template.
 
 #### Detect before prompting
 
@@ -182,8 +181,7 @@ Read repo state first and skip the prompt when it already answers:
 On a detected choice, print
 `detected release automation: <tool>` and scaffold only the missing
 files of that tool's set. Switching tools is not a prompt outcome —
-tell the adopter to remove the old config first. Do not migrate one
-tool's state to another.
+tell the adopter to remove the old config first.
 
 #### Prompt
 
@@ -228,12 +226,10 @@ Copy from `templates/release-please/`:
 - `release-please.yml`, `auto-merge-release.yml`,
   `update-major-tag.yml` → `.github/workflows/`.
 
-Then generate the two project-specific files, which have no template
-because their content is derived:
-
-- `release-please-config.json` and `.release-please-manifest.json`,
-  carrying the project's current version (read from `package.json`,
-  `pubspec.yaml`, `.claude-plugin/plugin.json`, or default to `0.1.0`).
+Then generate `release-please-config.json` and
+`.release-please-manifest.json` with the project's current version (read
+from `package.json`, `pubspec.yaml`, `.claude-plugin/plugin.json`, or
+default to `0.1.0`).
 
 The workflows authenticate through a GitHub App. Report as a manual
 step: store the App id as `RELEASE_BOT_APP_ID` and its private key as
@@ -310,9 +306,8 @@ hooks.
 4. Create any missing governance files at the governance root.
 5. If CWD is the repo root, also scaffold CI workflows and hooks:
    a. Create `.github/workflows/governance-lint.yml`.
-   b. Resolve the release-automation tool per § Release automation —
-      detect from repo state, otherwise prompt — then copy that
-      tool's template files.
+   b. Resolve the release-automation tool per § Release automation and
+      copy its templates.
    c. Create `.githooks/pre-commit` and make it executable.
    d. Run `git config core.hooksPath .githooks` to activate hooks.
 6. If CWD is not the repo root, skip CI workflows, release automation,

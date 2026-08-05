@@ -7,11 +7,9 @@
 # each plugin. Hand-duplication drifts; this script keeps one canonical
 # source and writes it into every consumer between marker comments.
 #
-# The same isolation applies to the release-please scaffold templates
-# (SPEC §spec:scaffold-freshness): their canonical source is symphonize's own
-# dogfooded .github/workflows/*, which Dependabot keeps current, and the
-# notation plugin ships a copy that /notation:init reads. COPIES below syncs
-# whole files; CONSUMERS syncs marked regions.
+# CONSUMERS syncs marked regions; COPIES syncs whole files — the
+# release-please scaffold templates, whose canonical source is symphonize's
+# own dogfooded .github/workflows/* (SPEC §spec:scaffold-freshness).
 #
 # Idempotent: running it when everything is in sync produces no changes.
 # CI runs it then `git diff --exit-code` to fail on drift (see
@@ -40,9 +38,8 @@ CONSUMERS=(
 )
 
 # Whole-file copy registry: "canonical/source|plugin/destination".
-# Only workflows an adopter can use verbatim belong here. The templates'
-# update-major-tag.yml is deliberately absent: symphonize's own copy gates the
-# job to its notation release, so the adopter template is hand-maintained.
+# Only workflows an adopter can use verbatim belong here; the template
+# directory documents the exceptions.
 COPIES=(
   ".github/workflows/release-please.yml|plugins/notation/templates/release-please/release-please.yml"
   ".github/workflows/auto-merge-release.yml|plugins/notation/templates/release-please/auto-merge-release.yml"
@@ -113,8 +110,7 @@ copy_template() {
     exit 1
   fi
 
-  mkdir -p "$(dirname -- "$target")"
-  cp "$source" "$target"
+  cp -- "$source" "$target"
   echo "copied ${source_rel} -> ${target_rel}"
 }
 
