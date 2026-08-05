@@ -118,7 +118,7 @@ in the governance loop. Scaffolding reduces setup from "read the
 docs and copy-paste" to one command.
 
 ## Reusable CI workflows §spec:reusable-ci
-*Status: in progress*
+*Status: complete*
 
 Now the notation plugin's, under §spec:governance-schema; the workflows stay
 at the repository root `.github/workflows/` (GitHub Actions resolves reusable
@@ -165,7 +165,7 @@ release. In symphonize it is gated to the notation release, moving
 for the reusable `governance-lint.yml`.
 
 ## Scaffolding freshness §spec:scaffold-freshness
-*Status: in progress*
+*Status: complete*
 
 `/notation:init` scaffolds the current state of the world; it does not
 keep scaffolded files current afterward. This matches every scaffolder

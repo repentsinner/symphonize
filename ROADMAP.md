@@ -1,20 +1,5 @@
 # symphonize — Roadmap
 
-## Scaffolding freshness §road:scaffolding-freshness
-
-### Scaffold consumer dependabot §road:scaffold-consumer-dependabot
-
-Add a `.github/dependabot.yml` (`github-actions`) to the files
-`/notation:init` scaffolds, and document the scaffold-current-state /
-delegate-freshness contract in `plugins/notation/commands/init.md`.
-§spec:scaffold-freshness
-
-**Verify:** a repo scaffolded by `/notation:init` contains a
-`.github/dependabot.yml` enabling weekly `github-actions` updates;
-`plugins/notation/commands/init.md` and §spec:scaffold-freshness agree on
-the contract; governance-lint passes. The dependabot scaffolding lives with
-the `init` scaffolder, now in `plugins/notation/commands/init.md`.
-
 ## Prose-linting scope alignment §road:prose-linting-scope
 
 ### Align modal-verb guidance with document-wide Vale rule §road:modal-verb-scope
