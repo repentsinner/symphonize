@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.6](https://github.com/repentsinner/symphonize/compare/conduct--v0.2.5...conduct--v0.2.6) (2026-08-05)
+
+
+### Bug Fixes
+
+* **conduct:** drive orchestrate with /goal, not ralph-loop ([#200](https://github.com/repentsinner/symphonize/issues/200)) ([5f1736e](https://github.com/repentsinner/symphonize/commit/5f1736e32de120bf5e9c1019f361d8af83d92632))
+
 ## [0.2.5](https://github.com/repentsinner/symphonize/compare/conduct--v0.2.4...conduct--v0.2.5) (2026-08-05)
 
 
