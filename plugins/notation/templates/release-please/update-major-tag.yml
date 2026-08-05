@@ -1,0 +1,44 @@
+# Adopter form of symphonize's own .github/workflows/update-major-tag.yml.
+# Symphonize gates the job to its notation release; an adopter publishing one
+# version line gates on tag shape instead. Hand-maintained — not a byte copy,
+# so tools/assemble-fragments.sh does not sync it.
+name: Update Major Version Tag
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  update-major-tag:
+    # Prereleases and non-`v` tags do not move the floating major. Force-moving
+    # `v<major>` onto an RC would silently ship prerelease code to everyone
+    # pinned at `@v<major>`.
+    if: >-
+      github.event.release.prerelease == false &&
+      startsWith(github.ref_name, 'v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Move floating major tag
+        run: |
+          # GITHUB_REF_NAME is the released tag, e.g. v1.2.0. Strip at the
+          # first '.' to get the floating major, e.g. v1.
+          version="${GITHUB_REF_NAME}"
+
+          # Reject any other shape. A tag with no '.' would yield
+          # major == version and force-push a release tag over itself.
+          if ! printf '%s' "$version" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::notice::${version} is not vMAJOR.MINOR.PATCH — not moving a floating tag"
+            exit 0
+          fi
+
+          major="${version%%.*}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -fa "$major" -m "Update $major to $version"
+          git push origin "$major" --force

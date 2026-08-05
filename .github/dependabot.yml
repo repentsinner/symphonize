@@ -1,9 +1,10 @@
 version: 2
 updates:
   # Keep the GitHub Actions pinned in .github/workflows current. These
-  # workflow files are also the templates /notation:init copies into
-  # consuming repos, so keeping them fresh here keeps new scaffolds from
-  # shipping stale action versions.
+  # workflow files are also the canonical source of the release-please
+  # scaffold templates (tools/assemble-fragments.sh copies them into
+  # plugins/notation/templates/), so keeping them fresh here keeps new
+  # scaffolds from shipping stale action versions.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
