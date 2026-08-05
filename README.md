@@ -202,7 +202,7 @@ Each command resolves under its plugin namespace (see [Plugins](#plugins)).
 | `/compose:triage [issue]` | Classify a GitHub issue and route it to the right governance file |
 | `/compose:review [PR]` | Correctness-and-taste review — does the change meet its spec |
 | `/conduct:next [target]` | Execute next unblocked workstreams (depth-first by section) |
-| `/conduct:orchestrate` | Start ralph-loop to work through ROADMAP.md unattended |
+| `/conduct:orchestrate` | Loop `/conduct:next` over ROADMAP.md unattended via `/goal` |
 | `/conduct:review [PR]` | Integration review — resolve conflicts, check out locally, guide testing |
 | `/conduct:clean [--lite\|--full]` | Clean up after batch execution |
 | `/symphonize:feedback` | Submit feedback or report a bug to the symphonize project |
@@ -253,8 +253,10 @@ claude --plugin-dir /path/to/symphonize
 - A project with governance files (run `/notation:init` to scaffold
   them — the compose commands carry the authoring formats, and
   governance-lint enforces the structural grammar)
-- [ralph-loop](https://github.com/anthropics/claude-plugins-public/tree/main/plugins/ralph-loop)
-  plugin (for unattended `/orchestrate` mode)
+- Claude Code 2.1.139 or later with hooks enabled and the workspace
+  trust dialog accepted — `/conduct:orchestrate` drives its unattended
+  loop with the first-party
+  [`/goal`](https://code.claude.com/docs/en/goal) command
 
 ## License
 

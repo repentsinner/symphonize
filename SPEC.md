@@ -438,76 +438,52 @@ constraints).
 *Status: complete*
 
 The `/conduct:next` command tracks attempted workstreams in
-`.symphonize-progress.local.md` at the project root. The file was
-previously at `.claude/.ralph-progress.local.md`, which has two
-problems: it lives inside Claude Code's managed `.claude/` directory
-(permissions conflicts), and its name implies ralph-loop ownership
-when symphonize's own commands write and delete it.
-
-The file is symphonize state — it belongs alongside other
-project-root dotfiles, named after the tool that owns it.
-`/conduct:clean` deletes it when the loop ends.
+`.symphonize-progress.local.md` at the project root. The file is
+symphonize state — it belongs alongside other project-root dotfiles,
+named after the tool that owns it. `/conduct:clean` deletes it when
+the loop ends.
 
 **Why:** Claude Code controls `.claude/` and may restrict writes
 from plugin commands. Symphonize state belongs to symphonize, not
 to the host tool's config directory.
 
-**Known issue:** the ralph-loop stop hook fires based on the
-presence of `.claude/ralph-loop.local.md`, not on which skill is
-active. If an orchestrate loop is blocked on review and the user
-runs `/compose:plan` or `/compose:discover` in the same
-project, the stop hook interrupts planning with orchestration
-directives. Workaround: `/clear` and manually remove the flag
-file before planning. A proper fix requires the stop hook (in
-ralph-loop, not symphonize) to check active skill context.
-
 ## Unattended flag passthrough §spec:unattended-flag-passthrough
 *Status: complete*
 
-When `/conduct:orchestrate` starts a ralph-loop, every agent in
-the execution hierarchy runs unattended. The `--unattended` flag
-propagates explicitly through each layer — no agent infers
+When `/conduct:orchestrate` starts an orchestration loop, every
+agent in the execution hierarchy runs unattended. The `--unattended`
+flag propagates explicitly through each layer — no agent infers
 unattended mode from file existence or ambient state.
 
 ### Propagation chain
 
-1. `/conduct:orchestrate` passes `--unattended` in the
-   ralph-loop prompt that invokes `/conduct:next`.
-2. `/conduct:next` reads `--unattended` from its arguments
-   (not from `.claude/ralph-loop.local.md`). Passes
-   `--unattended` to the batch agent it spawns.
-3. The batch agent (BATCH_AGENT.md) passes `--unattended` to
-   every sub-agent it spawns in Phase 3.
-4. Sub-agents operating in `--unattended` mode shall not surface
+1. `/conduct:orchestrate` passes `--unattended` in the `/goal`
+   condition that invokes `/conduct:next`.
+2. `/conduct:next` reads `--unattended` from its own arguments.
+   Passes `--unattended` to the batch agent it spawns.
+3. The batch agent
+   (`plugins/conduct/protocols/batch-agent.md`) passes
+   `--unattended` to every sub-agent it spawns.
+4. Agents operating in `--unattended` mode shall not surface
    interactive prompts, approval gates, or questions to the user.
-   When a sub-agent encounters ambiguity it would normally ask
-   about, it makes a conservative choice and documents the
-   decision in its commit message.
+   On ambiguity an agent would normally ask about, it makes a
+   conservative choice and documents the decision in its commit
+   message.
 
-### Detection in `/next`
+Mode selection follows the same rule: `/conduct:clean` reads
+`--lite`/`--full` from its own arguments and defaults to `--full`;
+`/conduct:orchestrate` passes `--lite` explicitly.
 
-When `--unattended` is present in `/next`'s arguments, the command
-sets `unattended = true`. When absent, `unattended = false`. The
-`.claude/ralph-loop.local.md` file check is removed from `/next`.
-
-### `/clean` unchanged
-
-`/conduct:clean` checks `.claude/ralph-loop.local.md` to
-auto-detect cleanup mode. That check remains — `clean` runs in the
-main working tree where the file is visible, and mode auto-detect
-is a convenience, not a correctness concern.
-
-**Why:** the file-based detection couples symphonize to
-ralph-loop's internal file layout. The file is not git-tracked, so
-agents in worktrees cannot see it. More critically, even when the
-batch agent correctly receives `--unattended`, it does not
-propagate the flag to sub-agent workers. Those workers can surface
-interactive prompts that block the orchestration loop indefinitely
-with no user present. Explicit passthrough at every layer ensures
-the entire tree runs non-interactively.
+**Why:** a batch agent that receives `--unattended` but does not pass
+it down leaves sub-agent workers free to surface interactive prompts,
+blocking the loop indefinitely with no user present. Explicit
+passthrough at every layer keeps the entire tree non-interactive.
+Inference from an ambient flag file fails for a second reason: it
+coupled symphonize to a third-party plugin's file layout, and such
+files are not git-tracked, so agents in worktrees cannot see them.
 
 ## Orchestration loop §spec:orchestration-loop
-*Status: not started*
+*Status: complete*
 
 `/conduct:orchestrate` runs an unattended execution loop that
 invokes `/conduct:next --unattended` repeatedly until the
@@ -523,9 +499,9 @@ loop runs in-session via Claude Code's first-party `/goal` command
   state (all unblocked workstreams attempted, or ROADMAP.md
   empty).
 - Each turn, Claude Code invokes `/conduct:next --unattended`.
-  After the turn, the small fast model (typically Haiku) judges
-  the goal condition against the conversation transcript and
-  either continues or terminates the loop.
+  After the turn, the small fast model judges the goal condition
+  against the conversation transcript — it runs no tools and reads
+  no files — and either continues or terminates the loop.
 - When the condition is met, the goal clears automatically and
   the user regains control. The active ROADMAP section is left
   blocked on review with one PR per executed batch.
@@ -551,11 +527,12 @@ natively. The switch removes:
 
 - A third-party plugin dependency, simplifying installation and
   reducing the trust surface.
-- The `.claude/ralph-loop.local.md` flag-file coupling that bled
-  ralph-loop's stop hook into unrelated commands when the user
-  ran `/compose:plan` or `/compose:discover` in a project
-  with an active loop (see prior known-issue note in
-  §spec:progress-file-location).
+- A flag-file coupling (`.claude/ralph-loop.local.md`) that fired
+  ralph-loop's stop hook on file presence rather than active skill
+  context, so an idle loop interrupted `/compose:plan` and
+  `/compose:discover` in the same project with orchestration
+  directives. `/goal` is session-scoped, so a second session is
+  unaffected.
 - A bespoke sentinel-string convention; the evaluator judges the
   condition from `/next`'s natural output.
 
