@@ -11,16 +11,16 @@ Resolve the governance root before operating:
 2. If no ancestor contains SPEC.md, fall back to the repository root.
 <!-- /assembled:governance-root -->
 
-Two modes: `--lite` and `--full`. If no flag is passed, auto-detect:
-use `--lite` if `.claude/ralph-loop.local.md` exists, `--full`
-otherwise.
+Two modes: `--lite` and `--full`. If no flag is passed, use `--full`.
+Callers that want the minimal path pass `--lite` explicitly —
+`/conduct:orchestrate` does so before starting its loop.
 
 ## Lite mode (minimal between-iteration cleanup)
 
 `/conduct:next` pre-flight handles git fetch, branch pruning, and
 worktree removal. Lite mode exists for anything `/conduct:next`
 doesn't cover — e.g., manual cleanup between interactive
-`/conduct:next` calls without ralph-loop.
+`/conduct:next` calls.
 
 1. Fetch origin, prune remote-tracking branches (`git fetch --prune`).
 2. Delete local branches tracking pruned remotes.
@@ -33,7 +33,7 @@ Do NOT update governance docs, run verification, or sync chezmoi.
 ## Full mode (post-merge cleanup)
 
 Run after PRs merge to the integration trunk — either after a single
-batch or after reviewing all ralph-loop PRs.
+batch or after reviewing every PR an orchestration loop produced.
 
 Resolve the **trunk** — the branch finished work lands on — from the
 repository's own default branch; do not hardcode `main`:
