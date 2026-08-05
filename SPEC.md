@@ -6,7 +6,7 @@
 Symphonize provides Claude Code plugin commands that operate on
 the governance file loop (REQUIREMENTS.md → SPEC.md → ROADMAP.md
 → CHANGELOG.md) and produce conventional commits suitable for
-release-please.
+downstream release automation (§spec:release-automation-options).
 
 The commands distribute across four plugins (§spec:governance-schema),
 grouped here by plugin:
@@ -89,10 +89,10 @@ The command creates:
 - `.markdownlint.json` — default config
 - `.github/workflows/governance-lint.yml` — caller workflow
   referencing `repentsinner/symphonize/.github/workflows/governance-lint.yml@notation--v0`
-- `.github/workflows/release-please.yml` — release-please action
-  with config and manifest files
-- `.github/workflows/auto-merge-release.yml` — auto-merge for
-  release PRs
+- Release-automation files for the adopter's chosen tool — the set
+  depends on the choice (§spec:release-automation-options): flywheel
+  workflows + `.flywheel.yml`, release-please workflows + config and
+  manifest, or no files for manual.
 - `.githooks/pre-commit` — runs markdownlint on staged governance
   files
 
@@ -118,13 +118,20 @@ in the governance loop. Scaffolding reduces setup from "read the
 docs and copy-paste" to one command.
 
 ## Reusable CI workflows §spec:reusable-ci
-*Status: complete*
+*Status: in progress*
 
 Now the notation plugin's, under §spec:governance-schema; the workflows stay
 at the repository root `.github/workflows/` (GitHub Actions resolves reusable
 workflows only from there — §spec:plugin-packaging). Symphonize ships
 reusable GitHub Actions workflows that target projects reference via
 `workflow_call`.
+
+`governance-lint.yml` is tool-agnostic. The release workflows below are
+the release-please template set — symphonize's own dogfooded workflows
+(§spec:dogfooding), and what `/notation:init` copies when an adopter
+selects release-please. Flywheel and manual adopters scaffold a different
+file set, organized under `templates/<tool>/`
+(§spec:release-automation-options).
 
 ### governance-lint.yml
 
@@ -166,9 +173,9 @@ Symphonize ships its workflow templates two ways (§spec:reusable-ci):
 `governance-lint.yml` is scaffolded as a `@notation--v0` reusable caller
 (the notation-scoped floating major; pre-1.0, so `v0`, not `v1`), so a
 consumer picks up symphonize's internal action bumps transitively; the
-release, auto-merge, and major-tag workflows are copied verbatim because
-each needs project-specific manifests and tokens, so a consumer holds a
-point-in-time snapshot that does not self-update.
+chosen tool's release workflows (§spec:release-automation-options) are
+copied verbatim because each needs project-specific config and tokens, so
+a consumer holds a point-in-time snapshot that does not self-update.
 
 - **Source freshness — symphonize's concern.** The copied templates'
   source is symphonize's own `.github/workflows/*`, and the plugin bundle
@@ -202,6 +209,91 @@ project's to mutate; the contract's logic is symphonize's to own.
 The `init` scaffolder becomes the notation plugin's under the plugin
 decomposition (§spec:governance-schema); this freshness contract is
 notation's and moves with it. §req:modular-adoption
+
+## Release automation options §spec:release-automation-options
+*Status: not started*
+
+`/notation:init` lets the adopter choose how conventional commits become
+versioned releases. The supported options are **flywheel** (default),
+**release-please**, and **manual**. The choice determines which
+release-automation files §spec:project-scaffolding scaffolds and which
+release-aware check §spec:clean-working-tree-hygiene runs.
+
+### Selection
+
+When CWD is the repository root (CI scaffolding runs only there),
+`/notation:init` prompts: "How should releases be cut from conventional
+commits?" with the three options. The choice selects the
+`templates/<tool>/` directory to copy from. Flywheel is the default —
+taken when the adopter accepts the prompt default or runs unattended.
+Manual scaffolds no release-automation files; CHANGELOG.md still receives
+its `[Unreleased]` section.
+
+### Re-run detection
+
+`/notation:init` is idempotent (§spec:project-scaffolding). On re-run it
+detects the existing choice from repo state and skips the prompt:
+
+- `.flywheel.yml` present → flywheel.
+- `release-please-config.json` present → release-please.
+- Neither → manual.
+
+It then scaffolds only missing files. Switching tools requires removing
+the old config first; symphonize does not migrate one tool's state to
+another.
+
+### Clean integration
+
+`/conduct:clean` reads the same signals to choose its advisory
+release-aware check (§spec:clean-working-tree-hygiene):
+
+- **flywheel:** pushed conventional commits are eligible for a release on
+  the managed branch.
+- **release-please:** the next release-please PR picks up commits since
+  the last release.
+- **manual:** CHANGELOG.md `[Unreleased]` reflects merged commits, and the
+  adopter is reminded to tag.
+
+The check reads repo state; it does not invoke the release tool.
+
+### Tool comparison
+
+| Aspect | flywheel | release-please | manual |
+|---|---|---|---|
+| Release trigger | PR merge + push to managed branch | push to main | none |
+| Merge gate | per-PR (auto-merge by commit type) | per-release (release PR) | none |
+| CHANGELOG.md | semantic-release | release-please | by hand |
+| Per-repo config | `.flywheel.yml` | `release-please-config.json` + manifest | none |
+| Multi-branch streams | first-class | flat | manual |
+| Monorepo linked versions | not native (semantic-release is single-package) | native (`linked-versions`) | manual |
+
+**Why flywheel is the default:** most adopters version a single package,
+where flywheel's per-PR gate fits symphonize's tastemaking model — docs
+and chores auto-merge, features gate on review (§req:quality-attributes).
+Flywheel cuts a release per push to a managed branch, so the review gate
+sits on each PR, not on an accumulated release PR. That per-PR gate is the
+deliberate tradeoff: faster flow and earlier releases, against the loss of
+release-please's batch-a-release-then-review step.
+
+**Why release-please remains:** symphonize's own repo versions four
+plugins (notation, compose, conduct, symphonize) in lockstep via
+release-please's `linked-versions` plugin and `extra-files` write-back,
+which inject each computed version into the plugins' `plugin.json` version
+and cross-plugin dependency pins. Flywheel runs semantic-release, which is
+single-package; replicating linked lockstep versioning and JSON-path
+write-back is custom work that buys nothing. Symphonize therefore dogfoods
+release-please (§spec:dogfooding) and ships it as the monorepo option,
+while defaulting downstream single-package adopters to flywheel.
+
+**Why manual:** early-stage projects, forks, and repos where another tool
+already cuts releases opt out of release automation entirely. Without the
+option, every adopter pays GitHub App setup before `/notation:init` is
+usable.
+
+**Why detect rather than re-prompt:** matches `/notation:init`'s
+idempotent contract — skip files that exist, warn on each skip. An adopter
+switching tools removes the old config, making the switch explicit rather
+than inferred.
 
 ## Dogfooding §spec:dogfooding
 *Status: complete*
@@ -1507,6 +1599,11 @@ The contract serves adopters beyond symphonize's own repository
 trunk from the repository's default branch — rather than introducing a
 configuration file — keeps the "no state beyond governance documents" constraint
 intact while removing the wrong-branch failure for every non-`main` project.
+
+The single trunk is a deliberate scope boundary, not just an implementation
+choice: symphonize is trunk-based / GitHub Flow only and does not model
+GitFlow/GitLab-Flow long-lived branches or the merge-forward cascade
+(§req:constraints).
 
 ### Scope
 
