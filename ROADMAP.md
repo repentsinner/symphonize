@@ -63,33 +63,6 @@ is `fix: batch — <summary>`. Run a batch containing at least one
 and §spec:batch-delivery agree the delivered type is derived, not
 hardcoded. Governance-lint passes.
 
-## Parameterized release scaffolding §road:release-automation-scaffolding
-
-### Create per-tool scaffold templates §road:release-templates
-
-Add `templates/flywheel/` (`flywheel-pr.yml`, `flywheel-push.yml`,
-`.flywheel.yml`), move the existing release-please workflows into
-`templates/release-please/`, and define `templates/manual/` (no
-release-automation files), keeping symphonize's own `.github/workflows/*`
-as the dogfooded release-please source. §spec:release-automation-options
-§spec:reusable-ci
-
-### Tool selection in /notation:init §road:init-release-selection
-
-Add the release-automation prompt (flywheel default), copy from the chosen
-`templates/<tool>/`, and detect the existing choice from `.flywheel.yml` /
-`release-please-config.json` to skip the prompt on re-run, in
-`plugins/notation/commands/init.md`. Depends on §road:release-templates.
-§spec:release-automation-options
-
-**Verify:** In a fresh repo, run `/notation:init` and accept the default —
-confirm it scaffolds `.flywheel.yml` and the flywheel workflows and no
-release-please files. Run it again — confirm it detects flywheel and skips
-the prompt, scaffolding only missing files. In separate fresh repos, select
-release-please (confirm `release-please-config.json` + workflows) and manual
-(confirm no release-automation files, but CHANGELOG.md still carries
-`[Unreleased]`). Governance-lint passes.
-
 ## Release-aware clean checks §road:release-aware-clean
 
 ### Per-tool release check in /conduct:clean §road:clean-release-check
@@ -98,7 +71,7 @@ Detect the release tool from `.flywheel.yml` / `release-please-config.json`
 / neither and run the matching advisory check (flywheel eligibility, next
 release-please PR, or manual CHANGELOG/tag reminder) in
 `plugins/conduct/commands/clean.md`, mirroring the re-run detection signals
-in §road:init-release-selection. §spec:release-automation-options
+`/notation:init` already reads. §spec:release-automation-options
 
 **Verify:** Run `/conduct:clean` in a flywheel-scaffolded repo with
 unreleased commits — confirm it reports the commits are eligible for a

@@ -130,8 +130,13 @@ reusable GitHub Actions workflows that target projects reference via
 the release-please template set — symphonize's own dogfooded workflows
 (§spec:dogfooding), and what `/notation:init` copies when an adopter
 selects release-please. Flywheel and manual adopters scaffold a different
-file set, organized under `templates/<tool>/`
-(§spec:release-automation-options).
+file set (§spec:release-automation-options).
+
+Every scaffold template lives under `plugins/notation/templates/<tool>/`,
+one directory per release-automation option. Plugin isolation forces the
+location: an installed plugin reads only its own directory
+(§spec:plugin-packaging), so `init` cannot reach a repository-root
+`templates/`.
 
 ### governance-lint.yml
 
@@ -177,12 +182,16 @@ chosen tool's release workflows (§spec:release-automation-options) are
 copied verbatim because each needs project-specific config and tokens, so
 a consumer holds a point-in-time snapshot that does not self-update.
 
-- **Source freshness — symphonize's concern.** The copied templates'
-  source is symphonize's own `.github/workflows/*`, and the plugin bundle
-  init copies from is built from it. If the source rots, every new scaffold
-  ships stale action versions — "init-ing the past." Symphonize keeps the
-  source current with Dependabot (`github-actions`), so a fresh scaffold
-  ships current pins.
+- **Source freshness — symphonize's concern.** The release-please templates'
+  source is symphonize's own `.github/workflows/*`, and
+  `tools/assemble-fragments.sh` copies them into the notation plugin, with CI
+  failing on drift. If the source rots, every new scaffold ships stale action
+  versions — "init-ing the past." Symphonize keeps the source current with
+  Dependabot (`github-actions`), so a fresh scaffold ships current pins. Two
+  template sets fall outside the copy and so outside Dependabot's reach:
+  `update-major-tag.yml`, which symphonize gates to its notation release and
+  the adopter form does not, and the flywheel set, which symphonize does not
+  run. Both are hand-maintained; their action pins need review by hand.
 - **Copy freshness — the consumer's concern.** A consumer's copied
   workflows are theirs to mutate and theirs to keep current. `init`
   scaffolds a `.github/dependabot.yml` (`github-actions`) into the consumer
@@ -211,7 +220,7 @@ decomposition (§spec:governance-schema); this freshness contract is
 notation's and moves with it. §req:modular-adoption
 
 ## Release automation options §spec:release-automation-options
-*Status: not started*
+*Status: in progress*
 
 `/notation:init` lets the adopter choose how conventional commits become
 versioned releases. The supported options are **flywheel** (default),
