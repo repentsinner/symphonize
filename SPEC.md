@@ -220,7 +220,7 @@ decomposition (§spec:governance-schema); this freshness contract is
 notation's and moves with it. §req:modular-adoption
 
 ## Release automation options §spec:release-automation-options
-*Status: not started*
+*Status: in progress*
 
 `/notation:init` lets the adopter choose how conventional commits become
 versioned releases. The supported options are **flywheel** (default),

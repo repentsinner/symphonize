@@ -164,15 +164,85 @@ Create under `.github/workflows/`:
   pre-1.0, so the adopter-facing major ref is `notation--v0` (not `v1`).
   `update-major-tag.yml` moves this tag forward on each notation release.
 
-- **release-please.yml** — copy from symphonize's template. Also
-  create `release-please-config.json` and
-  `.release-please-manifest.json` with the project's current version
-  (read from `package.json`, `pubspec.yaml`, `.claude-plugin/plugin.json`,
-  or default to `0.1.0`).
+### Release automation
 
-- **auto-merge-release.yml** — copy from symphonize's template.
+Which release-automation files to scaffold depends on the adopter's
+choice of tool. Each option has a template directory at
+`${CLAUDE_PLUGIN_ROOT}/templates/<tool>/`; copy its files verbatim.
+Like every other file, skip one that already exists.
 
-- **update-major-tag.yml** — copy from symphonize's template.
+#### Detect before prompting
+
+Read repo state first and skip the prompt when it already answers:
+
+- `.flywheel.yml` present → flywheel.
+- `release-please-config.json` present → release-please.
+- Neither → prompt.
+
+On a detected choice, print
+`detected release automation: <tool>` and scaffold only the missing
+files of that tool's set. Switching tools is not a prompt outcome —
+tell the adopter to remove the old config first. Do not migrate one
+tool's state to another.
+
+#### Prompt
+
+When nothing is detected, ask: "How should releases be cut from
+conventional commits?" Offer flywheel (default), release-please, and
+manual. Take flywheel when the adopter accepts the default or the run
+is unattended.
+
+- **flywheel** — per-PR auto-merge by commit type, release on push to
+  a managed branch. Fits single-package projects.
+- **release-please** — accumulates commits into a release PR. Fits
+  monorepos needing linked versions across packages.
+- **manual** — no release automation. Edit CHANGELOG.md and tag by
+  hand.
+
+#### flywheel
+
+Copy from `templates/flywheel/`:
+
+- `.flywheel.yml` → the repository root. If the repo's default branch
+  is not `main`, rename the branch entry to match.
+- `flywheel-pr.yml`, `flywheel-push.yml` → `.github/workflows/`.
+
+Report the remaining setup as manual steps — they need repo admin and
+`gh`, so do not run them:
+
+1. Install a GitHub App with Contents, Pull requests, Issues, and
+   Checks read/write, then store its id as the repository **variable**
+   `FLYWHEEL_GH_APP_ID` and its private key as the **secret**
+   `FLYWHEEL_GH_APP_PRIVATE_KEY`.
+2. Enable "Allow auto-merge" in repository settings.
+3. Grant the App a branch-protection bypass on managed branches —
+   without it, flywheel cannot push its release commit or tag.
+
+Point the adopter at <https://github.com/point-source/flywheel> for the
+current setup script.
+
+#### release-please
+
+Copy from `templates/release-please/`:
+
+- `release-please.yml`, `auto-merge-release.yml`,
+  `update-major-tag.yml` → `.github/workflows/`.
+
+Then generate the two project-specific files, which have no template
+because their content is derived:
+
+- `release-please-config.json` and `.release-please-manifest.json`,
+  carrying the project's current version (read from `package.json`,
+  `pubspec.yaml`, `.claude-plugin/plugin.json`, or default to `0.1.0`).
+
+The workflows authenticate through a GitHub App. Report as a manual
+step: store the App id as `RELEASE_BOT_APP_ID` and its private key as
+`RELEASE_BOT_PRIVATE_KEY`, both repository secrets.
+
+#### manual
+
+Scaffold no release-automation files. CHANGELOG.md still gets its
+`[Unreleased]` section from the governance-file step above.
 
 ### Git hooks
 
@@ -239,13 +309,17 @@ hooks.
    If it does, print `skip: <path> (already exists)` and move on.
 4. Create any missing governance files at the governance root.
 5. If CWD is the repo root, also scaffold CI workflows and hooks:
-   a. Create CI workflow files under `.github/workflows/`.
-   b. Create `.githooks/pre-commit` and make it executable.
-   c. Run `git config core.hooksPath .githooks` to activate hooks.
-6. If CWD is not the repo root, skip CI workflows and hooks with
-   a note.
+   a. Create `.github/workflows/governance-lint.yml`.
+   b. Resolve the release-automation tool per § Release automation —
+      detect from repo state, otherwise prompt — then copy that
+      tool's template files.
+   c. Create `.githooks/pre-commit` and make it executable.
+   d. Run `git config core.hooksPath .githooks` to activate hooks.
+6. If CWD is not the repo root, skip CI workflows, release automation,
+   and hooks with a note.
 7. Run `/notation:lint` to validate the result.
-8. Print a summary of created and skipped files.
+8. Print a summary of created and skipped files, the release-automation
+   tool used, and any manual setup steps it needs.
 
 Do NOT commit. Leave the files unstaged so the user can review
 and commit when ready.
