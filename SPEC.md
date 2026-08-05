@@ -302,7 +302,7 @@ flow into REQUIREMENTS.md as prose.
   Expensive, Mandatory, Growing, Urgent, Distant) prompt the user
   to articulate *why* the problem matters.
 - **Validation (Phase 2):** ICE framework (Impact, Confidence,
-  Ease) surfaces priority tradeoffs beyond binary must/nice-to-have.
+  Ease) surfaces priority tradeoffs beyond a binary essential/nice-to-have split.
 
 **Why frameworks as prompts:** users describe *what* they want
 without explaining *why*. Framework-derived questions produce
@@ -692,7 +692,7 @@ Spending the agent spawns on prose is noise. §req:quality-attributes
 - **Run the gate inside the batch agent.** Rejected: `/security-review` (a
   reporter) can end a sub-agent's turn before delivery, so gates co-locate at the
   dispatch layer where a turn-end is survivable. `/simplify` alone would survive
-  in-batch, but splitting the gates buys nothing — the batch must hand back for the
+  in-batch, but splitting the gates buys nothing — the batch hands back for the
   reporter gate regardless (§spec:batch-agent-leaf).
 
 **Tradeoffs accepted:**
@@ -700,7 +700,7 @@ Spending the agent spawns on prose is noise. §req:quality-attributes
 - Parallel agent spawns per batch, charged against the dispatch layer's
   token budget.
 - CI runs again after the gate mutates the branch.
-- Simplify may propose fixes the dispatch layer must revert, costing review
+- Simplify may propose fixes the dispatch layer then reverts, costing review
   time. Bounded by running simplify once.
 
 ## Batch agent is a fan-out leaf §spec:batch-agent-leaf
