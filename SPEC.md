@@ -1600,6 +1600,11 @@ trunk from the repository's default branch — rather than introducing a
 configuration file — keeps the "no state beyond governance documents" constraint
 intact while removing the wrong-branch failure for every non-`main` project.
 
+The single trunk is a deliberate scope boundary, not just an implementation
+choice: symphonize is trunk-based / GitHub Flow only and does not model
+GitFlow/GitLab-Flow long-lived branches or the merge-forward cascade
+(§req:constraints).
+
 ### Scope
 
 The hardcoded trunk spans conduct (`next.md`, `review.md`, `clean.md`,
