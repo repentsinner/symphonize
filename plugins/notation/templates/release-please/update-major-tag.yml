@@ -1,7 +1,7 @@
-# Ungated form of symphonize's own .github/workflows/update-major-tag.yml.
+# Adopter form of symphonize's own .github/workflows/update-major-tag.yml.
 # Symphonize gates the job to its notation release; an adopter publishing one
-# version line needs no gate. Hand-maintained — not a byte copy, so
-# tools/assemble-fragments.sh does not sync it.
+# version line gates on tag shape instead. Hand-maintained — not a byte copy,
+# so tools/assemble-fragments.sh does not sync it.
 name: Update Major Version Tag
 
 on:

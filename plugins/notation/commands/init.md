@@ -226,8 +226,12 @@ Report the remaining setup as manual steps — they need repo admin and
 
 1. Install a GitHub App with Contents, Pull requests, Issues, and
    Checks read/write, then store its id as the repository **variable**
-   `FLYWHEEL_GH_APP_ID` and its private key as the **secret**
-   `FLYWHEEL_GH_APP_PRIVATE_KEY`.
+   `FLYWHEEL_GH_APP_ID` and its private key as the **Actions secret**
+   `FLYWHEEL_GH_APP_PRIVATE_KEY`. Registering that key in the
+   **Dependabot** secret store as well is a separate decision: it is what
+   lets Dependabot's `chore(deps)` PRs auto-merge unreviewed, including
+   bumps to the flywheel pin itself. Leave it unregistered to keep the
+   review gate.
 2. Enable "Allow auto-merge" in repository settings.
 3. Grant the App a branch-protection bypass on managed branches —
    without it, flywheel cannot push its release commit or tag.
