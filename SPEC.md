@@ -102,6 +102,14 @@ activation is per-checkout. Consumers opt in by running
 `/notation:init` — upstream repos do not push hooks on
 contributors. CI is the backstop.
 
+The hook resolves its linter through the common version-manager locations
+before giving up, because git hooks inherit no interactive shell and a bare
+invocation misses nvm, fnm, and volta shims. When no toolchain is reachable
+it reports the skip and exits clean. **Why degrade rather than fail:** a
+governance repo need not carry the linter's runtime at all, and CI runs the
+same check unconditionally — blocking the commit would trade a real
+contribution for a check that was going to run anyway.
+
 The command is idempotent: it skips files that already exist and
 warns rather than overwrites.
 
