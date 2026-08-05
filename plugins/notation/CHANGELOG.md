@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/repentsinner/symphonize/compare/notation--v0.2.4...notation--v0.2.5) (2026-08-05)
+
+
+### Features
+
+* batch — parameterized release scaffolding in /notation:init ([#199](https://github.com/repentsinner/symphonize/issues/199)) ([477c20e](https://github.com/repentsinner/symphonize/commit/477c20e0e13042ed8c0f80789fd3161374e0fd9b))
+
 ## [0.2.4](https://github.com/repentsinner/symphonize/compare/notation--v0.2.3...notation--v0.2.4) (2026-08-05)
 
 
