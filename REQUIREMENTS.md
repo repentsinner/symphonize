@@ -213,7 +213,7 @@ Success looks like:
   real state and what the documents say stays small.
 - A governance change meets far less friction than a code change, and
   rarely produces a PR that conflicts on GitHub.
-- The effort a change must clear is **proportional to its nature** — an
+- The effort required of a change is **proportional to its nature** — an
   interpreted document is judged by whether it parses and reads
   coherently, not held to the checks compiled code requires.
   §req:quality-attributes
