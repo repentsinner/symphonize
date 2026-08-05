@@ -164,6 +164,22 @@ Create under `.github/workflows/`:
   pre-1.0, so the adopter-facing major ref is `notation--v0` (not `v1`).
   `update-major-tag.yml` moves this tag forward on each notation release.
 
+Also create `.github/dependabot.yml`. The scaffolded workflows are the
+project's copies to maintain, and their action pins go stale; Dependabot
+is what keeps them current:
+
+```yaml
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+```
+
+If the file exists, add the `github-actions` entry only when it is
+missing; leave every other entry alone.
+
 ### Release automation
 
 Each option's templates live at
@@ -216,8 +232,14 @@ Report the remaining setup as manual steps — they need repo admin and
 3. Grant the App a branch-protection bypass on managed branches —
    without it, flywheel cannot push its release commit or tag.
 
-Point the adopter at <https://github.com/point-source/flywheel> for the
-current setup script.
+State the trust this buys: flywheel is a third-party action, and steps 1
+and 3 hand it a private key plus the standing to write the default branch
+unreviewed. The templates pin it by commit SHA so its repository cannot
+repoint that credential at new code; review each bump.
+
+<https://github.com/point-source/flywheel> carries a setup script that
+automates the three steps. Say it exists, say it provisions the App, and
+tell the adopter to read it before running it — do not run it here.
 
 #### release-please
 
@@ -305,7 +327,8 @@ hooks.
    If it does, print `skip: <path> (already exists)` and move on.
 4. Create any missing governance files at the governance root.
 5. If CWD is the repo root, also scaffold CI workflows and hooks:
-   a. Create `.github/workflows/governance-lint.yml`.
+   a. Create `.github/workflows/governance-lint.yml` and
+      `.github/dependabot.yml`.
    b. Resolve the release-automation tool per § Release automation and
       copy its templates.
    c. Create `.githooks/pre-commit` and make it executable.

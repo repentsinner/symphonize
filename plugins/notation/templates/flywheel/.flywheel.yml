@@ -5,6 +5,11 @@
 # every other type gates on a human. Tune the list to the project's taste —
 # `feat` is deliberately absent so features gate on review.
 #
+# `chore` covers dependency bumps, so listing it means Dependabot's updates
+# can land unreviewed. Flywheel gates that separately: those PRs auto-merge
+# only once the App private key is also registered in the Dependabot secret
+# store. Withhold that registration, or drop `chore`, to keep the review gate.
+#
 # `!`-suffixed types are separate entries: `fix` does not imply `fix!`.
 flywheel:
   streams:

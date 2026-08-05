@@ -10,7 +10,13 @@ permissions:
 
 jobs:
   auto-merge:
-    if: contains(github.event.pull_request.labels.*.name, 'autorelease: pending')
+    # pull_request_target runs in the base-repo context with full secret
+    # access, so the label alone is not a sufficient gate — anyone who can
+    # label a fork PR would otherwise reach the App token and auto-merge it.
+    # Release PRs are same-repo branches; require that.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.pull_request.labels.*.name, 'autorelease: pending')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/create-github-app-token@v3
