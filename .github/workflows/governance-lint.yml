@@ -17,14 +17,20 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Run the pinned vale binary directly. vale-cli/vale-action@v3's
+      # reviewdog bridge crashes with EPIPE on the Node 24 runner image
+      # even with zero findings; the binary's exit code is the whole
+      # gate, and linting the tree root reports every finding in the
+      # configured files, so CI matches a local `vale` run.
       - name: Run Vale prose linter
         if: hashFiles('.vale.ini') != ''
-        uses: vale-cli/vale-action@v3
-        with:
-          fail_on_error: true
-          # Report every finding in the linted files, not only lines the
-          # current diff touches, so CI matches a local `vale` run.
-          filter_mode: nofilter
+        env:
+          VALE_VERSION: "3.17.1"
+        run: |
+          curl -sfLo "$RUNNER_TEMP/vale.tar.gz" \
+            "https://github.com/errata-ai/vale/releases/download/v${VALE_VERSION}/vale_${VALE_VERSION}_Linux_64-bit.tar.gz"
+          tar -xzf "$RUNNER_TEMP/vale.tar.gz" -C "$RUNNER_TEMP" vale
+          "$RUNNER_TEMP/vale" --output=line .
 
       - uses: DavidAnson/markdownlint-cli2-action@v24
         with:
