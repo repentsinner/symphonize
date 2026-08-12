@@ -6,6 +6,34 @@ on:
   pull_request:
 
 jobs:
+  # The squash subject is the PR title (repository setting), and the squash
+  # subject is what release-please reads to decide a release. A title that is
+  # not a conventional commit therefore does not fail — it silently releases
+  # nothing, and the change never reaches an adopter pinned to a floating tag.
+  # PR #207 lost its release exactly this way. §spec:release-automation-options
+  pr-title:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Validate the PR title as a conventional commit
+        # Passed through env, never interpolated into the script: a PR title is
+        # attacker-controlled text and `${{ }}` in a run block is an injection.
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          types='feat|fix|chore|refactor|perf|style|test|docs|build|ci|revert'
+          if printf '%s' "$TITLE" | grep -qE "^(${types})(\([A-Za-z0-9._/-]+\))?!?: .+"; then
+            echo "ok: $TITLE"
+            exit 0
+          fi
+          echo "::error::PR title is not a conventional commit: '${TITLE}'"
+          echo "The squash subject is taken from this title, and release"
+          echo "automation reads that subject. Use '<type>(<scope>): <summary>'"
+          echo "with type one of: ${types//|/, }"
+          exit 1
+
   governance-lint:
     uses: ./.github/workflows/governance-lint.yml
     with:
