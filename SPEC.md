@@ -74,6 +74,25 @@ tool trains contributors to bypass it. The full local suite belongs to
 `/notation:lint`, which a contributor invokes deliberately; the hook is a cheap
 nudge, and CI is the gate. Reported in #115. §req:quality-attributes
 
+## Governance in the repository §spec:governance-in-repo
+*Status: complete*
+
+The governance documents live in the repository, beside the code, rather
+than in GitHub Issues or Discussions. §req:constraints
+
+A file is one tool call. An issue is an API round trip — paginated,
+filtered, and rate-limited — and every such query spends agent context on
+retrieval instead of on the work. Governance files also travel with the
+branch: the spec that was true when a commit was made stays visible in
+that commit's checkout, so a specification change and the code change it
+describes land in the same PR and cannot drift apart.
+
+The trade is real. Labels, milestones, assignees and browser-friendly
+triage belong to an issue tracker, and none of them survive the move. For
+agent-driven execution, co-location with the code is worth more than the
+triage interface — which is why issues remain an *input* to governance,
+routed by `/compose:triage`, rather than a parallel work queue.
+
 ## Project scaffolding command §spec:project-scaffolding
 *Status: complete*
 
@@ -144,6 +163,85 @@ Reusable workflow accepting a `readme-type` input (string:
 `library`, `application`, or empty). Runs markdownlint,
 SPEC.md status-line validation, and optional README heading
 checks. Errors surface as GitHub annotations.
+
+### README profile §spec:readme-profile
+
+**A README is an executive summary, not a manual.** It answers what this
+is, where it sits among its neighbours, and how to start — for a reader
+deciding whether to keep reading. Everything else has a better home, and
+the profile is built to keep it there.
+
+Required headings, by type:
+
+| Type | Required |
+| --- | --- |
+| `library` | Installation (or Getting started / Quick start), Usage, License |
+| `application` | Getting started (or Quick start / Installation), Usage, License |
+
+Recommended, in this order: what it is in a sentence or two; pointers to
+the governance files; where it sits in its layer stack, as a table when
+it has siblings; what it deliberately is *not*, where a reader would
+otherwise assume; the constraint that shapes it (a licence, a privacy
+requirement); install; one minimal example; pointers to the runnable
+ones.
+
+What belongs elsewhere, and where:
+
+| Not in the README | Its home |
+| --- | --- |
+| The API surface, symbol by symbol | Docstrings — `help(pkg)` is the index |
+| A tour of the source tree | The source tree |
+| Host prerequisites and their remedies | The diagnostic that checks them |
+| Every flag of a script | The script's own `--help` and comments |
+| Design rationale | SPEC.md |
+| What is not built yet | ROADMAP.md |
+
+*Why API is recommended rather than required*: a heading a linter demands
+gets filled whether or not it earns its place, and the filling is either
+a stub or a table with a row per symbol — which goes stale on the first
+rename and duplicates the docstrings that cannot. Require it and every
+library README trends toward a manual. Include it where the surface *is*
+the product, as this repository's reusable workflows are.
+
+*Why the layer stack is recommended at all*: a repository that sits
+between two others is the one most often misread, and the misreading is
+expensive — a consumer wires to the wrong seam, or a maintainer lands
+work in the repository whose licence cannot carry it. One table at the
+top costs six lines and prevents both.
+
+#### Derivable, not authoritative §spec:readme-derivable
+
+**A README states nothing it is the only home for.** Every substantive
+claim it makes shall be derivable from the governance documents, which
+are the single source of truth (§req:constraints, §spec:governance-in-repo).
+The README selects, orders and compresses what those documents already
+say, for a reader who has not opened them.
+
+The failure this prevents is silent: a fact that lives only in a README
+is a fact no `*Status:*` line tracks, no `§`-reference resolves against,
+and no roadmap workstream retires. It goes stale invisibly, because the
+document that would have contradicted it never mentions it. Symphonize's
+own README asserted a fail-fast policy built on cherry-picking long after
+the batch agent moved to worktree isolation — wrong for releases, and
+undetectable by any check, because nothing else in the repository
+discussed it.
+
+`governance-lint` enforces the contract at three strengths:
+
+| Rule | Level |
+| --- | --- |
+| A README heading shall not define a `§` slug — defining is what a source of truth does | error |
+| A README's `§` references shall resolve, exactly as a governance file's do | error |
+| A section beyond the orientation headings should cite at least one `§` reference | warning |
+
+The warning is the derivability probe: a section that cites nothing is
+either orientation, which needs no citation, or an assertion whose home
+is missing. It warns rather than fails because the judgement of which one
+it is belongs to an author, not a linter.
+
+*Why not require citations everywhere*: install commands, a usage
+snippet and a licence name are not claims about the system's design, and
+a reference on each would be noise that trains a reader to skip them.
 
 ### release-please.yml
 

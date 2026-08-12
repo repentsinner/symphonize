@@ -115,7 +115,12 @@ jobs:
             library)
               check_heading "Installation" "install(ation)?|getting started|quick start"
               check_heading "Usage" "usage"
-              check_heading "API" "api|api reference"
+              # API is deliberately NOT required. A README orients; it does not
+              # document. Where the surface is small or the docstrings are the
+              # authority, requiring the heading produces either a stub or a
+              # table that grows a row per symbol and goes stale — so it is
+              # recommended when the surface *is* the product (this repository's
+              # own reusable workflows) and omitted otherwise.
               ;;
             application)
               check_heading "Getting Started" "quick start|getting started|install(ation)?"
@@ -273,6 +278,78 @@ jobs:
               done
             done < <(tr -d '\r' < "$govfile")
           done
+
+          # Pass 3 — README derivability (SPEC §spec:readme-derivable).
+          #
+          # A README is derivable, not authoritative: it compresses what the
+          # governance files already say. So it may not DEFINE a slug (that is
+          # what a source of truth does), its references resolve exactly as a
+          # governance file's do, and a section carrying no reference at all is
+          # flagged — it is either orientation, which needs none, or an
+          # assertion whose home is missing. The last is a warning because only
+          # an author can tell those apart.
+          if [ -f README.md ]; then
+            echo "Checking README.md derivability"
+            lineno=0
+            in_fenced_block=false
+            section=""
+            section_line=0
+            section_refs=0
+
+            # Orientation headings make no claim about the system's design, so
+            # they are exempt from the citation probe.
+            orientation='^(#+ )?(install(ation)?|getting started|quick start|usage|api|api reference|licen(se|sing)|licensing note|prerequisites|contributing|acknowledgements?|credits)$'
+
+            flush_section() {
+              [ -z "$section" ] && return
+              [ "$section_refs" -gt 0 ] && return
+              local bare
+              bare=$(echo "$section" | sed -E 's/^#+ //; s/§(spec|req|road):[a-z0-9-]+//g; s/[[:space:]]+$//' | tr '[:upper:]' '[:lower:]')
+              echo "$bare" | grep -qxE "$orientation" && return
+              echo "::warning file=README.md,line=${section_line}::Section '${bare}' cites no §reference — orientation needs none, but an assertion belongs in a governance file (§spec:readme-derivable)"
+            }
+
+            while IFS= read -r line; do
+              lineno=$((lineno + 1))
+
+              if echo "$line" | grep -qE '^```'; then
+                if $in_fenced_block; then in_fenced_block=false; else in_fenced_block=true; fi
+                continue
+              fi
+              $in_fenced_block && continue
+
+              stripped=$(echo "$line" | sed 's/`[^`]*`//g')
+
+              if echo "$stripped" | grep -qE '^## '; then
+                flush_section
+                section="$stripped"
+                section_line=$lineno
+                section_refs=0
+              fi
+
+              # A README defines nothing. A slug suffix on its heading is the
+              # README claiming to be the source of truth for that slug.
+              if echo "$stripped" | grep -qE '^#+ .*§(spec|req|road):[a-z0-9-]+[[:space:]]*$'; then
+                echo "::error file=README.md,line=${lineno}::README defines §slug — a README is derivable, not authoritative (§spec:readme-derivable): $line"
+                errors=$((errors + 1))
+                continue
+              fi
+
+              for ref in $(echo "$stripped" | grep -oE '§(spec|req|road):[a-z0-9-]+' || true); do
+                section_refs=$((section_refs + 1))
+                key="${ref#§}"
+                count=$(grep -cxF "$key" "$defs_file" || true)
+                if [ "$count" -eq 0 ]; then
+                  echo "::error file=README.md,line=${lineno}::Dangling reference ${ref} — no matching heading"
+                  errors=$((errors + 1))
+                elif [ "$count" -gt 1 ]; then
+                  echo "::error file=README.md,line=${lineno}::Ambiguous reference ${ref} — resolves to ${count} headings"
+                  errors=$((errors + 1))
+                fi
+              done
+            done < <(tr -d '\r' < README.md)
+            flush_section
+          fi
 
           rm -f "$defs_file"
 

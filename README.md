@@ -2,178 +2,46 @@
 
 Plan-to-implementation execution engine for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
 
-Symphonize turns plain-language requirements into auditable specs into
-shipped PRs with minimal user interaction. You describe the problem
-(`/discover`), make technical decisions (`/plan`), roadmap the work
-(`/roadmap`), and execute (`/next` or `/orchestrate`).
-Agents handle implementation autonomously — branching, coding,
-testing, and opening PRs. You review the results.
+Plain-language requirements become auditable specs become shipped PRs.
+You describe the problem, make the technical decisions, and review the
+results; agents do the branching, coding, testing and PR-opening in
+between. The governance files constrain them at each stage, which makes
+the output loosely deterministic — predictable enough to review
+confidently, flexible enough for a real codebase.
 
-The governance files constrain agent behavior at each stage, making
-output loosely deterministic: predictable enough to review
-confidently, flexible enough to handle real codebases.
-
-## Design principles
-
-The goals that shape every decision in symphonize.
-
-- **Acceptance before exploration** — define "done" before exploring
-  "how," at every layer. Success criteria before features, observable
-  behavior before design, failing tests before code. TDD applied
-  recursively from requirements through implementation.
-- **Thin vertical slices** — every PR delivers a complete path from
-  internal logic through to a user-facing surface. Horizontal layers
-  (plumbing without a user-visible path) ship inventory, not value.
-- **Single-responsibility commands** — each command reads upstream
-  deliverables but writes exactly one. `/discover` → REQUIREMENTS.md,
-  `/plan` → SPEC.md, `/roadmap` → ROADMAP.md. Upstream backpressure
-  fills gaps without blocking progress.
-- **Depth-first by section** — context coherence, testable PRs, early
-  bug detection
-- **Boy Scout Rule** — leave the code better than you found it. Agents
-  clean up orphaned horizontal layers in files they touch.
-- **Worktree isolation** — never touches the user's main checkout
-- **Single PR per batch** — one CI run, one review surface
-- **Fail fast** — CI after each cherry-pick, not just at the end
-
-## Opinions
-
-How the [design principles](#design-principles) are implemented in
-practice. Symphonize expects these conventions and won't work well
-without them.
-
-- **[Conventional Commits](https://www.conventionalcommits.org/)** —
-  every commit follows `<type>(<scope>): <description>`. Feeds
-  release-please and changelog generation.
-- **[Release Please](https://github.com/googleapis/release-please)**
-  (or [melos](https://melos.invertase.dev/) for monorepos) — turns
-  conventional commits into semver releases and CHANGELOG.md entries.
-- **Branch protection** — work never lands on main directly. Every
-  change flows through a feature branch and a PR with CI.
-- **[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)** —
-  CHANGELOG.md format. `[Unreleased]` section always present.
-- **[Trunk-based development](https://trunkbaseddevelopment.com/) / [GitHub Flow](http://scottchacon.com/2011/08/31/github-flow.html)** —
-  one integration trunk (the repo's default branch); short-lived
-  feature branches merge back. Not a GitFlow or GitLab-Flow tool: no
-  long-lived `develop`/`staging` branches or merge-forward cascade.
-- **Feature branches per unit of work** — `/next` creates worktree
-  branches, `/clean` prunes them. No long-lived branches.
-- **`gh` CLI as the Git-ops interface** — authenticated `gh` handles
-  push and PR creation.
-- **Governance files as source of truth** — REQUIREMENTS.md drives
-  SPEC.md drives ROADMAP.md drives work, not the other way around.
-  See [Governance files](#governance-files).
+> [REQUIREMENTS.md](REQUIREMENTS.md) — the problem.
+> [SPEC.md](SPEC.md) — the design and its rationale.
+> [ROADMAP.md](ROADMAP.md) — what is not built yet.
 
 ## Governance files
 
-Symphonize assumes — and enforces — a four-file governance loop at the
-repo root:
+Four files at the repo root, each written by exactly one command:
 
-| File | Role |
-|------|------|
-| `REQUIREMENTS.md` | Problem-space requirements. What users need and why. |
-| `SPEC.md` | Declarative target state. What the system does and why. |
-| `ROADMAP.md` | Imperative work queue. What remains to close the gap. |
-| `CHANGELOG.md` | Release history. What shipped, in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. |
+| File | Role | Written by |
+|---|---|---|
+| `REQUIREMENTS.md` | Problem space. What users need, and why. | `/compose:discover` |
+| `SPEC.md` | Target state. What the system does, and why. | `/compose:plan` |
+| `ROADMAP.md` | Work queue. What remains to close the gap. | `/compose:roadmap` |
+| `CHANGELOG.md` | Release history, in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. | release automation |
 
-The loop: `/compose:discover` interviews the user and produces
-**REQUIREMENTS.md**. `/compose:plan` explores technical decisions
-and produces **SPEC.md** sections. `/compose:roadmap` breaks spec
-sections into **ROADMAP.md** workstreams as thin vertical slices.
-Each `/conduct:next` batch advances the roadmap, produces conventional
-commits, and opens a PR. A downstream
-[release-please](https://github.com/googleapis/release-please)
-workflow (or [melos](https://melos.invertase.dev/) for monorepos)
-consumes those commits to cut versioned releases and update
-**CHANGELOG.md** automatically.
+Each command reads its upstream deliverables and writes one file, so the
+documents drive the work rather than trailing it. Enter the pipeline at
+any point — commands apply backpressure, filling small gaps inline and
+recommending the upstream command for large ones.
 
-Each command reads upstream deliverables but writes exactly one.
-When upstream documents are absent or thin, commands apply
-backpressure — filling small gaps inline, recommending the upstream
-command for large ones. Technical users can enter the pipeline at
-any point; the commands will pull them back as far as needed.
-
-### Cross-document traceability
-
-Governance files use namespaced slug prefixes (`§req:`, `§spec:`,
-`§road:`) for grep-friendly cross-document references. Every spec
-section traces to a requirement; every roadmap workstream traces to a
-spec section. governance-lint enforces the chain — a dangling
-reference fails CI.
-
-### Why in-repo?
-
-GitHub Issues and Discussions offer rich triage UI, cross-repo
-linking, and notifications — but they live behind an API. Every
-query costs a tool call, pagination, and noise filtering, all of
-which burn agent context and add failure modes.
-
-Files are first-class to agents. Reading ROADMAP.md is one tool call.
-Governance files travel with the branch, so the spec that was true
-when a commit was made is visible in the same checkout. Spec changes
-and code changes land in the same PR — they can't drift apart.
-
-The tradeoff: you lose labels, milestones, assignees, and
-browser-friendly triage. For agent-driven execution, co-location
-with the code wins.
-
-### Governance lint
-
-Symphonize validates governance files at two levels:
-
-- **Local** (`/notation:lint`): runs `npx markdownlint-cli2` against
-  SPEC.md, ROADMAP.md, and README.md. Catches formatting errors before
-  pushing.
-- **CI** (`governance-lint.yml`): runs markdownlint plus SPEC.md
-  status-line checks, slug cross-reference validation, optional README
-  heading enforcement, and [Vale](https://vale.sh) prose linting (when
-  `.vale.ini` exists). Vale enforces modal verb compliance (IEEE
-  shall/should/may), flags passive voice, and catches filler phrases.
-
-The local command is a subset of CI — it covers formatting but not
-structural or prose checks.
-
-In CI, add a caller workflow:
-
-```yaml
-# .github/workflows/governance-lint.yml
-name: Governance Lint
-on:
-  push:
-    branches: [main]
-  pull_request:
-
-jobs:
-  lint:
-    uses: repentsinner/symphonize/.github/workflows/governance-lint.yml@notation--v0
-    with:
-      readme-type: library  # or "application", or "" to skip
-```
+Namespaced slugs (`§req:`, `§spec:`, `§road:`) carry references between
+the files, and `governance-lint` fails a dangling one. They live in the
+repository rather than in Issues because a file is one tool call where an
+issue is an API round trip, and because the spec that was true when a
+commit was made stays visible in that commit's checkout — at the cost of
+labels, milestones and browser-friendly triage (§spec:governance-in-repo).
 
 ## Plugins
 
-symphonize ships as a Claude Code marketplace of four plugins, named for a
-score-and-performance metaphor: a composer writes the score in a shared
-**notation**, a **conductor** performs it, and **symphonize** is the whole
-work.
-
-- **notation** — the governance schema everything builds on: the file
-  formats, the `§req:`/`§spec:`/`§road:` slug grammar, the status-line
-  contract, the `governance-lint` workflow that enforces them, and the
-  `init` scaffolder. (`/notation:init`, `/notation:lint`)
-- **compose** — the tastemaking layer ("are we building the right thing"):
-  produces the governance documents. (`/compose:discover`, `plan`,
-  `roadmap`, `triage`, and the correctness/taste half of `review`)
-- **conduct** — the execution layer ("are we building it right"): performs
-  the documents into landed PRs, and ships the repo-state reconcile hook.
-  (`/conduct:next`, `orchestrate`, `clean`, and the integration half of
-  `review`)
-- **symphonize** — the umbrella and whole-product entry point. Houses
-  `/symphonize:feedback` (and the planned `yolo`).
-
-compose and conduct both build on **notation**'s grammar, and the
-**symphonize** umbrella pulls all three together (arrows point to the
-plugin depended on):
+Four plugins, named for a score-and-performance metaphor: a composer
+writes the score in a shared **notation**, a **conductor** performs it,
+and **symphonize** is the whole work (§spec:governance-schema,
+§req:modular-adoption).
 
 ```text
             ┌──► compose ──┐
@@ -181,59 +49,77 @@ symphonize ─┤              ├──► notation
             └──► conduct ──┘
 ```
 
-Installing `symphonize` pulls all four; adopt a single layer for a subset —
-e.g. `notation` alone for just the schema, linter, and scaffolder.
+- **notation** — the schema everything builds on: file formats, slug
+  grammar, status-line contract, the lint workflow, the scaffolder.
+- **compose** — "are we building the right thing": produces the
+  governance documents.
+- **conduct** — "are we building it right": performs them into landed
+  PRs.
+- **symphonize** — the umbrella, and the whole-product entry point.
 
-**Flow:** notation defines the contract → compose authors governance
-documents against it → conduct executes the roadmap into PRs → notation's
-linter validates the whole chain in CI.
+Installing `symphonize` pulls all four. Adopt one layer for a subset —
+`notation` alone gives you the schema, linter and scaffolder.
 
 ## Usage
 
-Each command resolves under its plugin namespace (see [Plugins](#plugins)).
+Each command resolves under its plugin namespace.
 
 | Command | Description |
 |---|---|
-| `/notation:init` | Scaffold governance files and CI workflows into a project (one-time setup) |
-| `/notation:lint [type]` | Validate governance files (markdownlint) |
-| `/compose:discover` | Domain discovery — structured interview that produces REQUIREMENTS.md |
-| `/compose:plan [task]` | Technical decisions — explore design options and produce SPEC.md sections |
-| `/compose:roadmap [section]` | Break spec sections into ROADMAP.md workstreams (thin vertical slices) |
-| `/compose:triage [issue]` | Classify a GitHub issue and route it to the right governance file |
-| `/compose:review [PR]` | Correctness-and-taste review — does the change meet its spec |
-| `/conduct:next [target]` | Execute next unblocked workstreams (depth-first by section) |
-| `/conduct:orchestrate` | Loop `/conduct:next` over ROADMAP.md unattended via `/goal` |
-| `/conduct:review [PR]` | Integration review — resolve conflicts, check out locally, guide testing |
+| `/notation:init` | Scaffold governance files and CI into a project (one-time) |
+| `/notation:lint [type]` | Validate governance files |
+| `/compose:discover` | Structured interview → REQUIREMENTS.md |
+| `/compose:plan [task]` | Explore design options → SPEC.md sections |
+| `/compose:roadmap [section]` | Break sections into thin vertical slices |
+| `/compose:triage [issue]` | Route a GitHub issue to the right file |
+| `/compose:review [PR]` | Correctness and taste — does it meet its spec |
+| `/conduct:next [target]` | Execute the next unblocked workstreams |
+| `/conduct:orchestrate` | Loop `/conduct:next` unattended |
+| `/conduct:review [PR]` | Integration — conflicts, local checkout, testing |
 | `/conduct:clean [--lite\|--full]` | Clean up after batch execution |
-| `/symphonize:feedback` | Submit feedback or report a bug to the symphonize project |
+| `/symphonize:feedback` | Report a bug to the symphonize project |
 
-The batch agent protocol (`plugins/conduct/protocols/batch-agent.md`) manages
-sub-agent dispatch, merge conflict resolution, and CI verification.
+## What it expects of your repo
+
+Symphonize is opinionated and works poorly without these (§req:constraints):
+
+- **[Conventional Commits](https://www.conventionalcommits.org/)**, feeding
+  [release-please](https://github.com/googleapis/release-please) (or
+  [melos](https://melos.invertase.dev/) for monorepos) for semver releases.
+- **[Trunk-based development](https://trunkbaseddevelopment.com/)** with
+  branch protection — work never lands on the trunk directly. Short-lived
+  feature branches per unit of work, created by `/conduct:next` as
+  worktrees and pruned by `/conduct:clean`.
+- **An authenticated `gh` CLI**, which is how push and PR creation happen.
+
+Execution follows suit: every batch ends in one reviewable PR or an
+explicit failure, never a silent no-op (§spec:batch-delivery).
 
 ## API
 
-### Reusable workflows
-
-Target projects reference these via `workflow_call`:
+Target projects call this reusable workflow via `workflow_call`:
 
 | Workflow | Description |
 |---|---|
-| `governance-lint.yml` | Markdownlint + SPEC.md status lines + slug cross-refs + Vale prose linting + README heading checks |
+| `governance-lint.yml` | Markdownlint, SPEC status lines, slug cross-refs, [Vale](https://vale.sh) prose linting, README headings |
 
-Template workflows (copied by `/notation:init`, not called
-cross-repo):
+```yaml
+# .github/workflows/governance-lint.yml
+jobs:
+  lint:
+    uses: repentsinner/symphonize/.github/workflows/governance-lint.yml@notation--v0
+    with:
+      readme-type: library  # or "application", or "" to skip
+```
 
-| Workflow | Description |
-|---|---|
-| `release-please.yml` | Conventional commits → semver releases |
-| `auto-merge-release.yml` | Auto-merge release PRs |
-| `update-major-tag.yml` | Float `vN` tag on each release |
+`/notation:init` scaffolds that caller, plus the release-automation
+templates (`release-please.yml`, `auto-merge-release.yml`,
+`update-major-tag.yml`), which are copied rather than called cross-repo.
+
+A README carries only what orients a reader — SPEC §spec:readme-profile
+records what belongs there and what belongs in the source instead.
 
 ## Installation
-
-Add the marketplace, then install the `symphonize` umbrella — it pulls all
-four plugins (see [Plugins](#plugins)). Install a single layer instead
-(e.g. `notation@repentsinner-symphonize`) for a subset.
 
 ```shell
 /plugin marketplace add repentsinner/symphonize
@@ -246,17 +132,10 @@ Or from source during development:
 claude --plugin-dir /path/to/symphonize
 ```
 
-### Prerequisites
-
-- `git`, `gh` (authenticated), and `npx` (Node.js) on `PATH`
-- `vale` (optional — needed when `.vale.ini` exists for prose linting)
-- A project with governance files (run `/notation:init` to scaffold
-  them — the compose commands carry the authoring formats, and
-  governance-lint enforces the structural grammar)
-- Claude Code 2.1.139 or later with hooks enabled and the workspace
-  trust dialog accepted — `/conduct:orchestrate` drives its unattended
-  loop with the first-party
-  [`/goal`](https://code.claude.com/docs/en/goal) command
+Needs `git`, `gh` (authenticated) and `npx` on `PATH`; `vale` when a
+`.vale.ini` exists; and Claude Code 2.1.139 or later with hooks enabled
+and workspace trust accepted, which `/conduct:orchestrate` needs for its
+unattended [`/goal`](https://code.claude.com/docs/en/goal) loop.
 
 ## License
 
