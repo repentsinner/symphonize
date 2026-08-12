@@ -298,7 +298,7 @@ jobs:
 
             # Orientation headings make no claim about the system's design, so
             # they are exempt from the citation probe.
-            orientation='^(#+ )?(install(ation)?|getting started|quick start|usage|api|api reference|licen(se|sing)|licensing note|prerequisites|contributing|acknowledgements?|credits)$'
+            orientation='^(#+ )?(install(ation)?|getting started|quick start|usage|examples?|api|api reference|licen(se|sing)|licensing note|prerequisites|requirements|development|developing|building|build|testing|tests|contributing|support|security|changelog|acknowledgements?|credits|authors?)$'
 
             flush_section() {
               [ -z "$section" ] && return

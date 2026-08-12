@@ -239,6 +239,12 @@ either orientation, which needs no citation, or an assertion whose home
 is missing. It warns rather than fails because the judgement of which one
 it is belongs to an author, not a linter.
 
+Orientation is a fixed list — install, usage, examples, API, development,
+building, testing, prerequisites, contributing, support, security,
+changelog, licence, credits — because these sections tell a reader how to
+run the thing rather than what it is. A section named for the system's own
+concepts is not orientation, whatever it is called, and cites its source.
+
 *Why not require citations everywhere*: install commands, a usage
 snippet and a licence name are not claims about the system's design, and
 a reference on each would be noise that trains a reader to skip them.
