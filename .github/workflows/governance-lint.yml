@@ -1,5 +1,14 @@
 name: Governance Lint
 
+# A thin caller. Every check lives in the notation plugin's bundled
+# governance-lint script, which /notation:lint and the pre-commit hook run too
+# — one implementation, so local and CI cannot drift (SPEC §spec:governance-lint).
+#
+# This file provisions the tools the script orchestrates and nothing else. It
+# stays thin on purpose: it sits outside every release-please package path, so
+# a change here cuts no release and never reaches an adopter pinned to a
+# floating tag. Check logic belongs in plugins/notation/, which does release.
+
 on:
   workflow_call:
     inputs:
@@ -15,14 +24,24 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - name: Check out the caller's repository
+        uses: actions/checkout@v7
 
-      # Run the pinned vale binary directly. vale-cli/vale-action@v3's
-      # reviewdog bridge crashes with EPIPE on the Node 24 runner image
-      # even with zero findings; the binary's exit code is the whole
-      # gate, and linting the tree root reports every finding in the
-      # configured files, so CI matches a local `vale` run.
-      - name: Run Vale prose linter
+      # The script has to match the workflow the adopter pinned, or a caller on
+      # an old tag would run today's contract. job_workflow_sha is the commit of
+      # this reusable workflow file, which is exactly that guarantee; it is
+      # empty for a local `uses: ./…` call, where github.sha is the same tree.
+      - name: Check out the notation contract
+        uses: actions/checkout@v7
+        with:
+          repository: repentsinner/symphonize
+          ref: ${{ github.job_workflow_sha || github.sha }}
+          path: .notation-contract
+
+      # Pinned binary, fetched directly. vale-cli/vale-action@v3's reviewdog
+      # bridge crashes with EPIPE on the Node 24 runner image even with zero
+      # findings; the binary's exit code is the whole gate.
+      - name: Install Vale
         if: hashFiles('.vale.ini') != ''
         env:
           VALE_VERSION: "3.17.1"
@@ -30,332 +49,12 @@ jobs:
           curl -sfLo "$RUNNER_TEMP/vale.tar.gz" \
             "https://github.com/errata-ai/vale/releases/download/v${VALE_VERSION}/vale_${VALE_VERSION}_Linux_64-bit.tar.gz"
           tar -xzf "$RUNNER_TEMP/vale.tar.gz" -C "$RUNNER_TEMP" vale
-          "$RUNNER_TEMP/vale" --output=line .
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
 
-      - uses: DavidAnson/markdownlint-cli2-action@v24
-        with:
-          globs: |
-            **/SPEC.md
-            **/ROADMAP.md
-            **/README.md
-            **/REQUIREMENTS.md
-
-      - name: Validate SPEC.md status lines
+      - name: Run the governance contract
         run: |
-          errors=0
-          for specfile in $(find . -name 'SPEC.md' -not -path './.git/*' | sort); do
-            echo "Checking $specfile"
-            section=""
-            expect_status=false
-
-            while IFS= read -r line; do
-              if [[ "$line" =~ ^##\ [^#] ]]; then
-                if $expect_status; then
-                  echo "::error file=${specfile}::Section '$section' has no *Status: line"
-                  errors=$((errors + 1))
-                fi
-                section="$line"
-                expect_status=true
-                continue
-              fi
-
-              if $expect_status; then
-                if [[ -z "$line" ]]; then
-                  continue
-                fi
-
-                if [[ "$line" =~ ^\*Status:\ (not\ started|in\ progress|complete)\*$ ]]; then
-                  expect_status=false
-                else
-                  echo "::error file=${specfile}::Section '$section' has invalid or missing status line: $line"
-                  errors=$((errors + 1))
-                  expect_status=false
-                fi
-              fi
-            done < <(tr -d '\r' < "$specfile")
-
-            if $expect_status; then
-              echo "::error file=${specfile}::Section '$section' has no *Status: line (end of file)"
-              errors=$((errors + 1))
-            fi
-          done
-
-          if [ "$errors" -gt 0 ]; then
-            echo "$errors status-line error(s) found"
-            exit 1
-          fi
-
-          echo "All SPEC.md files have valid status lines"
-
-      - name: Validate README.md headings
-        if: inputs.readme-type != ''
-        run: |
-          if [ ! -f README.md ]; then
-            echo "::error::README.md not found"
-            exit 1
-          fi
-
-          readme_type="${{ inputs.readme-type }}"
-          errors=0
-
-          headings=$(grep -E '^## ' README.md | sed 's/^## //' | tr '[:upper:]' '[:lower:]')
-
-          check_heading() {
-            local label="$1"
-            local pattern="$2"
-            if ! echo "$headings" | grep -qxE "$pattern"; then
-              echo "::error::README.md missing required heading: $label (expected pattern: $pattern)"
-              errors=$((errors + 1))
-            fi
-          }
-
-          check_heading "License" "licen(se|sing)|licensing note"
-
-          case "$readme_type" in
-            library)
-              check_heading "Installation" "install(ation)?|getting started|quick start"
-              check_heading "Usage" "usage"
-              # API is deliberately NOT required. A README orients; it does not
-              # document. Where the surface is small or the docstrings are the
-              # authority, requiring the heading produces either a stub or a
-              # table that grows a row per symbol and goes stale — so it is
-              # recommended when the surface *is* the product (this repository's
-              # own reusable workflows) and omitted otherwise.
-              ;;
-            application)
-              check_heading "Getting Started" "quick start|getting started|install(ation)?"
-              check_heading "Usage" "usage"
-              ;;
-            *)
-              echo "::error::Unknown readme-type: $readme_type (expected 'library' or 'application')"
-              exit 1
-              ;;
-          esac
-
-          if [ "$errors" -gt 0 ]; then
-            echo "$errors README heading error(s) found"
-            exit 1
-          fi
-
-          echo "All required README headings present for type '$readme_type'"
-
-      # Heading addressing grammar (SPEC §spec:heading-addressing).
-      #
-      # A §<prefix>:slug suffix is REQUIRED on every ## heading in SPEC.md
-      # (§spec:), REQUIREMENTS.md (§req:), and ROADMAP.md (§road:). A heading
-      # deeper than ## MAY carry a slug — optional, but when present it joins
-      # the namespace. The # h1 title is exempt.
-      #
-      # The namespace is flat and unique: each slug is unique within its prefix
-      # across the governance root; a duplicate definition fails. Every
-      # §-reference resolves to exactly one defined slug (zero or multiple
-      # matches fail). Code spans and fenced blocks are exempt.
-      #
-      # Positional addressing is rejected: a heading whose text begins with a
-      # numeric ordinal hard-fails, as does any §<number> reference.
-      - name: Validate heading addressing grammar
-        run: |
-          errors=0
-          defs_file=$(mktemp)   # one "prefix:slug" per line (definitions)
-
-          # Map a governance filename to its required ## slug prefix.
-          prefix_for() {
-            case "$1" in
-              SPEC.md) echo "spec" ;;
-              REQUIREMENTS.md) echo "req" ;;
-              ROADMAP.md) echo "road" ;;
-              *) echo "" ;;
-            esac
-          }
-
-          govfiles=$(find . \( -name 'SPEC.md' -o -name 'ROADMAP.md' -o -name 'REQUIREMENTS.md' \) -not -path './.git/*' | sort)
-
-          # Pass 1 — per heading: enforce required ## slug, reject positional
-          # ordinals, and collect slug definitions (any heading depth >= ##).
-          for govfile in $govfiles; do
-            echo "Checking $govfile"
-            base=$(basename "$govfile")
-            prefix=$(prefix_for "$base")
-            [ -z "$prefix" ] && continue
-
-            lineno=0
-            in_fenced_block=false
-            while IFS= read -r line; do
-              lineno=$((lineno + 1))
-
-              if echo "$line" | grep -qE '^```'; then
-                if $in_fenced_block; then in_fenced_block=false; else in_fenced_block=true; fi
-                continue
-              fi
-              $in_fenced_block && continue
-
-              # Heading lines only (## or deeper; the # h1 title is exempt).
-              echo "$line" | grep -qE '^##+ ' || continue
-
-              # Positional addressing: heading text begins with a numeric
-              # ordinal (## 8. Machine control, ### 3.1 Foo). A topic name that
-              # merely starts with a digit (## 3D visualization) passes.
-              if echo "$line" | grep -qE '^#+ [0-9]+(\.[0-9]+)*[. ]'; then
-                echo "::error file=${govfile},line=${lineno}::Positional heading rejected (numeric ordinal): $line"
-                errors=$((errors + 1))
-              fi
-
-              # Collect any slug defined on this heading (any prefix).
-              heading_slugs=$(echo "$line" | grep -oE '§(spec|req|road):[a-z0-9-]+' || true)
-
-              # Every ## heading must carry the doc's required prefix slug.
-              if echo "$line" | grep -qE '^## '; then
-                if ! echo "$line" | grep -qE "§${prefix}:[a-z0-9-]+"; then
-                  echo "::error file=${govfile},line=${lineno}::## heading missing §${prefix}: slug: $line"
-                  errors=$((errors + 1))
-                fi
-              fi
-
-              for s in $heading_slugs; do
-                echo "${s#§}" >> "$defs_file"
-              done
-            done < <(tr -d '\r' < "$govfile")
-          done
-
-          # Uniqueness: each prefix:slug defined exactly once.
-          dupes=$(sort "$defs_file" | uniq -d)
-          if [ -n "$dupes" ]; then
-            while IFS= read -r d; do
-              [ -z "$d" ] && continue
-              echo "::error::Duplicate slug definition: §${d} (defined more than once)"
-              errors=$((errors + 1))
-            done <<< "$dupes"
-          fi
-
-          echo "Defined slugs:"
-          sort -u "$defs_file" | sed 's/^/  §/'
-
-          # Pass 2 — references: every §-reference resolves to exactly one
-          # definition; numeric references are rejected. Code spans and fenced
-          # blocks are exempt. A heading's own definition is not a reference.
-          for govfile in $govfiles; do
-            lineno=0
-            in_fenced_block=false
-            while IFS= read -r line; do
-              lineno=$((lineno + 1))
-
-              if echo "$line" | grep -qE '^```'; then
-                if $in_fenced_block; then in_fenced_block=false; else in_fenced_block=true; fi
-                continue
-              fi
-              $in_fenced_block && continue
-
-              # Strip inline code spans before scanning.
-              stripped=$(echo "$line" | sed 's/`[^`]*`//g')
-
-              # Numeric reference (§8.9, §3): positional addressing, rejected.
-              if echo "$stripped" | grep -qE '§[0-9]'; then
-                echo "::error file=${govfile},line=${lineno}::Positional reference rejected (numeric address): $line"
-                errors=$((errors + 1))
-              fi
-
-              # On a heading line, the prefix:slug pair(s) at the END are this
-              # heading's own definition(s), not references — drop them so a
-              # heading does not "reference" itself.
-              scan="$stripped"
-              if echo "$stripped" | grep -qE '^##+ '; then
-                scan=$(echo "$stripped" | sed -E 's/§(spec|req|road):[a-z0-9-]+//g')
-              fi
-
-              refs=$(echo "$scan" | grep -oE '§(spec|req|road):[a-z0-9-]+' || true)
-              [ -z "$refs" ] && continue
-
-              for ref in $refs; do
-                key="${ref#§}"
-                count=$(grep -cxF "$key" "$defs_file" || true)
-                if [ "$count" -eq 0 ]; then
-                  echo "::error file=${govfile},line=${lineno}::Dangling reference ${ref} — no matching heading"
-                  errors=$((errors + 1))
-                elif [ "$count" -gt 1 ]; then
-                  echo "::error file=${govfile},line=${lineno}::Ambiguous reference ${ref} — resolves to ${count} headings"
-                  errors=$((errors + 1))
-                fi
-              done
-            done < <(tr -d '\r' < "$govfile")
-          done
-
-          # Pass 3 — README derivability (SPEC §spec:readme-derivable).
-          #
-          # A README is derivable, not authoritative: it compresses what the
-          # governance files already say. So it may not DEFINE a slug (that is
-          # what a source of truth does), its references resolve exactly as a
-          # governance file's do, and a section carrying no reference at all is
-          # flagged — it is either orientation, which needs none, or an
-          # assertion whose home is missing. The last is a warning because only
-          # an author can tell those apart.
-          if [ -f README.md ]; then
-            echo "Checking README.md derivability"
-            lineno=0
-            in_fenced_block=false
-            section=""
-            section_line=0
-            section_refs=0
-
-            # Orientation headings make no claim about the system's design, so
-            # they are exempt from the citation probe.
-            orientation='^(#+ )?(install(ation)?|getting started|quick start|usage|examples?|api|api reference|licen(se|sing)|licensing note|prerequisites|requirements|development|developing|building|build|testing|tests|contributing|support|security|changelog|acknowledgements?|credits|authors?)$'
-
-            flush_section() {
-              [ -z "$section" ] && return
-              [ "$section_refs" -gt 0 ] && return
-              local bare
-              bare=$(echo "$section" | sed -E 's/^#+ //; s/§(spec|req|road):[a-z0-9-]+//g; s/[[:space:]]+$//' | tr '[:upper:]' '[:lower:]')
-              echo "$bare" | grep -qxE "$orientation" && return
-              echo "::warning file=README.md,line=${section_line}::Section '${bare}' cites no §reference — orientation needs none, but an assertion belongs in a governance file (§spec:readme-derivable)"
-            }
-
-            while IFS= read -r line; do
-              lineno=$((lineno + 1))
-
-              if echo "$line" | grep -qE '^```'; then
-                if $in_fenced_block; then in_fenced_block=false; else in_fenced_block=true; fi
-                continue
-              fi
-              $in_fenced_block && continue
-
-              stripped=$(echo "$line" | sed 's/`[^`]*`//g')
-
-              if echo "$stripped" | grep -qE '^## '; then
-                flush_section
-                section="$stripped"
-                section_line=$lineno
-                section_refs=0
-              fi
-
-              # A README defines nothing. A slug suffix on its heading is the
-              # README claiming to be the source of truth for that slug.
-              if echo "$stripped" | grep -qE '^#+ .*§(spec|req|road):[a-z0-9-]+[[:space:]]*$'; then
-                echo "::error file=README.md,line=${lineno}::README defines §slug — a README is derivable, not authoritative (§spec:readme-derivable): $line"
-                errors=$((errors + 1))
-                continue
-              fi
-
-              for ref in $(echo "$stripped" | grep -oE '§(spec|req|road):[a-z0-9-]+' || true); do
-                section_refs=$((section_refs + 1))
-                key="${ref#§}"
-                count=$(grep -cxF "$key" "$defs_file" || true)
-                if [ "$count" -eq 0 ]; then
-                  echo "::error file=README.md,line=${lineno}::Dangling reference ${ref} — no matching heading"
-                  errors=$((errors + 1))
-                elif [ "$count" -gt 1 ]; then
-                  echo "::error file=README.md,line=${lineno}::Ambiguous reference ${ref} — resolves to ${count} headings"
-                  errors=$((errors + 1))
-                fi
-              done
-            done < <(tr -d '\r' < README.md)
-            flush_section
-          fi
-
-          rm -f "$defs_file"
-
-          if [ "$errors" -gt 0 ]; then
-            echo "$errors heading-addressing error(s) found"
-            exit 1
-          fi
-
-          echo "Heading addressing grammar valid"
+          .notation-contract/plugins/notation/scripts/governance-lint.sh \
+            --readme-type "${README_TYPE}" \
+            --require-tools
+        env:
+          README_TYPE: ${{ inputs.readme-type }}
