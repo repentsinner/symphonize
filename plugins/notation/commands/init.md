@@ -159,6 +159,11 @@ Create under `.github/workflows/`:
   Ask the user whether their project is a `library` or `application`
   and set `readme-type` accordingly. Leave empty if they decline.
 
+  Either type requires only Installation/Getting started, Usage and
+  License headings. The profile is deliberately small: a README is an
+  executive summary, and the surface, the source tour and the design
+  rationale each have a better home (SPEC §spec:readme-profile).
+
   Pin the `@notation--v0` floating major tag: `governance-lint.yml`
   belongs to the notation plugin, whose coordinated version line is
   pre-1.0, so the adopter-facing major ref is `notation--v0` (not `v1`).

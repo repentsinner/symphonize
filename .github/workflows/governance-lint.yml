@@ -115,7 +115,12 @@ jobs:
             library)
               check_heading "Installation" "install(ation)?|getting started|quick start"
               check_heading "Usage" "usage"
-              check_heading "API" "api|api reference"
+              # API is deliberately NOT required. A README orients; it does not
+              # document. Where the surface is small or the docstrings are the
+              # authority, requiring the heading produces either a stub or a
+              # table that grows a row per symbol and goes stale — so it is
+              # recommended when the surface *is* the product (this repository's
+              # own reusable workflows) and omitted otherwise.
               ;;
             application)
               check_heading "Getting Started" "quick start|getting started|install(ation)?"

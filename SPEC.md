@@ -145,6 +145,51 @@ Reusable workflow accepting a `readme-type` input (string:
 SPEC.md status-line validation, and optional README heading
 checks. Errors surface as GitHub annotations.
 
+### README profile §spec:readme-profile
+
+**A README is an executive summary, not a manual.** It answers what this
+is, where it sits among its neighbours, and how to start — for a reader
+deciding whether to keep reading. Everything else has a better home, and
+the profile is built to keep it there.
+
+Required headings, by type:
+
+| Type | Required |
+| --- | --- |
+| `library` | Installation (or Getting started / Quick start), Usage, License |
+| `application` | Getting started (or Quick start / Installation), Usage, License |
+
+Recommended, in this order: what it is in a sentence or two; pointers to
+the governance files; where it sits in its layer stack, as a table when
+it has siblings; what it deliberately is *not*, where a reader would
+otherwise assume; the constraint that shapes it (a licence, a privacy
+requirement); install; one minimal example; pointers to the runnable
+ones.
+
+What belongs elsewhere, and where:
+
+| Not in the README | Its home |
+| --- | --- |
+| The API surface, symbol by symbol | Docstrings — `help(pkg)` is the index |
+| A tour of the source tree | The source tree |
+| Host prerequisites and their remedies | The diagnostic that checks them |
+| Every flag of a script | The script's own `--help` and comments |
+| Design rationale | SPEC.md |
+| What is not built yet | ROADMAP.md |
+
+*Why API is recommended rather than required*: a heading a linter demands
+gets filled whether or not it earns its place, and the filling is either
+a stub or a table with a row per symbol — which goes stale on the first
+rename and duplicates the docstrings that cannot. Require it and every
+library README trends toward a manual. Include it where the surface *is*
+the product, as this repository's reusable workflows are.
+
+*Why the layer stack is recommended at all*: a repository that sits
+between two others is the one most often misread, and the misreading is
+expensive — a consumer wires to the wrong seam, or a maintainer lands
+work in the repository whose licence cannot carry it. One table at the
+top costs six lines and prevents both.
+
 ### release-please.yml
 
 Template workflow for release-please-action@v5. Target projects
