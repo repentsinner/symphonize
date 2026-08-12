@@ -31,16 +31,17 @@ recommending the upstream command for large ones.
 
 Namespaced slugs (`§req:`, `§spec:`, `§road:`) carry references between
 the files, and `governance-lint` fails a dangling one. They live in the
-repo rather than in Issues because a file is one tool call rather than a
-paginated API, and because the spec that was true when a commit was made
-stays visible in that commit's checkout — at the cost of labels,
-milestones and browser-friendly triage.
+repository rather than in Issues because a file is one tool call where an
+issue is an API round trip, and because the spec that was true when a
+commit was made stays visible in that commit's checkout — at the cost of
+labels, milestones and browser-friendly triage (§spec:governance-in-repo).
 
 ## Plugins
 
 Four plugins, named for a score-and-performance metaphor: a composer
 writes the score in a shared **notation**, a **conductor** performs it,
-and **symphonize** is the whole work.
+and **symphonize** is the whole work (§spec:governance-schema,
+§req:modular-adoption).
 
 ```text
             ┌──► compose ──┐
@@ -80,20 +81,19 @@ Each command resolves under its plugin namespace.
 
 ## What it expects of your repo
 
-Symphonize is opinionated and works poorly without these:
+Symphonize is opinionated and works poorly without these (§req:constraints):
 
 - **[Conventional Commits](https://www.conventionalcommits.org/)**, feeding
   [release-please](https://github.com/googleapis/release-please) (or
   [melos](https://melos.invertase.dev/) for monorepos) for semver releases.
 - **[Trunk-based development](https://trunkbaseddevelopment.com/)** with
-  branch protection — work never lands on main directly. Short-lived
+  branch protection — work never lands on the trunk directly. Short-lived
   feature branches per unit of work, created by `/conduct:next` as
   worktrees and pruned by `/conduct:clean`.
 - **An authenticated `gh` CLI**, which is how push and PR creation happen.
 
-Execution follows suit: one PR per batch for a single review surface, and
-CI after each cherry-pick rather than only at the end, so a batch fails on
-the commit that broke it.
+Execution follows suit: every batch ends in one reviewable PR or an
+explicit failure, never a silent no-op (§spec:batch-delivery).
 
 ## API
 

@@ -120,6 +120,10 @@ not an active requirement.
   feature, feedback) guide submitters to provide actionable detail
   at filing time, reducing triage effort. `/feedback` handles the
   Claude Code side; templates handle the GitHub web UI side.
+- **Branch protection on the trunk** — work never lands on the trunk
+  directly. Every change flows through a short-lived feature branch and a
+  PR that CI gates, which is what makes a batch reviewable rather than
+  merely finished (§spec:batch-delivery).
 - **Trunk-based / GitHub Flow only** — symphonize works on a single
   integration trunk (the repository's default branch,
   §spec:integration-ref): short-lived feature branches fork from it and
