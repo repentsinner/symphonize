@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.7](https://github.com/repentsinner/symphonize/compare/notation--v0.2.6...notation--v0.2.7) (2026-08-28)
+
+
+### Features
+
+* **notation:** bundle the governance contract as one script ([#209](https://github.com/repentsinner/symphonize/issues/209)) ([a94b9ba](https://github.com/repentsinner/symphonize/commit/a94b9ba5d24cba7a30e84f63a9b6d14af3153b5a))
+
 ## [0.2.6](https://github.com/repentsinner/symphonize/compare/notation--v0.2.5...notation--v0.2.6) (2026-08-05)
 
 
