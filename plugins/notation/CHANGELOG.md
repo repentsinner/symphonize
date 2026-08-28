@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.8](https://github.com/repentsinner/symphonize/compare/notation--v0.2.7...notation--v0.2.8) (2026-08-28)
+
+
+### Bug Fixes
+
+* **ci:** resolve the contract ref from the job context ([#215](https://github.com/repentsinner/symphonize/issues/215)) ([92c23f1](https://github.com/repentsinner/symphonize/commit/92c23f13ee5b54ac10ec4c29629c48f334c452c0))
+
 ## [0.2.7](https://github.com/repentsinner/symphonize/compare/notation--v0.2.6...notation--v0.2.7) (2026-08-28)
 
 
