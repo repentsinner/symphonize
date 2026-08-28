@@ -369,8 +369,9 @@ should carry both:
 *Why a gate rather than a convention*: the failure is silent in the
 direction that hurts. A malformed title does not fail the release — it
 produces no release at all, reported as success, and the change never
-reaches an adopter pinned to a floating major tag. Symphonize lost PR
-#207's release this way, and noticed only when the tag failed to move.
+reaches an adopter pinned to a floating major tag. Symphonize lost
+PR #207's release this way, and noticed only when the tag failed to
+move.
 Flywheel gates the title itself (§spec:release-automation-options);
 release-please and manual releases need the check supplied.
 
