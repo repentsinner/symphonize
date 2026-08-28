@@ -125,3 +125,37 @@ delivered PR updates README.md alongside SPEC.md and ROADMAP.md, and
 that the README's claim matches the rewritten section. Run a batch
 touching no README-derived claim and confirm it adds no README churn.
 Governance-lint passes.
+
+## Bundled governance-lint adoption §road:bundled-lint-adoption
+
+The contract now has one executable form — `plugins/notation/scripts/`
+— which CI and `/notation:lint` both run (§spec:governance-lint). Two
+consumers of the old arrangement have yet to move to it.
+
+### Run the bundled script from the pre-commit hook §road:hook-runs-bundled-script
+
+The hook `/notation:init` scaffolds still calls `npx markdownlint-cli2`
+against a hardcoded file list, so it checks formatting where the script
+checks the contract, and it holds a second copy of the file globs to
+drift from. Point it at the bundled script instead, keeping the hook's
+degradation contract: skip silently when the script is unreachable, and
+never block a commit on an absent optional tool. §spec:governance-lint
+
+**Verify:** In a repo scaffolded by `/notation:init`, commit a SPEC.md
+section with no `*Status:*` line and confirm the hook reports it — the
+old hook could not. Uninstall the plugin, commit again, and confirm the
+hook degrades quietly rather than failing. Governance-lint passes.
+
+### CHANGELOG structure check §road:changelog-structure
+
+§spec:governance-lint names CHANGELOG.md structure as part of the
+contract, and the script does not implement it: no consumer checks that
+`[Unreleased]` is present or that releases read as Keep a Changelog.
+Add it to the script, gated on CHANGELOG.md existing, so a repo without
+one stays clean. §spec:governance-lint
+
+**Verify:** Run the script against a repo whose CHANGELOG.md has lost
+its `[Unreleased]` section and confirm it reports the omission; against
+symphonize's own, confirm it passes; against a repo with no
+CHANGELOG.md, confirm the check skips rather than failing.
+Governance-lint passes.

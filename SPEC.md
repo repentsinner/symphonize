@@ -27,7 +27,7 @@ grouped here by plugin:
 `/symphonize:yolo`, the full-pipeline one-shot, is planned — §spec:yolo-mode.
 
 ## Governance lint command §spec:governance-lint
-*Status: not started*
+*Status: in progress*
 
 The governance contract — markdownlint formatting, SPEC `*Status:*` lines,
 `§spec:`/`§road:`/`§req:` slug grammar and reference resolution, Vale prose
@@ -67,6 +67,18 @@ project-owned artifact that drifts (§spec:scaffold-freshness). For workflow
 templates that divergence is intended; for the contract's own logic it is the
 defect — a stale local copy silently disagreeing with CI is exactly the
 local/CI split #115 reports.
+
+**Why the logic cannot stay in the workflow file:** releases are cut per
+package, and every package is a directory under `plugins/`. A reusable workflow
+has to live in `.github/workflows/`, which is inside none of them, so a commit
+touching only that file changes no package and cuts no release — and the
+floating major tag adopters pin never advances to include it. PR #208 fixed a
+real defect in the inline checks and remains unreachable for that reason. Logic
+in `plugins/notation/` releases normally; the workflow left behind provisions
+tools and calls the script, so it rarely changes and its immobility stops
+mattering. The workflow checks the script out at `job_workflow_sha`, the commit
+of the reusable workflow itself, so a caller pinned to an old tag runs that
+tag's contract rather than today's.
 
 **Why the hook stays thin:** commit time is the wrong place to require Node,
 Vale, and a shell all be present; a hook that hard-fails on a missing optional

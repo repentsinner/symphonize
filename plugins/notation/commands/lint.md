@@ -17,29 +17,34 @@ Resolve the governance root before globbing for governance files:
 
 ## Procedure
 
-1. From the repository root, glob for governance files:
-   `**/SPEC.md **/ROADMAP.md **/README.md **/REQUIREMENTS.md **/CHANGELOG.md`
-2. Run `npx markdownlint-cli2` against all matched files.
-3. Report the results.
+1. From the governance root, run the bundled contract script:
+   `scripts/governance-lint.sh --readme-type <library|application>`
+   It lives beside this command in the notation plugin. Omit
+   `--readme-type` when the project has not chosen a profile.
+2. Report its output.
 
-Do not interpret or reimplement lint rules yourself — run the tool
-and report its output.
+Do not interpret or reimplement lint rules yourself — run the script
+and report what it says.
 
-**Contract ownership:** notation owns the governance contract. Its
-executable form is the reusable `governance-lint.yml` workflow
-(`.github/workflows/`) — what the linter checks *is* the contract.
+**Contract ownership:** notation owns the governance contract, and
+`scripts/governance-lint.sh` is its one executable form. CI's reusable
+`governance-lint.yml` runs the same script, so what passes here is what
+passes there (§spec:governance-lint).
 
-**Scope difference:** this command runs markdownlint only — it checks
-markdown formatting (heading structure, line length, etc.). The CI
-workflow `governance-lint.yml` runs markdownlint plus the rest of the
-notation contract: SPEC.md status lines; a `§spec:`/`§road:`/`§req:`
-slug suffix on every `##` heading (deeper headings may carry one); a
-flat, unique slug namespace (a duplicate slug definition fails); every
-`§`-reference resolving to exactly one defined slug (code spans and
-fenced blocks exempt; zero or multiple matches fail); rejection of
-positional addressing (a heading beginning with a numeric ordinal, or
-any `§<number>` reference, hard-fails); CHANGELOG.md structure; and
-README heading checks. To get the full validation suite, push and let
-CI run, or inspect `governance-lint.yml` directly.
+**What it checks:** Vale prose rules; markdownlint formatting; SPEC.md
+status lines; a `§spec:`/`§road:`/`§req:` slug suffix on every `##`
+heading (deeper headings may carry one); a flat, unique slug namespace
+(a duplicate definition fails); every `§`-reference resolving to exactly
+one defined slug (code spans and fenced blocks exempt; zero or multiple
+matches fail); rejection of positional addressing (a heading beginning
+with a numeric ordinal, or any `§<number>` reference); the README
+heading profile; and README derivability (§spec:readme-derivable).
+
+**Local runs are a subset, and say so.** Vale and markdownlint need
+tools a contributor may not have installed. When one is absent the
+script skips that check with a notice and runs the rest — it never
+reports clean on a check it did not run. CI passes `--require-tools`,
+which turns absence into a failure, so CI runs the whole contract
+unconditionally.
 
 $1
