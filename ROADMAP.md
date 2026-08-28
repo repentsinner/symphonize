@@ -1,30 +1,5 @@
 # symphonize — Roadmap
 
-## Prose-linting scope alignment §road:prose-linting-scope
-
-### Align modal-verb guidance with document-wide Vale rule §road:modal-verb-scope
-
-The writing guidance in `plugins/compose/commands/plan.md` and
-`plugins/compose/commands/discover.md` scopes `shall` to *criteria*
-only, while the `/notation:init`-scaffolded Vale rule
-(`styles/Requirements/MustDeprecated.yml`) flags `must` document-wide
-at error level. `/discover` and `/plan` write idiomatic narrative
-`must`, which is green locally (the governance-lint script skips
-Vale) but fails CI. Broaden the modal-verb guidance in both commands
-to steer *all* SPEC.md / REQUIREMENTS.md prose — narrative included —
-away from `must`/`will`, and reconcile the README claim
-(README.md:126) with the document-wide scope. Reported in #131.
-§spec:prose-linting
-
-**Verify:** In a project scaffolded by `/notation:init`, run
-`/compose:discover` and `/compose:plan` to produce REQUIREMENTS.md /
-SPEC.md containing narrative that would idiomatically use `must`.
-Confirm the generated prose uses `shall`/`should` (or rephrases) and
-that `vale SPEC.md REQUIREMENTS.md` reports zero
-`Requirements.MustDeprecated` errors. Confirm `plan.md`,
-`discover.md`, and §spec:prose-linting agree that modal discipline
-is document-wide. Governance-lint passes.
-
 ## Batch delivery branch-type inference §road:batch-branch-type
 
 ### Infer delivered branch and PR title type from batch commits §road:batch-delivery-type-inference
@@ -65,43 +40,6 @@ next release PR picks up the commits. In a manual repo — confirm it checks
 CHANGELOG.md `[Unreleased]` and reminds to tag. The check reads repo state
 and does not invoke the release tool. Governance-lint passes.
 
-
-## Prose style modularization §road:prose-style-modularity
-
-### Extract the shared prose contract into a canonical fragment §road:prose-style-fragment
-
-The writing guidance that shapes generated governance prose is restated
-across five files with no drift guard: the spec-compression thumb
-heuristic appears in `plugins/compose/commands/plan.md`,
-`plugins/conduct/commands/clean.md`, and
-`plugins/conduct/protocols/batch-agent.md`, while mood and modal-verb
-rules are split across `plan.md`, `roadmap.md`, and `discover.md`. Add
-`fragments/prose-style.md` stating the contract once — declarative mood
-for SPEC.md, imperative for ROADMAP.md, IEEE modals document-wide,
-filler-phrase and compression rules with their sources — and register
-each consumer in the `CONSUMERS` array of `tools/assemble-fragments.sh`.
-Depends on §road:modal-verb-scope; the fragment is where its broadened
-modal rule lands. §spec:prose-linting §spec:governance-consistency
-
-### Ship the Vale styles as notation templates §road:vale-style-templates
-
-`plugins/notation/commands/init.md` inlines all four
-`styles/Requirements/*.yml` rule bodies as literal code blocks — the one
-duplicated artifact `tools/assemble-fragments.sh` does not guard, so a
-rule edited in `styles/` leaves the scaffolder handing adopters a stale
-copy. Move the canonical files into `plugins/notation/templates/vale/`,
-register them in the script's `COPIES` array alongside the
-release-please workflows, and reduce init.md to a directory copy plus
-the rationale for each rule. §spec:scaffold-freshness
-§spec:plugin-packaging
-
-**Verify:** Run `tools/assemble-fragments.sh` twice — the second run
-produces no diff. Confirm the thumb heuristic and the modal-verb rule
-appear only inside assembled regions and the fragment itself. Edit a
-rule in `styles/Requirements/`, run the script without committing, and
-confirm `git diff --exit-code` fails on the notation template. Scaffold
-a fresh project with `/notation:init` and confirm `vale` runs against
-the copied styles. Governance-lint passes.
 
 ## README freshness in the execution loop §road:readme-freshness
 

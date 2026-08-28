@@ -50,6 +50,49 @@ References: Cockburn, *Crystal Clear* (2004) — walking skeleton;
 Wake, "INVEST in Good Stories" (2003) — the "V" is Valuable;
 Cockburn, "Elephant Carpaccio" exercise — thin vertical slicing.
 
+## Prose style
+
+Every governance document this command writes is held to one standard.
+The scaffolded Vale style enforces the mechanical half; the rest is
+judgement.
+
+<!-- assembled:prose-style -->
+**Modal verbs, document-wide.** `shall` marks a requirement, `should` a
+recommendation, `may` permission (IEEE SA Standards Style Manual).
+`Must` and `will` are deprecated, and the scaffolded Vale style flags
+them in *any* sentence of SPEC.md or REQUIREMENTS.md — narrative,
+rationale and problem statements included, not criteria alone. Vale
+matches per sentence and cannot tell a requirement line from a narrative
+one, so the guidance matches the rule's reach rather than fighting it.
+Prefer rephrasing to substitution: "the adopter re-maps each header"
+beats "the adopter shall re-map each header" where nothing is required.
+
+**Omit needless words.** Cut adverbs, qualifiers and hedges — `very`,
+`really`, `basically`, `simply`, `just`. One idea per sentence. Prefer
+the concrete noun and the active verb: "returns null", not "may
+potentially result in an empty value."
+
+**Filler phrases fail the linter.** `it should be noted that`, `in order
+to` (use "to"), `due to the fact that` (use "because"), `it is important
+to note`, `at this point in time`, `for the purpose of`.
+
+**One term per concept.** Pick one of check / verify / confirm /
+validate, one of config / settings, and hold it for the whole document.
+Terseness rules cannot catch synonym rotation — every one of those words
+is equally short.
+
+**Condition before command.** "If the build fails, read the log" — not
+the reverse.
+
+**No self-evident commentary.** Do not assert that something is novel,
+important or interesting. If it is, the reader notices.
+
+References: IEEE SA Standards Style Manual — modal verbs; Strunk &
+White, *The Elements of Style* — Rule 17, "omit needless words";
+Heiser, "Notes on Writing" — gainful compression; Google Developer
+Documentation Style Guide — tone and voice.
+<!-- /assembled:prose-style -->
+
 ## Spec format
 
 SPEC.md is declarative: it describes the desired end state of the system,
@@ -72,7 +115,7 @@ Rules:
 - Write each criterion as observable behavior: "the system shall…" or
   "when X, the system shall Y." Model after EARS for structure, but
   don't force every line into rigid templates.
-- Criteria must remain valid after implementation. If a criterion becomes
+- Criteria stay valid after implementation. If a criterion becomes
   nonsensical once the work is complete, it belongs in a commit message,
   not a spec.
 - No implementation details. The spec survives if you swap the underlying
@@ -105,28 +148,23 @@ of the running system and a record of design rationale.
 When a spec section reaches `complete`, compress it. The section shifts
 from guiding implementation to documenting the running system.
 
-**Retain**:
+<!-- assembled:spec-compression -->
+**Retain** — design rationale (constraints, tradeoffs, rejected
+alternatives), expensive to reconstruct and the thing that prevents
+re-litigation; observable behavior a reviewer can check against the
+running system; state machines and transition tables; cross-references
+to other sections.
 
-- Design rationale ("Why X"): constraints, tradeoffs, rejected
-  alternatives. Expensive to reconstruct; prevents re-litigation.
-- Observable behavior: verifiable statements a reviewer can check
-  against the running system.
-- State machines and transition tables: compact, high-signal.
-- Cross-references to other spec sections.
+**Remove** — wire formats, protocol tables and command byte values
+(point to the protocol's own documentation); algorithm pseudocode and
+step-by-step detail (the code owns *how*, the spec owns *what* and
+*why*); edge cases obvious from the implementation or its tests;
+`shall` language that restates what the code does without adding
+rationale.
 
-**Remove**:
-
-- Protocol byte values, command tables, wire formats: reference material
-  for the underlying protocol, not spec. Replace with a pointer to the
-  protocol's own documentation.
-- Algorithm pseudocode and step-by-step implementation detail: the code
-  is the source of truth for *how*. The spec owns *what* and *why*.
-- Enumerated edge cases obvious from the implementation or tests.
-- "Shall" language that restates what the code does without adding
-  rationale.
-
-**Heuristic**: cover a paragraph with your thumb. If the section's
+**Heuristic** — cover a paragraph with your thumb. If the section's
 design intent survives, cut it. If the *why* disappears, keep it.
+<!-- /assembled:spec-compression -->
 
 ## Phase 1: Check upstream
 

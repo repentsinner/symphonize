@@ -8,8 +8,9 @@
 # source and writes it into every consumer between marker comments.
 #
 # CONSUMERS syncs marked regions; COPIES syncs whole files — the
-# release-please scaffold templates, whose canonical source is symphonize's
-# own dogfooded .github/workflows/* (SPEC §spec:scaffold-freshness).
+# release-please scaffold templates and the Vale prose styles, whose canonical
+# source is symphonize's own dogfooded .github/workflows/*, .vale.ini and
+# styles/ (SPEC §spec:scaffold-freshness).
 #
 # Idempotent: running it when everything is in sync produces no changes.
 # CI runs it then `git diff --exit-code` to fail on drift (see
@@ -35,6 +36,12 @@ CONSUMERS=(
   "governance-root|plugins/conduct/commands/next.md"
   "governance-root|plugins/notation/commands/lint.md"
   "governance-root|plugins/conduct/commands/clean.md"
+  "prose-style|plugins/compose/commands/discover.md"
+  "prose-style|plugins/compose/commands/plan.md"
+  "prose-style|plugins/compose/commands/roadmap.md"
+  "spec-compression|plugins/compose/commands/plan.md"
+  "spec-compression|plugins/conduct/commands/clean.md"
+  "spec-compression|plugins/conduct/protocols/batch-agent.md"
 )
 
 # Whole-file copy registry: "canonical/source|plugin/destination".
@@ -43,6 +50,11 @@ CONSUMERS=(
 COPIES=(
   ".github/workflows/release-please.yml|plugins/notation/templates/release-please/release-please.yml"
   ".github/workflows/auto-merge-release.yml|plugins/notation/templates/release-please/auto-merge-release.yml"
+  ".vale.ini|plugins/notation/templates/vale/.vale.ini"
+  "styles/Requirements/FillerPhrases.yml|plugins/notation/templates/vale/styles/Requirements/FillerPhrases.yml"
+  "styles/Requirements/MustDeprecated.yml|plugins/notation/templates/vale/styles/Requirements/MustDeprecated.yml"
+  "styles/Requirements/OrdinalHeadings.yml|plugins/notation/templates/vale/styles/Requirements/OrdinalHeadings.yml"
+  "styles/Requirements/WillDeprecated.yml|plugins/notation/templates/vale/styles/Requirements/WillDeprecated.yml"
 )
 
 # assemble FRAGMENT_NAME TARGET_FILE
