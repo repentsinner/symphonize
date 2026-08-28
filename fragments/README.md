@@ -17,6 +17,18 @@ every consumer, and CI fails when a committed copy drifts.
   from CWD to the nearest ancestor containing SPEC.md; fall back to the repo
   root). Consumed by `compose` (`discover`, `plan`, `roadmap`) and `conduct`
   (`next`).
+- **prose-style.md** — the writing contract every governance document is held
+  to: IEEE modal verbs document-wide, filler phrases, terseness and term
+  discipline, with sources. Consumed by the commands that write governance
+  prose — `compose` (`discover`, `plan`, `roadmap`).
+- **spec-compression.md** — what a completed spec section retains and removes,
+  and the thumb heuristic. Consumed by `compose` (`plan`) and `conduct`
+  (`clean`, `batch-agent`).
+
+Mood is deliberately *not* in `prose-style.md`. SPEC.md is declarative,
+ROADMAP.md imperative, REQUIREMENTS.md the user's language — that is the one
+rule which legitimately differs per document, so each command states its own
+in the format section outside the markers.
 
 ## Markers
 
