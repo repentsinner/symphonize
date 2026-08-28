@@ -89,10 +89,13 @@ the reverse.
 **No self-evident commentary.** Do not assert that something is novel,
 important or interesting. If it is, the reader notices.
 
-References: IEEE SA Standards Style Manual — modal verbs; Strunk &
-White, *The Elements of Style* — Rule 17, "omit needless words";
-Heiser, "Notes on Writing" — gainful compression; Google Developer
-Documentation Style Guide — tone and voice.
+These rules derive from Strunk & White, *The Elements of Style* —
+Rule 17, "omit needless words"; the Google Developer Documentation
+Style Guide (<https://developers.google.com/style>) — tone, voice and
+conciseness; Gernot Heiser, "Notes on Writing"
+(<https://gernot-heiser.org/style-guide.html>) — gainful compression
+and passive-voice limits; and the IEEE SA Standards Style Manual —
+modal verbs.
 <!-- /assembled:prose-style -->
 
 ## Roadmap format
