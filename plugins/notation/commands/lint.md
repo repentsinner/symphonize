@@ -31,6 +31,14 @@ and report what it says.
 `governance-lint.yml` runs the same script, so what passes here is what
 passes there (§spec:governance-lint).
 
+**Which contract CI runs:** the version the caller pinned, not this
+repository's trunk. The reusable workflow checks the script out at
+`job.workflow_sha` — the commit of the workflow file the caller
+referenced — so a project on `@notation--v0.2.6` is held to that
+release's contract and a rule added later cannot fail its build until
+it moves the pin. Locally you run whatever version of the plugin is
+installed, so a local pass predicts CI only when the two agree.
+
 **What it checks:** Vale prose rules; markdownlint formatting; SPEC.md
 status lines; a `§spec:`/`§road:`/`§req:` slug suffix on every `##`
 heading (deeper headings may carry one); a flat, unique slug namespace
