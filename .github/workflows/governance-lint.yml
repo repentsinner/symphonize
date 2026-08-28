@@ -38,6 +38,14 @@ jobs:
           ref: ${{ github.job_workflow_sha || github.sha }}
           path: .notation-contract
 
+      # actions/checkout refuses a path outside the workspace, so the contract
+      # lands in the tree being linted and the script counts its governance
+      # files as a second copy of the caller's — every slug duplicated, every
+      # reference ambiguous. Move it out before anything walks the tree; the
+      # workspace the script sees is then exactly the caller's repository.
+      - name: Move the contract out of the linted tree
+        run: mv .notation-contract "$RUNNER_TEMP/notation-contract"
+
       # Pinned binary, fetched directly. vale-cli/vale-action@v3's reviewdog
       # bridge crashes with EPIPE on the Node 24 runner image even with zero
       # findings; the binary's exit code is the whole gate.
@@ -53,7 +61,7 @@ jobs:
 
       - name: Run the governance contract
         run: |
-          .notation-contract/plugins/notation/scripts/governance-lint.sh \
+          "$RUNNER_TEMP/notation-contract/plugins/notation/scripts/governance-lint.sh" \
             --readme-type "${README_TYPE}" \
             --require-tools
         env:
