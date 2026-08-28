@@ -65,3 +65,63 @@ next release PR picks up the commits. In a manual repo — confirm it checks
 CHANGELOG.md `[Unreleased]` and reminds to tag. The check reads repo state
 and does not invoke the release tool. Governance-lint passes.
 
+
+## Prose style modularization §road:prose-style-modularity
+
+### Extract the shared prose contract into a canonical fragment §road:prose-style-fragment
+
+The writing guidance that shapes generated governance prose is restated
+across five files with no drift guard: the spec-compression thumb
+heuristic appears in `plugins/compose/commands/plan.md`,
+`plugins/conduct/commands/clean.md`, and
+`plugins/conduct/protocols/batch-agent.md`, while mood and modal-verb
+rules are split across `plan.md`, `roadmap.md`, and `discover.md`. Add
+`fragments/prose-style.md` stating the contract once — declarative mood
+for SPEC.md, imperative for ROADMAP.md, IEEE modals document-wide,
+filler-phrase and compression rules with their sources — and register
+each consumer in the `CONSUMERS` array of `tools/assemble-fragments.sh`.
+Depends on §road:modal-verb-scope; the fragment is where its broadened
+modal rule lands. §spec:prose-linting §spec:governance-consistency
+
+### Ship the Vale styles as notation templates §road:vale-style-templates
+
+`plugins/notation/commands/init.md` inlines all four
+`styles/Requirements/*.yml` rule bodies as literal code blocks — the one
+duplicated artifact `tools/assemble-fragments.sh` does not guard, so a
+rule edited in `styles/` leaves the scaffolder handing adopters a stale
+copy. Move the canonical files into `plugins/notation/templates/vale/`,
+register them in the script's `COPIES` array alongside the
+release-please workflows, and reduce init.md to a directory copy plus
+the rationale for each rule. §spec:scaffold-freshness
+§spec:plugin-packaging
+
+**Verify:** Run `tools/assemble-fragments.sh` twice — the second run
+produces no diff. Confirm the thumb heuristic and the modal-verb rule
+appear only inside assembled regions and the fragment itself. Edit a
+rule in `styles/Requirements/`, run the script without committing, and
+confirm `git diff --exit-code` fails on the notation template. Scaffold
+a fresh project with `/notation:init` and confirm `vale` runs against
+the copied styles. Governance-lint passes.
+
+## README freshness in the execution loop §road:readme-freshness
+
+### Reconcile README.md when a batch changes governance §road:batch-readme-refresh
+
+The batch agent updates ROADMAP.md and SPEC.md status lines as it
+delivers (`plugins/conduct/protocols/batch-agent.md`, delivery phase)
+and `plugins/conduct/commands/next.md` removes shipped workstreams, but
+nothing revisits README.md — so its compression of the governance files
+decays silently. Governance-lint catches only the loud half: a deleted
+spec section leaves a dangling `§` reference and hard-fails, while a
+section rewritten under the same slug leaves the README's summary of it
+wrong and every check green. Add a README-reconciliation step to the
+batch agent's delivery phase and to `next.md`: for each governance
+section the batch touched, confirm the README's derived claims still
+hold and correct them in the governance commit. §spec:readme-derivable
+
+**Verify:** Run `/conduct:next` on a workstream that rewrites a SPEC
+section the README summarizes without changing its slug. Confirm the
+delivered PR updates README.md alongside SPEC.md and ROADMAP.md, and
+that the README's claim matches the rewritten section. Run a batch
+touching no README-derived claim and confirm it adds no README churn.
+Governance-lint passes.
