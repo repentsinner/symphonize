@@ -367,6 +367,26 @@ It then scaffolds only missing files. Switching tools requires removing
 the old config first; symphonize does not migrate one tool's state to
 another.
 
+### The squash subject is the release input
+
+Every supported option reads conventional commits off the trunk, so under
+squash merging the PR title becomes the only input a release sees. Two
+settings make that safe, and a repository adopting any of the three
+should carry both:
+
+- The squash commit message defaults to **the pull request title**, not
+  GitHub's generated "Branch name (#123)".
+- CI rejects a PR title that is not a conventional commit.
+
+*Why a gate rather than a convention*: the failure is silent in the
+direction that hurts. A malformed title does not fail the release — it
+produces no release at all, reported as success, and the change never
+reaches an adopter pinned to a floating major tag. Symphonize lost
+PR #207's release this way, and noticed only when the tag failed to
+move.
+Flywheel gates the title itself (§spec:release-automation-options);
+release-please and manual releases need the check supplied.
+
 ### Clean integration
 
 `/conduct:clean` reads the same signals to choose its advisory
