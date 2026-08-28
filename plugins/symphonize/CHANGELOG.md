@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.7](https://github.com/repentsinner/symphonize/compare/symphonize--v0.2.6...symphonize--v0.2.7) (2026-08-28)
+
+
+### Miscellaneous Chores
+
+* **symphonize:** Synchronize symphonize-plugins versions
+
 ## [0.2.6](https://github.com/repentsinner/symphonize/compare/symphonize--v0.2.5...symphonize--v0.2.6) (2026-08-05)
 
 
