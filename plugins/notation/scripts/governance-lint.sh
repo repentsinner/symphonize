@@ -214,175 +214,283 @@ fi
 # reference resolves to exactly one definition, and positional addressing is
 # rejected. Code spans and fenced blocks are exempt.
 section "Heading addressing grammar"
-defs_file=$(mktemp)
+parser_files=()
+while IFS= read -r govfile; do
+  [ -n "$govfile" ] && parser_files+=("$govfile")
+done <<< "$govfiles"
+[ -f README.md ] && parser_files+=("README.md")
 
-prefix_for() {
-  case "$1" in
-    SPEC.md) echo "spec" ;;
-    REQUIREMENTS.md) echo "req" ;;
-    ROADMAP.md) echo "road" ;;
-    *) echo "" ;;
-  esac
-}
+# The unit separator keeps tabs in Markdown lines inside one parser record.
+unit_separator=$(printf '\034')
+parser_output=""
+parser_status=0
+if [ "${#parser_files[@]}" -gt 0 ]; then
+  parser_output="$(
+    awk '
+      BEGIN {
+        us = sprintf("%c", 28)
+        for (i = 1; i < ARGC; i++) {
+          if (ARGV[i] != "") files[++file_total] = ARGV[i]
+        }
+      }
 
-# Pass 1 — required slugs, positional rejection, definition collection.
-for govfile in $govfiles; do
-  echo "  checking $govfile"
-  base=$(basename "$govfile")
-  prefix=$(prefix_for "$base")
-  [ -z "$prefix" ] && continue
+      function emit_check(file) {
+        printf "C%c%s\n", us, file
+      }
 
-  lineno=0
-  in_fenced_block=false
-  while IFS= read -r line; do
-    lineno=$((lineno + 1))
+      function emit_finding(level, file, line, message) {
+        printf "F%c%s%c%s%c%s%c%s\n", us, level, us, file, us, line, us, message
+      }
 
-    if echo "$line" | grep -qE '^```'; then
-      if $in_fenced_block; then in_fenced_block=false; else in_fenced_block=true; fi
-      continue
-    fi
-    $in_fenced_block && continue
+      function emit_slug(slug) {
+        printf "S%c%s\n", us, slug
+      }
 
-    echo "$line" | grep -qE '^##+ ' || continue
+      function basename(file, name) {
+        name = file
+        sub(/^.*\//, "", name)
+        return name
+      }
 
-    if echo "$line" | grep -qE '^#+ [0-9]+(\.[0-9]+)*[. ]'; then
-      annotate error "$govfile" "$lineno" \
-        "Positional heading rejected (numeric ordinal): $line"
-    fi
+      function prefix_for(file, name) {
+        name = basename(file)
+        if (name == "SPEC.md") return "spec"
+        if (name == "REQUIREMENTS.md") return "req"
+        if (name == "ROADMAP.md") return "road"
+        return ""
+      }
 
-    heading_slugs=$(echo "$line" | grep -oE '§(spec|req|road):[a-z0-9-]+' || true)
+      function collect_definitions(text, rest, token) {
+        rest = text
+        while (match(rest, /§(spec|req|road):[a-z0-9-]+/)) {
+          token = substr(rest, RSTART, RLENGTH)
+          sub(/^§/, "", token)
+          definitions[token]++
+          rest = substr(rest, RSTART + RLENGTH)
+        }
+      }
 
-    if echo "$line" | grep -qE '^## '; then
-      if ! echo "$line" | grep -qE "§${prefix}:[a-z0-9-]+"; then
-        annotate error "$govfile" "$lineno" "## heading missing §${prefix}: slug: $line"
-      fi
-    fi
+      function strip_code_spans(text) {
+        gsub(/`[^`]*`/, "", text)
+        return text
+      }
 
-    for s in $heading_slugs; do
-      echo "${s#§}" >> "$defs_file"
-    done
-  done < <(tr -d '\r' < "$govfile")
-done
+      function remove_slugs(text) {
+        gsub(/§(spec|req|road):[a-z0-9-]+/, "", text)
+        return text
+      }
 
-dupes=$(sort "$defs_file" | uniq -d)
-if [ -n "$dupes" ]; then
-  while IFS= read -r d; do
-    [ -z "$d" ] && continue
-    annotate error "" "" "Duplicate slug definition: §${d} (defined more than once)"
-  done <<< "$dupes"
+      function check_references(text, file, line, rest, ref, key, count) {
+        rest = text
+        while (match(rest, /§(spec|req|road):[a-z0-9-]+/)) {
+          ref = substr(rest, RSTART, RLENGTH)
+          key = ref
+          sub(/^§/, "", key)
+          if (key in definitions) count = definitions[key]
+          else count = 0
+          if (count == 0) {
+            emit_finding("error", file, line, "Dangling reference " ref " — no matching heading")
+          } else if (count > 1) {
+            emit_finding("error", file, line, "Ambiguous reference " ref " — resolves to " count " headings")
+          }
+          rest = substr(rest, RSTART + RLENGTH)
+        }
+      }
+
+      function pass_one(file, prefix,    i, text, in_fence) {
+        emit_check(file)
+        in_fence = 0
+        for (i = 1; i <= document_line_count[file]; i++) {
+          text = document_lines[file, i]
+          if (text ~ /^```/) {
+            in_fence = !in_fence
+            continue
+          }
+          if (in_fence || text !~ /^##+ /) continue
+
+          if (text ~ /^#+ [0-9]+(\.[0-9]+)*[. ]/) {
+            emit_finding("error", file, i, "Positional heading rejected (numeric ordinal): " text)
+          }
+
+          if (text ~ /^## / && text !~ ("§" prefix ":[a-z0-9-]+")) {
+            emit_finding("error", file, i, "## heading missing §" prefix ": slug: " text)
+          }
+          collect_definitions(text)
+        }
+      }
+
+      function pass_two(file,    i, text, stripped, scan, in_fence) {
+        in_fence = 0
+        for (i = 1; i <= document_line_count[file]; i++) {
+          text = document_lines[file, i]
+          if (text ~ /^```/) {
+            in_fence = !in_fence
+            continue
+          }
+          if (in_fence) continue
+
+          stripped = strip_code_spans(text)
+          if (stripped ~ /§[0-9]/) {
+            emit_finding("error", file, i, "Positional reference rejected (numeric address): " text)
+          }
+
+          scan = stripped
+          if (stripped ~ /^##+ /) scan = remove_slugs(scan)
+          check_references(scan, file, i)
+        }
+      }
+
+      function section_name(text) {
+        sub(/^#+ /, "", text)
+        gsub(/§(spec|req|road):[a-z0-9-]+/, "", text)
+        sub(/[[:space:]]+$/, "", text)
+        return tolower(text)
+      }
+
+      function flush_readme_section(    bare) {
+        if (readme_section == "" || readme_section_refs > 0) return
+        bare = section_name(readme_section)
+        if (bare ~ orientation) return
+        emit_finding("warning", readme_file, readme_section_line,
+          "Section \047" bare "\047 cites no §reference — orientation needs none, but an assertion belongs in a governance file (§spec:readme-derivable)")
+      }
+
+      function pass_three(file,    i, text, stripped, in_fence, rest, ref, key, count) {
+        emit_check(file " derivability")
+        readme_file = file
+        readme_section = ""
+        readme_section_line = 0
+        readme_section_refs = 0
+        in_fence = 0
+        for (i = 1; i <= document_line_count[file]; i++) {
+          text = document_lines[file, i]
+          if (text ~ /^```/) {
+            in_fence = !in_fence
+            continue
+          }
+          if (in_fence) continue
+
+          stripped = strip_code_spans(text)
+          if (stripped ~ /^## /) {
+            flush_readme_section()
+            readme_section = stripped
+            readme_section_line = i
+            readme_section_refs = 0
+          }
+
+          if (stripped ~ /^#+ .*§(spec|req|road):[a-z0-9-]+[[:space:]]*$/) {
+            emit_finding("error", file, i,
+              "README defines §slug — a README is derivable, not authoritative (§spec:readme-derivable): " text)
+            continue
+          }
+
+          rest = stripped
+          while (match(rest, /§(spec|req|road):[a-z0-9-]+/)) {
+            readme_section_refs++
+            ref = substr(rest, RSTART, RLENGTH)
+            key = ref
+            sub(/^§/, "", key)
+            if (key in definitions) count = definitions[key]
+            else count = 0
+            if (count == 0) {
+              emit_finding("error", file, i, "Dangling reference " ref " — no matching heading")
+            } else if (count > 1) {
+              emit_finding("error", file, i, "Ambiguous reference " ref " — resolves to " count " headings")
+            }
+            rest = substr(rest, RSTART + RLENGTH)
+          }
+        }
+        flush_readme_section()
+      }
+
+      function sort_definitions(    i, j, key, tmp) {
+        sorted_definition_count = 0
+        for (key in definitions) sorted_definition_keys[++sorted_definition_count] = key
+        for (i = 2; i <= sorted_definition_count; i++) {
+          tmp = sorted_definition_keys[i]
+          j = i - 1
+          while (j >= 1 && sorted_definition_keys[j] > tmp) {
+            sorted_definition_keys[j + 1] = sorted_definition_keys[j]
+            j--
+          }
+          sorted_definition_keys[j + 1] = tmp
+        }
+      }
+
+      function emit_duplicates(    i, key) {
+        for (i = 1; i <= sorted_definition_count; i++) {
+          key = sorted_definition_keys[i]
+          if (definitions[key] > 1) {
+            emit_finding("error", "", "", "Duplicate slug definition: §" key " (defined more than once)")
+          }
+        }
+      }
+
+      function emit_slugs(    i) {
+        for (i = 1; i <= sorted_definition_count; i++) {
+          emit_slug(sorted_definition_keys[i])
+        }
+      }
+
+      {
+        text = $0
+        gsub(/\r/, "", text)
+        document_lines[FILENAME, FNR] = text
+        document_line_count[FILENAME] = FNR
+      }
+
+      END {
+        orientation = "^(#+ )?(install(ation)?|getting started|quick start|usage|examples?|api|api reference|licen(se|sing)|licensing note|prerequisites|requirements|development|developing|building|build|testing|tests|contributing|support|security|changelog|acknowledgements?|credits|authors?)$"
+
+        for (i = 1; i <= file_total; i++) {
+          file = files[i]
+          prefix = prefix_for(file)
+          if (prefix != "") pass_one(file, prefix)
+        }
+
+        sort_definitions()
+        emit_duplicates()
+
+        for (i = 1; i <= file_total; i++) {
+          file = files[i]
+          if (prefix_for(file) != "") pass_two(file)
+        }
+
+        for (i = 1; i <= file_total; i++) {
+          file = files[i]
+          if (file == "README.md") pass_three(file)
+        }
+
+        emit_slugs()
+      }
+    ' "${parser_files[@]}"
+  )"
+  parser_status=$?
 fi
 
-# Pass 2 — references in the governance files resolve.
-for govfile in $govfiles; do
-  lineno=0
-  in_fenced_block=false
-  while IFS= read -r line; do
-    lineno=$((lineno + 1))
-
-    if echo "$line" | grep -qE '^```'; then
-      if $in_fenced_block; then in_fenced_block=false; else in_fenced_block=true; fi
-      continue
-    fi
-    $in_fenced_block && continue
-
-    stripped=$(echo "$line" | sed 's/`[^`]*`//g')
-
-    if echo "$stripped" | grep -qE '§[0-9]'; then
-      annotate error "$govfile" "$lineno" \
-        "Positional reference rejected (numeric address): $line"
-    fi
-
-    scan="$stripped"
-    if echo "$stripped" | grep -qE '^##+ '; then
-      scan=$(echo "$stripped" | sed -E 's/§(spec|req|road):[a-z0-9-]+//g')
-    fi
-
-    refs=$(echo "$scan" | grep -oE '§(spec|req|road):[a-z0-9-]+' || true)
-    [ -z "$refs" ] && continue
-
-    for ref in $refs; do
-      key="${ref#§}"
-      count=$(grep -cxF "$key" "$defs_file" || true)
-      if [ "$count" -eq 0 ]; then
-        annotate error "$govfile" "$lineno" "Dangling reference ${ref} — no matching heading"
-      elif [ "$count" -gt 1 ]; then
-        annotate error "$govfile" "$lineno" \
-          "Ambiguous reference ${ref} — resolves to ${count} headings"
-      fi
-    done
-  done < <(tr -d '\r' < "$govfile")
-done
-
-# Pass 3 — README derivability (SPEC §spec:readme-derivable).
-#
-# A README is derivable, not authoritative: it compresses what the governance
-# files already say. So it may not DEFINE a slug, its references resolve as a
-# governance file's do, and a section citing nothing is flagged — it is either
-# orientation, which needs none, or an assertion whose home is missing. The
-# last warns because only an author can tell those apart.
-if [ -f README.md ]; then
-  echo "  checking README.md derivability"
-  lineno=0
-  in_fenced_block=false
-  rd_section=""
-  section_line=0
-  section_refs=0
-
-  orientation='^(#+ )?(install(ation)?|getting started|quick start|usage|examples?|api|api reference|licen(se|sing)|licensing note|prerequisites|requirements|development|developing|building|build|testing|tests|contributing|support|security|changelog|acknowledgements?|credits|authors?)$'
-
-  flush_section() {
-    [ -z "$rd_section" ] && return
-    [ "$section_refs" -gt 0 ] && return
-    local bare
-    bare=$(echo "$rd_section" | sed -E 's/^#+ //; s/§(spec|req|road):[a-z0-9-]+//g; s/[[:space:]]+$//' \
-      | tr '[:upper:]' '[:lower:]')
-    echo "$bare" | grep -qxE "$orientation" && return
-    annotate warning "README.md" "$section_line" \
-      "Section '${bare}' cites no §reference — orientation needs none, but an assertion belongs in a governance file (§spec:readme-derivable)"
-  }
-
-  while IFS= read -r line; do
-    lineno=$((lineno + 1))
-
-    if echo "$line" | grep -qE '^```'; then
-      if $in_fenced_block; then in_fenced_block=false; else in_fenced_block=true; fi
-      continue
-    fi
-    $in_fenced_block && continue
-
-    stripped=$(echo "$line" | sed 's/`[^`]*`//g')
-
-    if echo "$stripped" | grep -qE '^## '; then
-      flush_section
-      rd_section="$stripped"
-      section_line=$lineno
-      section_refs=0
-    fi
-
-    if echo "$stripped" | grep -qE '^#+ .*§(spec|req|road):[a-z0-9-]+[[:space:]]*$'; then
-      annotate error "README.md" "$lineno" \
-        "README defines §slug — a README is derivable, not authoritative (§spec:readme-derivable): $line"
-      continue
-    fi
-
-    for ref in $(echo "$stripped" | grep -oE '§(spec|req|road):[a-z0-9-]+' || true); do
-      section_refs=$((section_refs + 1))
-      key="${ref#§}"
-      count=$(grep -cxF "$key" "$defs_file" || true)
-      if [ "$count" -eq 0 ]; then
-        annotate error "README.md" "$lineno" "Dangling reference ${ref} — no matching heading"
-      elif [ "$count" -gt 1 ]; then
-        annotate error "README.md" "$lineno" \
-          "Ambiguous reference ${ref} — resolves to ${count} headings"
-      fi
-    done
-  done < <(tr -d '\r' < README.md)
-  flush_section
+defined_slugs_started=false
+if [ "$parser_status" -ne 0 ]; then
+  echo "::error::governance parser failed (awk exit ${parser_status})"
+  errors=$((errors + 1))
+else
+  while IFS="$unit_separator" read -r record_type field1 field2 field3 field4; do
+    case "$record_type" in
+      C) echo "  checking $field1" ;;
+      F) annotate "$field1" "$field2" "$field3" "$field4" ;;
+      S)
+        if [ "$defined_slugs_started" = false ]; then
+          echo "  defined slugs:"
+          defined_slugs_started=true
+        fi
+        echo "    §$field1"
+        ;;
+    esac
+  done <<< "$parser_output"
 fi
 
-echo "  defined slugs:"
-sort -u "$defs_file" | sed 's/^/    §/'
-rm -f "$defs_file"
+if [ "$defined_slugs_started" = false ]; then
+  echo "  defined slugs:"
+fi
 
 # ------------------------------------------------------------------ summary ---
 section "summary"
