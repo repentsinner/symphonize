@@ -97,3 +97,38 @@ its `[Unreleased]` section and confirm it reports the omission; against
 symphonize's own, confirm it passes; against a repo with no
 CHANGELOG.md, confirm the check skips rather than failing.
 Governance-lint passes.
+
+## Cross-repo contract verification §road:cross-repo-contract
+
+### Exercise the reusable workflow from a second repository §road:cross-repo-smoke
+
+Symphonize calls `governance-lint.yml` through a local `uses: ./…`, which
+resolves `job.workflow_repository` and `job.workflow_sha` to this
+repository and this commit. An adopter calls it cross-repo, where both
+differ and a wrong value is fatal. No test covers that path, which is how
+v0.2.7 shipped a workflow that could not run anywhere but here with CI
+fully green. Add a job that calls the reusable workflow the way an
+adopter does — a fixture repository, or a scheduled call from one — so
+the divergence is exercised before a tag moves. §spec:governance-lint
+
+**Verify:** Introduce a deliberately wrong contract ref and confirm the
+cross-repo check fails while the local dogfooded call still passes —
+that asymmetry is the whole point. Restore it and confirm both pass.
+Governance-lint passes.
+
+### Make a workflow-only fix reachable by adopters §road:workflow-release-trigger
+
+`.github/workflows/governance-lint.yml` sits outside every release-please
+package path, so a commit touching only it cuts no release and the
+floating tag adopters pin never advances to include it. PR #208 was
+stranded this way and reached adopters only because #209 happened to
+touch `plugins/notation/` in the same release; the fix for #209's own
+adopter break hit it again. Give the workflow a package-path presence —
+sync it into `plugins/notation/` through the `COPIES` registry, or add a
+release trigger that watches it — so a fix to the contract's CI half
+reaches adopters on its own. §spec:governance-lint
+
+**Verify:** Land a change touching only `.github/workflows/` and confirm
+release-please opens a release PR for notation. Confirm the floating
+`notation--v0` tag then resolves to a commit containing that change.
+Governance-lint passes.

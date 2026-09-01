@@ -76,9 +76,21 @@ floating major tag adopters pin never advances to include it. PR #208 fixed a
 real defect in the inline checks and remains unreachable for that reason. Logic
 in `plugins/notation/` releases normally; the workflow left behind provisions
 tools and calls the script, so it rarely changes and its immobility stops
-mattering. The workflow checks the script out at `job_workflow_sha`, the commit
-of the reusable workflow itself, so a caller pinned to an old tag runs that
-tag's contract rather than today's.
+mattering. The workflow checks the script out at `job.workflow_sha` in the
+`job` context — the commit of the reusable workflow file itself — so a caller
+pinned to an old tag runs that tag's contract rather than today's, and at
+`job.workflow_repository` so a fork resolves to its own copy.
+
+**Why the resolution fails loudly:** an unresolvable ref stops the job rather
+than falling back to `github.sha`. Cross-repo, the caller's commit does not
+exist in this repository and the checkout dies with `upload-pack: not our ref`
+— but a same-repo call resolves it happily, so a fallback keeps symphonize's
+own CI green while every adopter breaks. That is not hypothetical: the
+`github.job_workflow_sha` this section first named is not a property of the
+`github` context at all (actions/runner#2417), the expression naming it always
+took the fallback, and v0.2.7 shipped a workflow that could not run outside
+this repository. The dogfooded path and the adopter path differ, so a failure
+mode only the adopter path reaches has to be loud where they diverge.
 
 **Why the hook stays thin:** commit time is the wrong place to require Node,
 Vale, and a shell all be present; a hook that hard-fails on a missing optional

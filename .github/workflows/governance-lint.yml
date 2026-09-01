@@ -28,14 +28,40 @@ jobs:
         uses: actions/checkout@v7
 
       # The script has to match the workflow the adopter pinned, or a caller on
-      # an old tag would run today's contract. job_workflow_sha is the commit of
-      # this reusable workflow file, which is exactly that guarantee; it is
-      # empty for a local `uses: ./…` call, where github.sha is the same tree.
+      # an old tag would run today's contract rather than that tag's.
+      #
+      # `github.job_workflow_sha` is not a real property. It is absent from the
+      # github context (actions/runner#2417), so the expression that named it
+      # always fell through to `github.sha`. In this repository that is
+      # harmless — github.sha is a symphonize commit — but cross-repo it asks
+      # symphonize for the *caller's* commit, and the checkout dies with
+      # "upload-pack: not our ref". The job context carries the real values.
+      - name: Resolve the notation contract ref
+        id: contract
+        env:
+          WF_REPO: ${{ job.workflow_repository }}
+          WF_SHA: ${{ job.workflow_sha }}
+        run: |
+          echo "workflow repository: ${WF_REPO:-<empty>}"
+          echo "workflow sha:        ${WF_SHA:-<empty>}"
+          # Fail loudly rather than falling back to something plausible. A
+          # fallback is what hid the previous defect: it kept this repository's
+          # own CI green while every adopter's job died.
+          if [ -z "$WF_REPO" ] || [ -z "$WF_SHA" ]; then
+            echo "::error::job.workflow_repository / job.workflow_sha are unavailable;" \
+                 "cannot resolve the pinned notation contract"
+            exit 1
+          fi
+          {
+            echo "repository=${WF_REPO}"
+            echo "sha=${WF_SHA}"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Check out the notation contract
         uses: actions/checkout@v7
         with:
-          repository: repentsinner/symphonize
-          ref: ${{ github.job_workflow_sha || github.sha }}
+          repository: ${{ steps.contract.outputs.repository }}
+          ref: ${{ steps.contract.outputs.sha }}
           path: .notation-contract
 
       # actions/checkout refuses a path outside the workspace, so the contract
