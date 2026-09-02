@@ -573,7 +573,7 @@ translation from requirements to spec is where design decisions
 happen — that boundary should be explicit.
 
 ## Prose linting §spec:prose-linting
-*Status: in progress*
+*Status: complete*
 
 The governance-lint workflow validates structure (markdownlint) and
 cross-references (slug resolution), but not prose quality. SPEC.md
@@ -585,10 +585,20 @@ Modal-verb discipline applies document-wide, not only to criteria.
 The scaffolded `Requirements` Vale style flags `must` (and `will`)
 in any sentence of SPEC.md / REQUIREMENTS.md, including narrative
 problem statements, context, and rationale. The writing commands
-(`/compose:discover`, `/compose:plan`) therefore steer all prose in
-these files away from `must`/`will` — not the criteria alone — so
-generated documents pass the scaffolded Vale style on the first
-push.
+steer all prose in these files away from `must`/`will` — not the
+criteria alone — so generated documents pass the scaffolded style on
+the first push.
+
+That guidance is stated once, in `fragments/prose-style.md`, and
+assembled into every command that writes governance prose
+(§spec:plugin-packaging). The rule the linter enforces and the rule
+the commands teach are then the same sentence rather than three
+copies of it, which is what let them disagree before: the guidance
+scoped `shall` to criteria while the linter matched every sentence.
+The Vale styles themselves ship as `/notation:init` templates copied
+from this repository's own `.vale.ini` and `styles/`, so the
+scaffolder cannot hand an adopter a rule this project no longer runs
+(§spec:scaffold-freshness).
 
 **Why document-wide:** Vale matches tokens per sentence; it cannot
 reliably tell a requirement line ("the system shall…") from
@@ -599,9 +609,11 @@ linter is cheaper and more robust than weakening the linter
 (reported in #131).
 
 Vale (<https://vale.sh>) enforces prose rules via custom YAML
-styles. A `Requirements` style checks modal verb compliance, flags
-passive voice in requirements, and catches ambiguous language. Vale
-complements markdownlint — structure vs. prose.
+styles. The `Requirements` style carries four: `MustDeprecated` and
+`WillDeprecated` for modal-verb compliance, `FillerPhrases` for
+phrases that carry no information, and `OrdinalHeadings` for a
+heading numbered in prose. Vale complements markdownlint — structure
+vs. prose.
 
 The governance-lint workflow runs Vale against SPEC.md and
 REQUIREMENTS.md when a `.vale.ini` config exists. Projects opt in

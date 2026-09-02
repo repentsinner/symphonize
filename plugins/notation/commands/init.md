@@ -81,62 +81,31 @@ Create at the governance root (CWD):
 
 ### Prose linting (Vale)
 
-- **.vale.ini** — Vale config:
-  ```ini
-  StylesPath = styles
-  MinAlertLevel = warning
+Copy `${CLAUDE_PLUGIN_ROOT}/templates/vale/` into the governance root:
+`.vale.ini` and `styles/Requirements/*.yml`. The templates are the
+canonical rules verbatim — symphonize's own dogfooded config, kept in
+sync by `tools/assemble-fragments.sh` (§spec:scaffold-freshness), so
+this command never carries a second copy to drift from.
 
-  [SPEC.md]
-  BasedOnStyles = Requirements
+What the four rules enforce, and why:
 
-  [REQUIREMENTS.md]
-  BasedOnStyles = Requirements
-  ```
-- **styles/Requirements/MustDeprecated.yml** — flags deprecated `must`:
-  ```yaml
-  extends: existence
-  message: "'%s' is deprecated by IEEE. Use 'shall' for mandatory requirements."
-  ignorecase: true
-  level: error
-  scope: sentence
-  tokens:
-    - '\bmust\b'
-  ```
-- **styles/Requirements/WillDeprecated.yml** — flags deprecated `will`:
-  ```yaml
-  extends: existence
-  message: "'%s' is deprecated by IEEE for requirements. Use 'shall' for mandatory, 'should' for recommended."
-  ignorecase: true
-  level: warning
-  scope: sentence
-  tokens:
-    - '\bwill\b'
-  ```
-- **styles/Requirements/FillerPhrases.yml** — catches filler:
-  ```yaml
-  extends: existence
-  message: "Filler phrase '%s' — cut it."
-  ignorecase: true
-  level: warning
-  scope: sentence
-  tokens:
-    - 'it should be noted that'
-    - 'in order to'
-    - 'due to the fact that'
-    - 'it is important to note'
-    - 'at this point in time'
-    - 'for the purpose of'
-  ```
-- **styles/Requirements/OrdinalHeadings.yml** — warns on ordinal-prose headings:
-  ```yaml
-  extends: existence
-  message: "Heading '%s' is numbered in prose. If the number is document structure, address by §slug instead; if it describes the system, keep it."
-  level: warning
-  scope: heading
-  nonword: true
-  tokens:
-    - '^(Stage|Phase|Step|Part|Pass|Round|Tier|Level|Iteration)\s+([0-9]+[a-z]?|[IVXivx]+)\b'
-  ```
+- **MustDeprecated** (error) — `must` is deprecated by the IEEE SA
+  Standards Style Manual. `shall` marks a requirement, `should` a
+  recommendation, `may` permission. The rule matches any sentence of
+  SPEC.md or REQUIREMENTS.md, narrative included, because Vale cannot
+  tell a requirement line from a narrative one.
+- **WillDeprecated** (warning) — `will` states a prediction where a
+  requirement is meant. Warning rather than error: it has honest uses
+  in rationale prose.
+- **FillerPhrases** (warning) — six phrases that carry no information
+  (`in order to`, `due to the fact that`, and kin).
+- **OrdinalHeadings** (warning) — a heading numbered in prose
+  (`### Stage 1 — envelope check`). Warning, not error: the number may
+  describe the system rather than the document's structure, and only an
+  author can tell which.
+
+Prose linting is opt-in. A project without `.vale.ini` skips the check
+in both the script and CI.
 
 ### CI workflows
 
@@ -353,7 +322,9 @@ hooks.
 2. Read the project name from the repo directory name or manifest.
 3. For each file above, check if it exists at the governance root.
    If it does, print `skip: <path> (already exists)` and move on.
-4. Create any missing governance files at the governance root.
+4. Create any missing governance files at the governance root. The Vale
+   config and styles are copied from `${CLAUDE_PLUGIN_ROOT}/templates/vale/`
+   rather than written out here.
 5. If CWD is the repo root, also scaffold CI workflows and hooks:
    a. Create `.github/workflows/governance-lint.yml` and
       `.github/dependabot.yml`.

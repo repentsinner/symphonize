@@ -151,17 +151,29 @@ When all workstreams are implemented:
 6. Remove completed workstreams from ROADMAP.md and commit.
 7. Update SPEC.md status lines for any sections now complete or
    newly in progress.
-8. Compress newly completed spec sections. A completed section
-   shifts from guiding implementation to documenting the running
-   system. **Retain** design rationale (constraints, tradeoffs,
-   rejected alternatives), observable behavior, state machines and
-   transition tables, and cross-references. **Remove** wire formats
-   and protocol tables (point to the protocol's own docs), algorithm
-   pseudocode and step-by-step detail (the code owns *how*), edge
-   cases obvious from tests, and "shall" language that restates the
-   code without rationale. Heuristic: cover a paragraph with your
-   thumb — if the design intent survives, cut it; if the *why*
-   disappears, keep it.
+8. Compress newly completed spec sections per the compression
+   contract below.
+
+A completed section shifts from guiding implementation to documenting
+the running system, and compresses accordingly:
+
+<!-- assembled:spec-compression -->
+**Retain** — design rationale (constraints, tradeoffs, rejected
+alternatives), expensive to reconstruct and the thing that prevents
+re-litigation; observable behavior a reviewer can check against the
+running system; state machines and transition tables; cross-references
+to other sections.
+
+**Remove** — wire formats, protocol tables and command byte values
+(point to the protocol's own documentation); algorithm pseudocode and
+step-by-step detail (the code owns *how*, the spec owns *what* and
+*why*); edge cases obvious from the implementation or its tests;
+`shall` language that restates what the code does without adding
+rationale.
+
+**Heuristic** — cover a paragraph with your thumb. If the section's
+design intent survives, cut it. If the *why* disappears, keep it.
+<!-- /assembled:spec-compression -->
 
 The review gates (`/simplify`, `/security-review`) do **not** run in
 the batch agent. They run at the dispatch layer, against the branch
