@@ -60,12 +60,15 @@ judgement.
 
 <!-- assembled:prose-style -->
 **Modal verbs, document-wide.** `shall` marks a requirement, `should` a
-recommendation, `may` permission (IEEE SA Standards Style Manual).
-`Must` and `will` are deprecated, and the scaffolded Vale style flags
-them in *any* sentence of SPEC.md or REQUIREMENTS.md — narrative,
-rationale and problem statements included, not criteria alone. Vale
-matches per sentence and cannot tell a requirement line from a narrative
-one, so the guidance matches the rule's reach rather than fighting it.
+recommendation, `may` permission (IEEE SA Standards Style Manual). That
+manual deprecates `must` and `will` *for stating mandatory
+requirements*; it permits `must` for an unavoidable situation and `will`
+for a statement of fact. Vale cannot tell a requirement line from a
+narrative one, so the scaffolded style flags both in *any* sentence of
+SPEC.md or REQUIREMENTS.md — narrative, rationale and problem statements
+included, not criteria alone — as an error in REQUIREMENTS.md and a
+warning in SPEC.md, where the rationale IEEE still permits them in
+lives.
 Prefer rephrasing to substitution: "the adopter re-maps each header"
 beats "the adopter shall re-map each header" where nothing is required.
 

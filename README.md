@@ -46,21 +46,33 @@ mechanical and half is judgement, and the split is deliberate
 The mechanical half is [Vale](https://vale.sh), which `/notation:init`
 scaffolds as four rules over SPEC.md and REQUIREMENTS.md:
 
-| Rule | Level | What it catches |
-|---|---|---|
-| `MustDeprecated` | error | `must` — [IEEE SA](https://standards.ieee.org/) reserves `shall` for a requirement, `should` for a recommendation, `may` for permission |
-| `WillDeprecated` | warning | `will`, which predicts where a requirement is meant |
-| `FillerPhrases` | warning | `in order to`, `due to the fact that`, and four more that carry no information |
-| `OrdinalHeadings` | warning | a heading numbered in prose — address it by its `§` slug instead |
+| Rule | REQUIREMENTS.md | SPEC.md | What it catches |
+|---|---|---|---|
+| `MustDeprecated` | error | warning | `must` — [IEEE SA](https://standards.ieee.org/) reserves `shall` for a requirement, `should` for a recommendation, `may` for permission |
+| `WillDeprecated` | error | warning | `will`, which predicts where a requirement is meant |
+| `FillerPhrases` | warning | warning | `in order to`, `due to the fact that`, and four more that carry no information |
+| `OrdinalHeadings` | warning | warning | a heading numbered in prose — address it by its `§` slug instead |
 
 Modal discipline applies to every sentence, not only to acceptance
-criteria. Vale matches per sentence and cannot tell a requirement line
-from a narrative one, so the rule is document-wide and the guidance
-matches its reach rather than fighting it. Only the `must` rule fails a
-build. The other three warn, because each has an honest exception: `will`
-belongs in rationale that genuinely predicts, a filler phrase is
-sometimes the clearest phrasing, and only an author can tell an ordinal
-that describes the system from one that numbers the document.
+criteria: Vale matches per sentence and cannot tell a requirement line
+from a narrative one, so the guidance matches the rule's reach rather
+than fighting it.
+
+Severity follows the document's role, because the IEEE rule is narrower
+than a blanket ban. The manual deprecates `must` and `will` *for stating
+mandatory requirements*, and permits `must` for unavoidable situations
+and `will` for statements of fact — which is what rationale is made of.
+REQUIREMENTS.md is requirements throughout, so both are errors there.
+SPEC.md carries rationale beside its requirements, so both warn.
+`FillerPhrases` and `OrdinalHeadings` warn everywhere, because each has
+an honest exception: a filler phrase is sometimes the clearest phrasing,
+and only an author can tell an ordinal that describes the system from
+one that numbers the document.
+
+A warning is not an exemption. The notation plugin lints governance
+prose the moment it is written and reports warnings alongside errors, so
+the warning tier is enforced where the fix is free rather than deferred
+to review.
 
 The judgement half — terseness, one term per concept, condition before
 command — is stated once in `fragments/prose-style.md` and assembled
