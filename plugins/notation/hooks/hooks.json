@@ -1,0 +1,17 @@
+{
+  "description": "Lint governance prose the moment it is written, so mechanical drift is caught in the same turn rather than in CI.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prose-lint.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
