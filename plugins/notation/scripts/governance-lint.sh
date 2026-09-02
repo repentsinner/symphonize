@@ -13,8 +13,9 @@
 #   3. SPEC.md status lines
 #   4. README heading profile      (--readme-type)
 #   5. Heading addressing grammar, and README derivability
+#   6. CHANGELOG structure         (gated on CHANGELOG.md existing)
 #
-# Checks 3-5 need nothing but bash. Checks 1-2 need a tool: absent, they skip
+# Checks 3-6 need nothing but bash. Checks 1-2 need a tool: absent, they skip
 # with a notice, so a local run is honest about being a subset rather than
 # reporting clean on a check it never ran. --require-tools turns absence into
 # a failure; CI passes it.
@@ -586,6 +587,76 @@ fi
 
 if [ "$defined_slugs_started" = false ]; then
   echo "  defined slugs:"
+fi
+
+# ------------------------------------------------- 6. CHANGELOG structure ---
+# Keep a Changelog only as far as every release tool agrees on it: an h1, and
+# sections that each name a version. Past that the tools diverge —
+# release-please writes "## [1.2.3](compare-url) (date)" under "### Features",
+# the hand-kept form is "## [1.2.3] - date" under "### Added" — so demanding
+# one shape would fail every repository that automates its releases.
+section "CHANGELOG structure"
+if [ ! -f CHANGELOG.md ]; then
+  echo "  skip — no CHANGELOG.md (the check is gated on the file existing)"
+else
+  # [Unreleased] is where a hand-kept changelog stages the next release.
+  # release-please and flywheel cut a version section per release and never
+  # write one, so requiring it of them reports a defect for doing the right
+  # thing (§spec:release-automation-options).
+  changelog_managed=false
+  if [ -f release-please-config.json ] || [ -f .flywheel.yml ]; then
+    changelog_managed=true
+  fi
+
+  if ! grep -qE '^# +[Cc]hangelog *$' CHANGELOG.md; then
+    annotate error "CHANGELOG.md" "1" \
+      "no '# Changelog' heading — Keep a Changelog opens with one"
+  fi
+
+  has_unreleased=false
+  versions_file=$(mktemp)
+  lineno=0
+  in_fenced_block=false
+  while IFS= read -r line; do
+    lineno=$((lineno + 1))
+
+    if echo "$line" | grep -qE '^```'; then
+      if $in_fenced_block; then in_fenced_block=false; else in_fenced_block=true; fi
+      continue
+    fi
+    $in_fenced_block && continue
+
+    echo "$line" | grep -qE '^## ' || continue
+
+    if echo "$line" | grep -qiE '^## \[?Unreleased\]?'; then
+      has_unreleased=true
+      continue
+    fi
+
+    # A release section names its version somewhere in the heading, whichever
+    # shape the tool writes it in.
+    version=$(echo "$line" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    if [ -z "$version" ]; then
+      annotate error "CHANGELOG.md" "$lineno" \
+        "Section names no version: ${line#"## "} — a section is [Unreleased] or a release"
+      continue
+    fi
+    echo "$version" >> "$versions_file"
+  done < <(tr -d '\r' < CHANGELOG.md)
+
+  while IFS= read -r dupe; do
+    [ -z "$dupe" ] && continue
+    annotate error "CHANGELOG.md" "" "Version ${dupe} appears more than once"
+  done < <(sort "$versions_file" | uniq -d)
+
+  echo "  checked $(wc -l < "$versions_file" | tr -d ' ') release section(s)"
+  rm -f "$versions_file"
+
+  if ! $has_unreleased && ! $changelog_managed; then
+    annotate error "CHANGELOG.md" "" \
+      "no [Unreleased] section — a hand-kept changelog stages the next release there"
+  fi
+  $changelog_managed && echo "  [Unreleased] not required — releases are tool-managed"
 fi
 
 # ------------------------------------------------------------------ summary ---
