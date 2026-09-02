@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.10](https://github.com/repentsinner/symphonize/compare/notation--v0.2.9...notation--v0.2.10) (2026-09-02)
+
+
+### Features
+
+* **notation:** prefer rumdl so the contract needs no Node ([#220](https://github.com/repentsinner/symphonize/issues/220)) ([516ee48](https://github.com/repentsinner/symphonize/commit/516ee48c418c775c4d9ea98e8f2fd917375a18c7))
+
 ## [0.2.9](https://github.com/repentsinner/symphonize/compare/notation--v0.2.8...notation--v0.2.9) (2026-09-01)
 
 
