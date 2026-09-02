@@ -573,6 +573,124 @@ elapsed=$(( $(date +%s) - start_time ))
 assert_status "the 2,000-line fixture passes" 0
 assert_elapsed_under_five "the 2,000-line fixture stays below five seconds" "$elapsed"
 
+# The CHANGELOG check needs no linter, so PATH is cleared of them: checks 1-2
+# report a skip and leave the status alone.
+LINT_PATH="/usr/bin:/bin"
+
+echo
+echo "== CHANGELOG structure: absent file =="
+d=$(fixture no-changelog)
+run_lint "$d"
+assert_status   "a repo with no CHANGELOG.md passes" 0
+assert_contains "the check reports itself skipped" "$LINT_OUT" "skip — no CHANGELOG.md"
+
+echo
+echo "== CHANGELOG structure: manual releases =="
+d=$(fixture manual-with-unreleased)
+cat > "$d/CHANGELOG.md" <<'CL'
+# Changelog
+
+## [Unreleased]
+
+## [1.0.0] - 2026-01-01
+CL
+run_lint "$d"
+assert_status "[Unreleased] present passes" 0
+
+d=$(fixture manual-without-unreleased)
+cat > "$d/CHANGELOG.md" <<'CL'
+# Changelog
+
+## [1.0.0] - 2026-01-01
+CL
+run_lint "$d"
+assert_status   "[Unreleased] missing fails" 1
+assert_contains "the omission is reported" "$LINT_OUT" "no [Unreleased] section"
+
+echo
+echo "== CHANGELOG structure: managed releases =="
+for marker in release-please-config.json .flywheel.yml; do
+  d=$(fixture "managed-${marker}")
+  cat > "$d/CHANGELOG.md" <<'CL'
+# Changelog
+
+## [1.0.0](https://example.invalid/compare/v0.9.0...v1.0.0) (2026-01-01)
+
+### Features
+
+* something ([#1](https://example.invalid/issues/1))
+CL
+  echo '{}' > "$d/$marker"
+  run_lint "$d"
+  assert_status       "$marker: no [Unreleased] required" 0
+  assert_not_contains "$marker: the omission is not reported" "$LINT_OUT" "no [Unreleased] section"
+done
+
+echo
+echo "== CHANGELOG structure: malformed =="
+d=$(fixture no-h1)
+cat > "$d/CHANGELOG.md" <<'CL'
+## [Unreleased]
+CL
+run_lint "$d"
+assert_status   "a missing h1 fails" 1
+assert_contains "the missing h1 is reported" "$LINT_OUT" "no '# Changelog' heading"
+
+d=$(fixture duplicate-version)
+cat > "$d/CHANGELOG.md" <<'CL'
+# Changelog
+
+## [Unreleased]
+
+## [1.0.0] - 2026-01-02
+
+## [1.0.0] - 2026-01-01
+CL
+run_lint "$d"
+assert_status   "a repeated version fails" 1
+assert_contains "the repeat is reported" "$LINT_OUT" "1.0.0"
+
+d=$(fixture unversioned-section)
+cat > "$d/CHANGELOG.md" <<'CL'
+# Changelog
+
+## [Unreleased]
+
+## Notes on versioning
+CL
+run_lint "$d"
+assert_status   "a section that names no version fails" 1
+assert_contains "the section is reported" "$LINT_OUT" "Notes on versioning"
+
+echo
+echo "== CHANGELOG structure: fenced blocks are exempt =="
+d=$(fixture fenced-changelog)
+cat > "$d/CHANGELOG.md" <<'CL'
+# Changelog
+
+## [Unreleased]
+
+Example of a heading this file does not itself contain:
+
+```markdown
+## Not a real section
+```
+CL
+run_lint "$d"
+assert_status "a heading inside a fence is not a section" 0
+
+echo
+echo "== CHANGELOG structure: symphonize's own =="
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+for cl in "$REPO_ROOT"/CHANGELOG.md "$REPO_ROOT"/plugins/*/CHANGELOG.md; do
+  [ -f "$cl" ] || continue
+  d=$(fixture "own-$(printf '%s' "$cl" | md5sum | cut -c1-8)")
+  cp "$cl" "$d/CHANGELOG.md"
+  cp "$REPO_ROOT/release-please-config.json" "$d/" 2>/dev/null || true
+  run_lint "$d"
+  assert_status "${cl#"$REPO_ROOT"/} passes" 0
+done
+
 echo
 echo "$pass passed, $fail failed"
 [ "$fail" -eq 0 ]

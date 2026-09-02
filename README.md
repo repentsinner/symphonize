@@ -101,7 +101,7 @@ Target projects call this reusable workflow via `workflow_call`:
 
 | Workflow | Description |
 |---|---|
-| `governance-lint.yml` | Markdownlint, SPEC status lines, slug cross-refs, [Vale](https://vale.sh) prose linting, README headings |
+| `governance-lint.yml` | Markdownlint, SPEC status lines, slug cross-refs, [Vale](https://vale.sh) prose linting, CHANGELOG structure, README headings |
 
 ```yaml
 # .github/workflows/governance-lint.yml

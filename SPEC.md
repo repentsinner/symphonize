@@ -27,7 +27,7 @@ grouped here by plugin:
 `/symphonize:yolo`, the full-pipeline one-shot, is planned — §spec:yolo-mode.
 
 ## Governance lint command §spec:governance-lint
-*Status: in progress*
+*Status: complete*
 
 The governance contract — markdownlint formatting, SPEC `*Status:*` lines,
 `§spec:`/`§road:`/`§req:` slug grammar and reference resolution, Vale prose
@@ -44,16 +44,29 @@ Three consumers share it:
 - **`/notation:lint`.** The command runs the full suite via the bundled
   script — not markdownlint alone — so a contributor sees every contract
   violation before pushing, not only formatting errors.
-- **The pre-commit hook** (§spec:project-scaffolding). A thin early warning:
-  it runs the bundled script when reachable and otherwise degrades to
-  markdownlint plus the dependency-free checks. It never blocks a commit on
-  an absent optional tool; CI is the authoritative backstop.
+- **The pre-commit hook** (§spec:project-scaffolding). A thin early warning.
+  A git hook runs outside Claude Code, where `${CLAUDE_PLUGIN_ROOT}` is unset,
+  so it finds the script by searching the installed plugin cache. Absent — the
+  plugin is not installed — it skips with a notice rather than blocking, since
+  the checks live in the script and there is nothing left to fall back to. It
+  never blocks a commit on an absent optional tool; a real contract violation
+  does block, which is what the hook is for. CI is the authoritative backstop.
 
 When a check's tool is absent locally — Vale ships as a separate binary a
 contributor may not have installed — the script skips that check with a notice
 and runs the rest. CI runs every check unconditionally, so local verification
 is honest about being a subset: it never reports clean on a check it did not
 run.
+
+**Why the CHANGELOG check bends to the release tool:** Keep a Changelog stages
+the next release under `[Unreleased]`, and for a hand-kept changelog its absence
+is a real defect — there is nowhere to record a landed change. Release-please
+and flywheel cut a version section per release and never write one, so requiring
+it of them would fail a repository for automating correctly; symphonize's own
+five changelogs have never had one. The check therefore requires `[Unreleased]`
+only where no release tool is configured (§spec:release-automation-options), and
+holds every changelog to what the tools do agree on: an h1, and sections that
+each name a version, uniquely.
 
 **Markdown engine.** The pinned version outranks whatever the machine
 carries. A linter on `PATH` is an accident of that host's setup; the pin is
