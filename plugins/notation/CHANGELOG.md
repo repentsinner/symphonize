@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.12](https://github.com/repentsinner/symphonize/compare/notation--v0.2.11...notation--v0.2.12) (2026-09-02)
+
+
+### Bug Fixes
+
+* **notation:** skip the CHANGELOG check for a tool-managed changelog ([#225](https://github.com/repentsinner/symphonize/issues/225)) ([23eb549](https://github.com/repentsinner/symphonize/commit/23eb549c98fd2aad30fdcb1fbace003cf6511122))
+
 ## [0.2.11](https://github.com/repentsinner/symphonize/compare/notation--v0.2.10...notation--v0.2.11) (2026-09-02)
 
 
