@@ -611,9 +611,9 @@ echo
 echo "== CHANGELOG structure: managed releases =="
 for marker in release-please-config.json .flywheel.yml; do
   d=$(fixture "managed-${marker}")
+  # The shape @semantic-release/changelog writes: no h1, no [Unreleased], a
+  # version section per release. Everything the hand-kept rules would flag.
   cat > "$d/CHANGELOG.md" <<'CL'
-# Changelog
-
 ## [1.0.0](https://example.invalid/compare/v0.9.0...v1.0.0) (2026-01-01)
 
 ### Features
@@ -622,8 +622,10 @@ for marker in release-please-config.json .flywheel.yml; do
 CL
   echo '{}' > "$d/$marker"
   run_lint "$d"
-  assert_status       "$marker: no [Unreleased] required" 0
-  assert_not_contains "$marker: the omission is not reported" "$LINT_OUT" "no [Unreleased] section"
+  assert_status       "$marker: a generated changelog passes untouched" 0
+  assert_contains     "$marker: the check reports itself skipped" "$LINT_OUT" "tool-managed"
+  assert_not_contains "$marker: the missing h1 is not reported" "$LINT_OUT" "no '# Changelog' heading"
+  assert_not_contains "$marker: the missing [Unreleased] is not reported" "$LINT_OUT" "no [Unreleased] section"
 done
 
 echo
