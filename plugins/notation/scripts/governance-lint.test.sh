@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Unit tests for governance-lint.sh.
 #
-# The fixtures run offline. Vale, markdownlint-cli2, and npx are small stubs,
+# The fixtures run offline. Vale, rumdl, markdownlint-cli2, npx and uvx are
+# small stubs,
 # so these tests cover tool policy without downloading external programs.
 set -u
 
@@ -369,7 +370,7 @@ LINT_PATH="/usr/bin:/bin"
 run_lint "$d"
 assert_status "missing optional tools do not fail" 0
 assert_contains "missing Vale is reported" "$LINT_OUT" "skip — vale not on PATH"
-assert_contains "missing markdownlint is reported" "$LINT_OUT" "skip — markdownlint-cli2 not on PATH"
+assert_contains "missing markdownlint is reported" "$LINT_OUT" "skip — rumdl or markdownlint-cli2 not on PATH"
 run_lint "$d" --require-tools
 assert_status "required tools fail when absent" 1
 assert_contains "required tool summary is exact" "$LINT_OUT" "2 error(s), 0 warning(s)"
@@ -395,6 +396,150 @@ d=$(fixture npx-fallback)
 run_lint "$d" --require-tools
 assert_status "npx markdownlint fallback passes" 0
 assert_contains "the pinned markdownlint version stays unchanged" "$(cat "$NPX_LOG")" "--yes markdownlint-cli2@0.23.2"
+
+# Engine policy: rumdl is preferred over markdownlint-cli2, uvx is preferred
+# over npx, and rumdl is handed real paths rather than a glob it cannot expand.
+RUMDL_DIR="$TEST_ROOT/rumdl"
+mkdir -p "$RUMDL_DIR"
+cat > "$RUMDL_DIR/rumdl" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$*" > "$RUMDL_LOG"
+exit 0
+EOF
+cat > "$RUMDL_DIR/markdownlint-cli2" <<'EOF'
+#!/bin/sh
+echo "markdownlint-cli2 should not have run" > "$RUMDL_LOG"
+exit 0
+EOF
+chmod +x "$RUMDL_DIR/rumdl" "$RUMDL_DIR/markdownlint-cli2"
+RUMDL_LOG="$TEST_ROOT/rumdl.log"
+export RUMDL_LOG
+LINT_PATH="$RUMDL_DIR:/usr/bin:/bin"
+d=$(fixture rumdl-preferred)
+run_lint "$d" --require-tools
+assert_status "rumdl engine passes" 0
+assert_contains "rumdl is chosen over markdownlint-cli2" "$LINT_OUT" "engine: rumdl"
+assert_contains "rumdl is invoked as a checker" "$(cat "$RUMDL_LOG")" "check"
+assert_contains "rumdl receives a real path, not a glob" "$(cat "$RUMDL_LOG")" "./SPEC.md"
+
+UVX_DIR="$TEST_ROOT/uvx"
+mkdir -p "$UVX_DIR"
+cat > "$UVX_DIR/uvx" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$*" > "$UVX_LOG"
+exit 0
+EOF
+cat > "$UVX_DIR/npx" <<'EOF'
+#!/bin/sh
+echo "npx should not have run" > "$UVX_LOG"
+exit 0
+EOF
+chmod +x "$UVX_DIR/uvx" "$UVX_DIR/npx"
+UVX_LOG="$TEST_ROOT/uvx.log"
+export UVX_LOG
+LINT_PATH="$UVX_DIR:/usr/bin:/bin"
+d=$(fixture uvx-fallback)
+run_lint "$d" --require-tools
+assert_status "uvx rumdl fallback passes" 0
+assert_contains "uvx is preferred over npx" "$(cat "$UVX_LOG")" "rumdl@0.2.62"
+
+# Version policy: the pin outranks whatever the host happens to carry. A
+# stale rumdl on PATH must not shadow the pinned resolver, or every machine
+# silently lints with its own version and CI parity is decorative.
+STALE_DIR="$TEST_ROOT/stale-rumdl"
+mkdir -p "$STALE_DIR"
+cat > "$STALE_DIR/rumdl" <<'EOF'
+#!/bin/sh
+case "$1" in --version) echo "rumdl 0.0.1"; exit 0 ;; esac
+echo "stale rumdl ran" > "$STALE_LOG"
+exit 0
+EOF
+cat > "$STALE_DIR/uvx" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$*" > "$STALE_LOG"
+exit 0
+EOF
+chmod +x "$STALE_DIR/rumdl" "$STALE_DIR/uvx"
+STALE_LOG="$TEST_ROOT/stale.log"
+export STALE_LOG
+LINT_PATH="$STALE_DIR:/usr/bin:/bin"
+d=$(fixture stale-rumdl)
+run_lint "$d" --require-tools
+assert_status "a stale rumdl on PATH still passes" 0
+assert_contains "the pinned resolver outranks a stale PATH binary" "$(cat "$STALE_LOG")" "rumdl@0.2.62"
+assert_contains "the run reports the resolved source" "$LINT_OUT" "engine: rumdl 0.2.62 (uvx)"
+
+# The reverse: an exact-version match on PATH is used directly, so a machine
+# holding the pin does not pay a resolver fetch and works offline.
+EXACT_DIR="$TEST_ROOT/exact-rumdl"
+mkdir -p "$EXACT_DIR"
+cat > "$EXACT_DIR/rumdl" <<'EOF'
+#!/bin/sh
+case "$1" in --version) echo "rumdl 0.2.62"; exit 0 ;; esac
+printf '%s\n' "$*" > "$EXACT_LOG"
+exit 0
+EOF
+cat > "$EXACT_DIR/uvx" <<'EOF'
+#!/bin/sh
+echo "uvx should not have run" > "$EXACT_LOG"
+exit 0
+EOF
+chmod +x "$EXACT_DIR/rumdl" "$EXACT_DIR/uvx"
+EXACT_LOG="$TEST_ROOT/exact.log"
+export EXACT_LOG
+LINT_PATH="$EXACT_DIR:/usr/bin:/bin"
+d=$(fixture exact-rumdl)
+run_lint "$d" --require-tools
+assert_status "an exact-version rumdl on PATH passes" 0
+assert_contains "the matching PATH binary is used directly" "$LINT_OUT" "engine: rumdl 0.2.62 (PATH)"
+assert_contains "no resolver fetch happens" "$(cat "$EXACT_LOG")" "check"
+
+# Vale follows the same precedence, resolved through mise rather than uvx.
+VALE_DIR="$TEST_ROOT/vale-pin"
+mkdir -p "$VALE_DIR"
+cat > "$VALE_DIR/vale" <<'EOF'
+#!/bin/sh
+case "$1" in --version) echo "vale version 3.0.0"; exit 0 ;; esac
+echo "stale vale ran" > "$VALE_LOG"
+exit 0
+EOF
+cat > "$VALE_DIR/mise" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$*" > "$VALE_LOG"
+exit 0
+EOF
+chmod +x "$VALE_DIR/vale" "$VALE_DIR/mise"
+VALE_LOG="$TEST_ROOT/vale.log"
+export VALE_LOG
+LINT_PATH="$VALE_DIR:/usr/bin:/bin"
+d=$(fixture vale-pin)
+: > "$d/.vale.ini"
+run_lint "$d"
+assert_contains "mise resolves vale at the pin over a stale PATH copy" "$(cat "$VALE_LOG")" "vale@3.19.0"
+assert_contains "the vale source is reported" "$LINT_OUT" "engine: vale 3.19.0 (mise)"
+
+VALE_OK_DIR="$TEST_ROOT/vale-exact"
+mkdir -p "$VALE_OK_DIR"
+cat > "$VALE_OK_DIR/vale" <<'EOF'
+#!/bin/sh
+case "$1" in --version) echo "vale version 3.19.0"; exit 0 ;; esac
+printf '%s\n' "$*" > "$VALE_OK_LOG"
+exit 0
+EOF
+cat > "$VALE_OK_DIR/mise" <<'EOF'
+#!/bin/sh
+echo "mise should not have run" > "$VALE_OK_LOG"
+exit 0
+EOF
+chmod +x "$VALE_OK_DIR/vale" "$VALE_OK_DIR/mise"
+VALE_OK_LOG="$TEST_ROOT/vale-ok.log"
+export VALE_OK_LOG
+LINT_PATH="$VALE_OK_DIR:/usr/bin:/bin"
+d=$(fixture vale-exact)
+: > "$d/.vale.ini"
+run_lint "$d"
+assert_contains "an exact-version vale on PATH is used directly" "$LINT_OUT" "engine: vale 3.19.0 (PATH)"
+assert_contains "mise is not invoked when PATH already holds the pin" "$(cat "$VALE_OK_LOG")" "--output=line"
 
 AWK_DIR="$TEST_ROOT/awk-failure"
 mkdir -p "$AWK_DIR"

@@ -6,8 +6,10 @@
 # CI holds by construction, because there is one implementation to drift from.
 #
 # Checks, in order:
-#   1. Vale prose rules            (needs vale; .vale.ini opt-in)
-#   2. markdownlint formatting     (needs markdownlint-cli2 or npx)
+#   1. Vale prose rules            (needs vale, which mise resolves at the
+#                                   pin; .vale.ini opt-in)
+#   2. markdownlint formatting     (needs rumdl or markdownlint-cli2;
+#                                   uvx or npx reach either)
 #   3. SPEC.md status lines
 #   4. README heading profile      (--readme-type)
 #   5. Heading addressing grammar, and README derivability
@@ -25,6 +27,8 @@ readme_type=""
 require_tools=false
 root="."
 markdownlint_version="0.23.2"
+rumdl_version="0.2.62"
+vale_version="3.19.0"
 
 usage() {
   cat <<'USAGE'
@@ -32,8 +36,8 @@ Usage: governance-lint.sh [options]
 
   --readme-type <t>   README heading profile: library | application | ""
                       (empty or omitted skips the README heading check)
-  --require-tools     Fail when vale or markdownlint is missing, rather
-                      than skipping the check. CI passes this.
+  --require-tools     Fail when vale or a markdown linter is missing,
+                      rather than skipping the check. CI passes this.
   --root <dir>        Governance root to lint. Default: the current directory.
   -h, --help          This text.
 USAGE
@@ -83,6 +87,12 @@ section() { echo; echo "== $1 =="; }
 
 # A tool this run needed but did not have. Fatal under --require-tools,
 # because a run that silently skips a check reports a clean it did not earn.
+# Version triple of a linter, empty when the probe fails. Used to decide
+# whether a binary on PATH is the pinned one.
+tool_version() {
+  "$1" --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1
+}
+
 missing_tool() {
   local tool="$1" why="$2"
   if $require_tools; then
@@ -97,15 +107,37 @@ govfiles=$(find . \( -name 'SPEC.md' -o -name 'ROADMAP.md' -o -name 'REQUIREMENT
   -not -path './.git/*' | sort)
 
 # ---------------------------------------------------------------- 1. Vale ---
+# Same precedence as the markdown engine: the pin outranks the host's copy.
+# mise resolves vale through aqua, which fetches errata-ai's own release
+# archives and already encodes the platform matrix, so the pin is portable
+# without a downloader written here.
 section "Vale prose rules"
+vale_cmd=""
+vale_label=""
+vale_unpinned=""
+vale_on_path="$(command -v vale >/dev/null 2>&1 && tool_version vale)"
+if [ -n "$vale_on_path" ] && [ "$vale_on_path" = "$vale_version" ]; then
+  vale_cmd="vale"
+  vale_label="vale ${vale_version} (PATH)"
+elif command -v mise >/dev/null 2>&1; then
+  vale_cmd="mise x vale@${vale_version} -- vale"
+  vale_label="vale ${vale_version} (mise)"
+elif command -v vale >/dev/null 2>&1; then
+  vale_cmd="vale"
+  vale_label="vale ${vale_on_path:-unknown} (PATH)"
+  vale_unpinned="vale ${vale_version}"
+fi
 if [ ! -f .vale.ini ]; then
   echo "  skip — no .vale.ini (prose linting is opt-in)"
-elif ! command -v vale >/dev/null 2>&1; then
+elif [ -z "$vale_cmd" ]; then
   missing_tool "vale" "prose rules"
 else
+  echo "  engine: ${vale_label}"
+  [ -n "$vale_unpinned" ] && echo "  note — not the pinned ${vale_unpinned}; CI runs the pin"
   # Lint the tree root so every finding in the configured files is reported,
   # matching what the .vale.ini scopes rather than a changed-lines subset.
-  if ! vale --output=line .; then
+  # shellcheck disable=SC2086
+  if ! $vale_cmd --output=line .; then
     echo "::error::Vale reported findings"
     errors=$((errors + 1))
   else
@@ -114,16 +146,80 @@ else
 fi
 
 # -------------------------------------------------------- 2. markdownlint ---
+# The pinned version wins over whatever the machine happens to carry. A
+# linter on PATH is an accident of that host's setup; the pin is what CI
+# runs, and parity is this script's whole purpose. `uvx` and `npx` resolve a
+# pinned version on every platform they support, which is why the pin is
+# expressed through them rather than through a downloader written here: the
+# release archives use two naming schemes and two container formats across
+# six platform variants each, and the cache location differs on macOS and
+# Windows besides.
+#
+# An exact-version match on PATH is preferred ahead of the resolver — it is
+# the same program without the fetch, and it keeps an offline machine that
+# pre-installed the pin working.
+#
+# rumdl is the preferred engine: one static binary and no Node runtime. It
+# reads .markdownlint.json and .markdownlint-cli2.jsonc and implements the
+# same MD### rule identifiers, but it is not bug-for-bug identical to
+# markdownlint — line length and list indentation differ, and it follows
+# CommonMark over compatibility. A project that pins markdownlint-cli2 in its
+# own CI should install markdownlint-cli2 locally too, so both sides agree.
 section "markdownlint formatting"
 mdl=""
-if command -v markdownlint-cli2 >/dev/null 2>&1; then
-  mdl="markdownlint-cli2"
+mdl_engine=""
+mdl_label=""
+mdl_unpinned=""
+rumdl_on_path="$(command -v rumdl >/dev/null 2>&1 && tool_version rumdl)"
+if [ -n "$rumdl_on_path" ] && [ "$rumdl_on_path" = "$rumdl_version" ]; then
+  mdl="rumdl check"
+  mdl_engine="rumdl"
+  mdl_label="rumdl ${rumdl_version} (PATH)"
+elif command -v uvx >/dev/null 2>&1; then
+  mdl="uvx rumdl@${rumdl_version} check"
+  mdl_engine="rumdl"
+  mdl_label="rumdl ${rumdl_version} (uvx)"
 elif command -v npx >/dev/null 2>&1; then
   mdl="npx --yes markdownlint-cli2@${markdownlint_version}"
+  mdl_engine="markdownlint-cli2"
+  mdl_label="markdownlint-cli2 ${markdownlint_version} (npx)"
+elif command -v rumdl >/dev/null 2>&1; then
+  mdl="rumdl check"
+  mdl_engine="rumdl"
+  mdl_label="rumdl ${rumdl_on_path:-unknown} (PATH)"
+  mdl_unpinned="rumdl ${rumdl_version}"
+elif command -v markdownlint-cli2 >/dev/null 2>&1; then
+  mdl="markdownlint-cli2"
+  mdl_engine="markdownlint-cli2"
+  mdl_label="markdownlint-cli2 (PATH)"
+  mdl_unpinned="markdownlint-cli2 ${markdownlint_version}"
 fi
 if [ -z "$mdl" ]; then
-  missing_tool "markdownlint-cli2" "markdown formatting"
+  missing_tool "rumdl or markdownlint-cli2" "markdown formatting"
+elif [ "$mdl_engine" = "rumdl" ]; then
+  # rumdl does not expand `**` globs of its own accord. Handed one it prints
+  # "File not found" and still exits 0, which reads as a pass, so the file
+  # list is resolved here instead.
+  mdfiles=$(find . \( -name 'SPEC.md' -o -name 'ROADMAP.md' \
+    -o -name 'REQUIREMENTS.md' -o -name 'README.md' \) \
+    -not -path './.git/*' | sort)
+  if [ -z "$mdfiles" ]; then
+    echo "  skip — no governance markdown found"
+  else
+    echo "  engine: ${mdl_label}"
+    [ -n "$mdl_unpinned" ] && echo "  note — not the pinned ${mdl_unpinned}; CI runs the pin"
+    # Both expansions are deliberate: $mdl carries arguments, $mdfiles a list.
+    # shellcheck disable=SC2086
+    if ! $mdl $mdfiles; then
+      echo "::error::markdownlint reported findings"
+      errors=$((errors + 1))
+    else
+      echo "  ok"
+    fi
+  fi
 else
+  echo "  engine: ${mdl_label}"
+  [ -n "$mdl_unpinned" ] && echo "  note — not the pinned ${mdl_unpinned}; CI runs the pin"
   if ! $mdl "**/SPEC.md" "**/ROADMAP.md" "**/README.md" "**/REQUIREMENTS.md"; then
     echo "::error::markdownlint reported findings"
     errors=$((errors + 1))

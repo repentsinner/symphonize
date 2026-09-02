@@ -134,10 +134,10 @@ consumers of the old arrangement have yet to move to it.
 
 ### Run the bundled script from the pre-commit hook §road:hook-runs-bundled-script
 
-The hook `/notation:init` scaffolds still calls `npx markdownlint-cli2`
-against a hardcoded file list, so it checks formatting where the script
-checks the contract, and it holds a second copy of the file globs to
-drift from. Point it at the bundled script instead, keeping the hook's
+The hook `/notation:init` scaffolds resolves a markdown linter itself
+and runs it against a hardcoded file list, so it checks formatting where
+the script checks the contract, and it holds a second copy of both the
+file list and the engine-resolution order to drift from. Point it at the bundled script instead, keeping the hook's
 degradation contract: skip silently when the script is unreachable, and
 never block a commit on an absent optional tool. §spec:governance-lint
 
