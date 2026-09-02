@@ -55,22 +55,48 @@ and runs the rest. CI runs every check unconditionally, so local verification
 is honest about being a subset: it never reports clean on a check it did not
 run.
 
-**Markdown engine.** The script prefers `rumdl`: one static binary, no Node
-runtime, and `uvx` reaches it from any machine carrying uv.
-`markdownlint-cli2` remains the fallback for a machine with Node and no uv.
-The reusable workflow installs a pinned `rumdl` (§spec:reusable-ci), so CI and
-an ordinary local run share one engine rather than agreeing by luck.
+**Markdown engine.** The pinned version outranks whatever the machine
+carries. A linter on `PATH` is an accident of that host's setup; the pin is
+what CI runs, and a host binary that silently shadows it makes parity
+decorative. Resolution order:
 
-`rumdl` reads `.markdownlint.json` and `.markdownlint-cli2.jsonc` and
-implements the same rule identifiers, so an existing configuration needs no
-change. It is not bug-for-bug identical: line length and list indentation
-differ, and it follows CommonMark ahead of compatibility. A project that pins
+1. `rumdl` on `PATH` whose version equals the pin — the same program without
+   the fetch, and an offline machine holding the pin keeps working.
+2. `uvx rumdl@<pin>`.
+3. `npx --yes markdownlint-cli2@<pin>`.
+4. `rumdl` on `PATH` at any other version, reported as unpinned.
+5. `markdownlint-cli2` on `PATH`, reported as unpinned.
+
+The run prints the engine and where it came from, so a local/CI disagreement
+is visible in the log rather than reconstructed from two of them.
+
+**Why the pin travels through `uvx` and `npx`** rather than a downloader
+written here: `vale` publishes six platform archives named
+`vale_<v>_Linux_64-bit.tar.gz` through `vale_<v>_Windows_arm64.zip`, and
+`rumdl` publishes seven named by Rust target triple, in two container
+formats. A resolver inside this script would reimplement platform and
+architecture detection twice, in incompatible naming schemes, and would still
+have to pick a cache directory that is neither `~/.cache` on macOS nor on
+Windows. `uvx` and `npx` exist so that code is not written again.
+
+`rumdl` is the preferred engine: one static binary, no Node runtime. It reads
+`.markdownlint.json` and `.markdownlint-cli2.jsonc` and implements the same
+rule identifiers, so an existing configuration needs no change. It is not
+bug-for-bug identical: line length and list indentation differ, and it
+follows CommonMark ahead of compatibility. A project that pins
 `markdownlint-cli2` in its own CI should install `markdownlint-cli2` locally
 too, so both sides run the linter that gates the merge.
 
 The script hands `rumdl` a resolved file list rather than a glob. Given
 `**/SPEC.md` it reports the file as missing and still exits 0, which reads as
 a pass — the one behaviour here that fails unsafely.
+
+**Vale is the exception, and stays unpinned locally.** No registry ships it,
+so there is no `uvx`-shaped resolver, and the alternative — a third-party
+repackage on PyPI — is a trust hop this gate does not need. Vale is therefore
+whatever the machine installed, or a skip. The run prints its version for the
+same reason it prints the markdown engine: CI pins one, and the disagreement
+should be legible.
 
 **Why one script, plugin-bundled:** parity holds only when local and CI run the
 same contract logic, and a single source guarantees that by construction.

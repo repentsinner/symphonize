@@ -443,6 +443,57 @@ run_lint "$d" --require-tools
 assert_status "uvx rumdl fallback passes" 0
 assert_contains "uvx is preferred over npx" "$(cat "$UVX_LOG")" "rumdl@0.2.62"
 
+# Version policy: the pin outranks whatever the host happens to carry. A
+# stale rumdl on PATH must not shadow the pinned resolver, or every machine
+# silently lints with its own version and CI parity is decorative.
+STALE_DIR="$TEST_ROOT/stale-rumdl"
+mkdir -p "$STALE_DIR"
+cat > "$STALE_DIR/rumdl" <<'EOF'
+#!/bin/sh
+case "$1" in --version) echo "rumdl 0.0.1"; exit 0 ;; esac
+echo "stale rumdl ran" > "$STALE_LOG"
+exit 0
+EOF
+cat > "$STALE_DIR/uvx" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$*" > "$STALE_LOG"
+exit 0
+EOF
+chmod +x "$STALE_DIR/rumdl" "$STALE_DIR/uvx"
+STALE_LOG="$TEST_ROOT/stale.log"
+export STALE_LOG
+LINT_PATH="$STALE_DIR:/usr/bin:/bin"
+d=$(fixture stale-rumdl)
+run_lint "$d" --require-tools
+assert_status "a stale rumdl on PATH still passes" 0
+assert_contains "the pinned resolver outranks a stale PATH binary" "$(cat "$STALE_LOG")" "rumdl@0.2.62"
+assert_contains "the run reports the resolved source" "$LINT_OUT" "engine: rumdl 0.2.62 (uvx)"
+
+# The reverse: an exact-version match on PATH is used directly, so a machine
+# holding the pin does not pay a resolver fetch and works offline.
+EXACT_DIR="$TEST_ROOT/exact-rumdl"
+mkdir -p "$EXACT_DIR"
+cat > "$EXACT_DIR/rumdl" <<'EOF'
+#!/bin/sh
+case "$1" in --version) echo "rumdl 0.2.62"; exit 0 ;; esac
+printf '%s\n' "$*" > "$EXACT_LOG"
+exit 0
+EOF
+cat > "$EXACT_DIR/uvx" <<'EOF'
+#!/bin/sh
+echo "uvx should not have run" > "$EXACT_LOG"
+exit 0
+EOF
+chmod +x "$EXACT_DIR/rumdl" "$EXACT_DIR/uvx"
+EXACT_LOG="$TEST_ROOT/exact.log"
+export EXACT_LOG
+LINT_PATH="$EXACT_DIR:/usr/bin:/bin"
+d=$(fixture exact-rumdl)
+run_lint "$d" --require-tools
+assert_status "an exact-version rumdl on PATH passes" 0
+assert_contains "the matching PATH binary is used directly" "$LINT_OUT" "engine: rumdl 0.2.62 (PATH)"
+assert_contains "no resolver fetch happens" "$(cat "$EXACT_LOG")" "check"
+
 AWK_DIR="$TEST_ROOT/awk-failure"
 mkdir -p "$AWK_DIR"
 cat > "$AWK_DIR/awk" <<'EOF'
