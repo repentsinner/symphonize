@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.2.11](https://github.com/repentsinner/symphonize/compare/notation--v0.2.10...notation--v0.2.11) (2026-09-02)
+
+
+### Features
+
+* **notation:** bundled lint adoption ([#213](https://github.com/repentsinner/symphonize/issues/213)) ([b1667e5](https://github.com/repentsinner/symphonize/commit/b1667e572d478eb690ae47c56b454a5437e19d4e))
+
+## [0.2.10](https://github.com/repentsinner/symphonize/compare/notation--v0.2.9...notation--v0.2.10) (2026-09-02)
+
+
+### Features
+
+* **notation:** prefer rumdl so the contract needs no Node ([#220](https://github.com/repentsinner/symphonize/issues/220)) ([516ee48](https://github.com/repentsinner/symphonize/commit/516ee48c418c775c4d9ea98e8f2fd917375a18c7))
+
+## [0.2.9](https://github.com/repentsinner/symphonize/compare/notation--v0.2.8...notation--v0.2.9) (2026-09-01)
+
+
+### Performance Improvements
+
+* **notation:** optimize governance lint runtime ([#217](https://github.com/repentsinner/symphonize/issues/217)) ([028a003](https://github.com/repentsinner/symphonize/commit/028a003e57a4782f707eb33ece715d2f3549f22d))
+
 ## [0.2.8](https://github.com/repentsinner/symphonize/compare/notation--v0.2.7...notation--v0.2.8) (2026-08-28)
 
 

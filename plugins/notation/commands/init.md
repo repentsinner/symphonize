@@ -246,41 +246,60 @@ Create `.githooks/pre-commit`:
 
 ```bash
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
-# Only lint when governance files are staged
+# Only lint when a governance file is staged. The pattern allows a leading
+# path so directory-scoped governance triggers it too.
 staged=$(git diff --cached --name-only)
-if ! echo "$staged" | grep -qE '^(SPEC|ROADMAP|README)\.md$'; then
+if ! echo "$staged" | grep -qE '(^|/)(SPEC|ROADMAP|README|REQUIREMENTS|CHANGELOG)\.md$'; then
+  exit 0
+fi
+
+# The contract has one executable form, bundled with the notation plugin
+# (SPEC §spec:governance-lint), so the hook runs that rather than holding a
+# second copy of the checks. A git hook runs outside Claude Code, where
+# ${CLAUDE_PLUGIN_ROOT} is unset, so the installed plugin cache is searched
+# instead. GOVERNANCE_LINT overrides the search.
+script="${GOVERNANCE_LINT:-}"
+if [ -z "$script" ]; then
+  for candidate in "$HOME"/.claude/plugins/cache/*/notation/scripts/governance-lint.sh; do
+    [ -x "$candidate" ] && { script="$candidate"; break; }
+  done
+fi
+
+# Plugin absent: this checkout gets no early warning, which is a worse commit
+# experience but not a wrong one. CI runs the same script and is the authority.
+if [ -z "$script" ] || [ ! -x "$script" ]; then
+  echo "pre-commit: notation plugin not found, skipping governance lint (CI still enforces it)" >&2
   exit 0
 fi
 
 # Git hooks run with a minimal PATH and do not inherit an interactive shell,
-# so version-manager shims (nvm, fnm, volta) are absent and a bare `npx`
-# fails even when node is installed. Look in the usual places.
-if ! command -v npx >/dev/null 2>&1; then
-  for dir in \
-    "$HOME"/.nvm/versions/node/*/bin \
-    "$HOME"/.volta/bin \
-    "$HOME"/.local/share/fnm/node-versions/*/installation/bin \
-    /opt/homebrew/bin \
-    /usr/local/bin
-  do
-    if [ -x "${dir}/npx" ]; then
-      PATH="${dir}:${PATH}"
-      export PATH
-      break
-    fi
-  done
-fi
+# so tools installed under $HOME are absent even when they work in a terminal.
+# Prime PATH with the usual places so the script resolves its linters instead
+# of skipping them: ~/.local/bin carries rumdl, uv and mise, and the
+# version-manager directories carry npx.
+for dir in \
+  "$HOME"/.local/bin \
+  "$HOME"/.cargo/bin \
+  "$HOME"/.nvm/versions/node/*/bin \
+  "$HOME"/.volta/bin \
+  "$HOME"/.local/share/fnm/node-versions/*/installation/bin \
+  /opt/homebrew/bin \
+  /usr/local/bin
+do
+  [ -d "$dir" ] || continue
+  case ":${PATH}:" in
+    *":${dir}:"*) ;;
+    *) PATH="${dir}:${PATH}" ;;
+  esac
+done
+export PATH
 
-# No node toolchain reachable: skip rather than block. CI runs the same
-# check and is the authority.
-if ! command -v npx >/dev/null 2>&1; then
-  echo "pre-commit: npx not found, skipping markdownlint (CI still enforces it)" >&2
-  exit 0
-fi
-
-npx markdownlint-cli2 SPEC.md ROADMAP.md README.md
+# No --require-tools: the script skips a check whose tool is absent and runs
+# the rest, so a missing linter reports a notice instead of blocking the
+# commit. A real contract violation still fails, which is the point of a hook.
+exec "$script"
 ```
 
 Then activate hooks for this checkout:

@@ -1,0 +1,696 @@
+#!/usr/bin/env bash
+# Unit tests for governance-lint.sh.
+#
+# The fixtures run offline. Vale, rumdl, markdownlint-cli2, npx and uvx are
+# small stubs,
+# so these tests cover tool policy without downloading external programs.
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LINT="$SCRIPT_DIR/governance-lint.sh"
+
+pass=0
+fail=0
+TEST_ROOT="$(mktemp -d)"
+trap 'rm -rf "$TEST_ROOT"' EXIT
+
+STUB_DIR="$TEST_ROOT/stubs"
+mkdir -p "$STUB_DIR"
+cat > "$STUB_DIR/vale" <<'EOF'
+#!/bin/sh
+exit 0
+EOF
+cat > "$STUB_DIR/markdownlint-cli2" <<'EOF'
+#!/bin/sh
+exit 0
+EOF
+chmod +x "$STUB_DIR/vale" "$STUB_DIR/markdownlint-cli2"
+
+LINT_PATH="$STUB_DIR:/usr/bin:/bin"
+GITHUB_MODE=""
+LINT_OUT=""
+LINT_STATUS=0
+
+fixture() {
+  local dir="$TEST_ROOT/$1"
+  mkdir -p "$dir"
+  cat > "$dir/SPEC.md" <<'SPEC'
+# Fixture
+
+## Only section §spec:only-section
+*Status: complete*
+
+A section that satisfies the contract.
+SPEC
+  echo "$dir"
+}
+
+run_lint() {
+  local dir="$1"
+  shift
+  LINT_OUT="$(PATH="$LINT_PATH" GITHUB_ACTIONS="$GITHUB_MODE" \
+    "$LINT" --root "$dir" "$@" 2>&1)"
+  LINT_STATUS=$?
+}
+
+assert_contains() {
+  local label="$1" haystack="$2" needle="$3"
+  if printf '%s' "$haystack" | grep -qF -- "$needle"; then
+    pass=$((pass + 1))
+    echo "ok   - $label"
+  else
+    fail=$((fail + 1))
+    echo "FAIL - $label"
+    echo "       expected: $needle"
+    printf '%s\n' "$haystack" | sed 's/^/       | /'
+  fi
+}
+
+assert_not_contains() {
+  local label="$1" haystack="$2" needle="$3"
+  if printf '%s' "$haystack" | grep -qF -- "$needle"; then
+    fail=$((fail + 1))
+    echo "FAIL - $label"
+    echo "       unexpected: $needle"
+    printf '%s\n' "$haystack" | sed 's/^/       | /'
+  else
+    pass=$((pass + 1))
+    echo "ok   - $label"
+  fi
+}
+
+assert_order() {
+  local label="$1" haystack="$2" first="$3" second="$4"
+  local first_line second_line
+  first_line="$(printf '%s\n' "$haystack" | grep -nF -- "$first" | head -1 | cut -d: -f1)"
+  second_line="$(printf '%s\n' "$haystack" | grep -nF -- "$second" | head -1 | cut -d: -f1)"
+  if [ -n "$first_line" ] && [ -n "$second_line" ] && [ "$first_line" -lt "$second_line" ]; then
+    pass=$((pass + 1))
+    echo "ok   - $label"
+  else
+    fail=$((fail + 1))
+    echo "FAIL - $label"
+    echo "       expected '$first' before '$second'"
+  fi
+}
+
+assert_status() {
+  local label="$1" expected="$2"
+  if [ "$LINT_STATUS" -eq "$expected" ]; then
+    pass=$((pass + 1))
+    echo "ok   - $label"
+  else
+    fail=$((fail + 1))
+    echo "FAIL - $label (exit $LINT_STATUS, expected $expected)"
+    printf '%s\n' "$LINT_OUT" | sed 's/^/       | /'
+  fi
+}
+
+assert_elapsed_under_five() {
+  local label="$1" elapsed="$2"
+  if [ "$elapsed" -lt 5 ]; then
+    pass=$((pass + 1))
+    echo "ok   - $label (${elapsed}s)"
+  else
+    fail=$((fail + 1))
+    echo "FAIL - $label (${elapsed}s)"
+  fi
+}
+
+echo "== valid roots and input forms =="
+d=$(fixture valid-library)
+cat > "$d/README.md" <<'README'
+# Fixture
+
+## Installation
+Install the library.
+
+## Usage
+Use the library.
+
+## License
+MIT.
+README
+run_lint "$d" --readme-type library --require-tools
+assert_status "library profile passes" 0
+
+d=$(fixture valid-application)
+cat > "$d/README.md" <<'README'
+# Fixture
+
+## Getting Started
+Install the application.
+
+## Usage
+Run the application.
+
+## License
+MIT.
+README
+run_lint "$d" --readme-type application --require-tools
+assert_status "application profile passes" 0
+
+d=$(fixture nested-files)
+mkdir -p "$d/docs/reference"
+cat > "$d/docs/reference/REQUIREMENTS.md" <<'REQ'
+# Requirements
+
+## Nested requirement §req:nested-requirement
+A requirement.
+REQ
+cat > "$d/docs/reference/ROADMAP.md" <<'ROAD'
+# Roadmap
+
+## Nested workstream §road:nested-workstream
+A workstream.
+See §req:nested-requirement.
+ROAD
+run_lint "$d"
+assert_status "nested governance files pass" 0
+
+d=$(fixture crlf-input)
+printf '# Fixture\r\n\r\n## CRLF section §spec:crlf\r\n*Status: complete*\r\n\r\nSee §spec:crlf.\r\n' > "$d/SPEC.md"
+run_lint "$d"
+assert_status "CRLF input passes" 0
+
+d=$(fixture absent-readme)
+run_lint "$d"
+assert_status "an absent README is allowed without a profile" 0
+run_lint "$d" --readme-type library
+assert_status "a selected profile requires README.md" 1
+assert_contains "the absent README is reported" "$LINT_OUT" "README.md not found"
+
+echo
+echo "== status and heading errors =="
+d=$(fixture status-errors)
+cat > "$d/SPEC.md" <<'SPEC'
+# Fixture
+
+## First section §spec:first
+
+## Second section §spec:second
+*Status: invalid*
+SPEC
+run_lint "$d"
+assert_status "status errors fail" 1
+assert_contains "missing status is reported" "$LINT_OUT" "Section '## First section §spec:first' has no *Status: line"
+assert_contains "invalid status is reported" "$LINT_OUT" "invalid or missing status line: *Status: invalid*"
+assert_contains "status summary has exact counts" "$LINT_OUT" "2 error(s), 0 warning(s)"
+
+d=$(fixture missing-slug)
+cat > "$d/SPEC.md" <<'SPEC'
+# Fixture
+
+## Missing heading
+*Status: complete*
+SPEC
+run_lint "$d"
+assert_status "a missing slug fails" 1
+assert_contains "the missing slug is reported" "$LINT_OUT" "## heading missing §spec: slug: ## Missing heading"
+
+d=$(fixture duplicate-slug)
+cat > "$d/SPEC.md" <<'SPEC'
+# Fixture
+
+## Later section §spec:z-section
+*Status: complete*
+
+## Earlier section §spec:a-section
+*Status: complete*
+
+## Repeated section §spec:z-section
+*Status: complete*
+SPEC
+run_lint "$d"
+assert_status "a duplicate slug fails" 1
+assert_contains "the duplicate slug is reported" "$LINT_OUT" "Duplicate slug definition: §spec:z-section"
+assert_contains "defined slugs are sorted" "$LINT_OUT" "    §spec:a-section"
+assert_contains "the second defined slug is shown" "$LINT_OUT" "    §spec:z-section"
+
+d=$(fixture dangling-reference)
+cat >> "$d/SPEC.md" <<'SPEC'
+
+This points to §spec:not-defined.
+SPEC
+run_lint "$d"
+assert_status "a dangling reference fails" 1
+assert_contains "the dangling reference is reported" "$LINT_OUT" "Dangling reference §spec:not-defined — no matching heading"
+
+d=$(fixture ambiguous-reference)
+cat > "$d/SPEC.md" <<'SPEC'
+# Fixture
+
+## First §spec:same
+*Status: complete*
+
+## Second §spec:same
+*Status: complete*
+
+See §spec:same.
+SPEC
+run_lint "$d"
+assert_status "an ambiguous reference fails" 1
+assert_order "the duplicate is reported before resolution" "$LINT_OUT" \
+  "Duplicate slug definition: §spec:same" \
+  "Ambiguous reference §spec:same — resolves to 2 headings"
+
+d=$(fixture numeric-address)
+cat > "$d/SPEC.md" <<'SPEC'
+# Fixture
+
+## 1. Numeric section §spec:numeric-section
+*Status: complete*
+
+## 3D view §spec:three-d-view
+*Status: complete*
+
+See §8.9.
+See `§9.9`.
+SPEC
+run_lint "$d"
+assert_status "numeric addresses fail" 1
+assert_contains "numeric headings are rejected" "$LINT_OUT" "Positional heading rejected (numeric ordinal): ## 1. Numeric section §spec:numeric-section"
+assert_contains "numeric references are rejected" "$LINT_OUT" "Positional reference rejected (numeric address): See §8.9."
+assert_not_contains "a digit-starting topic is allowed" "$LINT_OUT" "3D view"
+assert_not_contains "numeric code spans are exempt" "$LINT_OUT" "§9.9"
+
+echo
+echo "== code spans and fenced blocks =="
+d=$(fixture code-exemptions)
+cat >> "$d/SPEC.md" <<'SPEC'
+
+Inline `§spec:not-defined` and `§9.9` are examples.
+
+```markdown
+### Not a real heading
+See §spec:not-defined and §9.9.
+```
+SPEC
+cat > "$d/README.md" <<'README'
+# Fixture
+
+## Usage
+Use the fixture.
+
+```markdown
+### Not a real section §spec:not-defined
+See §spec:not-defined.
+```
+README
+run_lint "$d"
+assert_status "inline code and fenced blocks are exempt" 0
+assert_not_contains "code references do not dangle" "$LINT_OUT" "Dangling reference §spec:not-defined"
+assert_not_contains "code numeric addresses do not fail" "$LINT_OUT" "Positional reference rejected"
+assert_not_contains "fenced README headings do not define slugs" "$LINT_OUT" "README defines §slug"
+
+echo
+echo "== README derivability =="
+d=$(fixture readme-definition)
+cat > "$d/README.md" <<'README'
+# Fixture
+
+## Project summary §spec:only-section
+This heading attempts to define a slug.
+README
+run_lint "$d"
+assert_status "a README definition fails" 1
+assert_contains "the README definition is reported" "$LINT_OUT" "README defines §slug"
+
+d=$(fixture readme-dangling)
+cat > "$d/README.md" <<'README'
+# Fixture
+
+## Usage
+See §spec:not-defined.
+README
+run_lint "$d"
+assert_status "a README dangling reference fails" 1
+assert_contains "the README reference is reported" "$LINT_OUT" "README.md:4: error: Dangling reference §spec:not-defined"
+assert_not_contains "a README reference is not a definition" "$LINT_OUT" "    §spec:not-defined"
+
+d=$(fixture readme-warning)
+cat > "$d/README.md" <<'README'
+# Fixture
+
+## Usage
+Run the fixture.
+
+## Overview
+This section has no governance reference.
+
+## License
+MIT.
+README
+run_lint "$d"
+assert_status "a derivability warning does not fail" 0
+assert_contains "the non-orientation warning is reported" "$LINT_OUT" "Section 'overview' cites no §reference"
+assert_contains "the warning count is exact" "$LINT_OUT" "governance contract satisfied — 1 warning(s)"
+assert_not_contains "orientation headings do not warn" "$LINT_OUT" "Section 'usage' cites no §reference"
+
+echo
+echo "== diagnostics and tool policy =="
+d=$(fixture terminal-diagnostic)
+tab_heading=$(printf '## Missing\theading')
+{
+  printf '# Fixture\n\n%s\n*Status: complete*\n' "$tab_heading"
+} > "$d/SPEC.md"
+run_lint "$d"
+assert_contains "terminal diagnostics include path and line" "$LINT_OUT" "./SPEC.md:3: error: ## heading missing §spec: slug"
+tab=$(printf '\t')
+assert_contains "tabs in Markdown stay unchanged" "$LINT_OUT" "## Missing${tab}heading"
+
+GITHUB_MODE=1
+run_lint "$d"
+GITHUB_MODE=""
+assert_contains "GitHub diagnostics use annotations" "$LINT_OUT" "::error file=./SPEC.md,line=3::## heading missing §spec: slug"
+
+d=$(fixture tool-policy)
+: > "$d/.vale.ini"
+LINT_PATH="/usr/bin:/bin"
+run_lint "$d"
+assert_status "missing optional tools do not fail" 0
+assert_contains "missing Vale is reported" "$LINT_OUT" "skip — vale not on PATH"
+assert_contains "missing markdownlint is reported" "$LINT_OUT" "skip — rumdl or markdownlint-cli2 not on PATH"
+run_lint "$d" --require-tools
+assert_status "required tools fail when absent" 1
+assert_contains "required tool summary is exact" "$LINT_OUT" "2 error(s), 0 warning(s)"
+assert_contains "required tool errors use GitHub form" "$LINT_OUT" "::error::vale is required but not on PATH"
+
+LINT_PATH="$STUB_DIR:/usr/bin:/bin"
+run_lint "$d" --require-tools
+assert_status "stubbed tools pass when required" 0
+assert_contains "Vale runs" "$LINT_OUT" "  ok"
+
+NPX_DIR="$TEST_ROOT/npx"
+mkdir -p "$NPX_DIR"
+cat > "$NPX_DIR/npx" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$*" > "$NPX_LOG"
+exit 0
+EOF
+chmod +x "$NPX_DIR/npx"
+NPX_LOG="$TEST_ROOT/npx.log"
+export NPX_LOG
+LINT_PATH="$NPX_DIR:/usr/bin:/bin"
+d=$(fixture npx-fallback)
+run_lint "$d" --require-tools
+assert_status "npx markdownlint fallback passes" 0
+assert_contains "the pinned markdownlint version stays unchanged" "$(cat "$NPX_LOG")" "--yes markdownlint-cli2@0.23.2"
+
+# Engine policy: rumdl is preferred over markdownlint-cli2, uvx is preferred
+# over npx, and rumdl is handed real paths rather than a glob it cannot expand.
+RUMDL_DIR="$TEST_ROOT/rumdl"
+mkdir -p "$RUMDL_DIR"
+cat > "$RUMDL_DIR/rumdl" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$*" > "$RUMDL_LOG"
+exit 0
+EOF
+cat > "$RUMDL_DIR/markdownlint-cli2" <<'EOF'
+#!/bin/sh
+echo "markdownlint-cli2 should not have run" > "$RUMDL_LOG"
+exit 0
+EOF
+chmod +x "$RUMDL_DIR/rumdl" "$RUMDL_DIR/markdownlint-cli2"
+RUMDL_LOG="$TEST_ROOT/rumdl.log"
+export RUMDL_LOG
+LINT_PATH="$RUMDL_DIR:/usr/bin:/bin"
+d=$(fixture rumdl-preferred)
+run_lint "$d" --require-tools
+assert_status "rumdl engine passes" 0
+assert_contains "rumdl is chosen over markdownlint-cli2" "$LINT_OUT" "engine: rumdl"
+assert_contains "rumdl is invoked as a checker" "$(cat "$RUMDL_LOG")" "check"
+assert_contains "rumdl receives a real path, not a glob" "$(cat "$RUMDL_LOG")" "./SPEC.md"
+
+UVX_DIR="$TEST_ROOT/uvx"
+mkdir -p "$UVX_DIR"
+cat > "$UVX_DIR/uvx" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$*" > "$UVX_LOG"
+exit 0
+EOF
+cat > "$UVX_DIR/npx" <<'EOF'
+#!/bin/sh
+echo "npx should not have run" > "$UVX_LOG"
+exit 0
+EOF
+chmod +x "$UVX_DIR/uvx" "$UVX_DIR/npx"
+UVX_LOG="$TEST_ROOT/uvx.log"
+export UVX_LOG
+LINT_PATH="$UVX_DIR:/usr/bin:/bin"
+d=$(fixture uvx-fallback)
+run_lint "$d" --require-tools
+assert_status "uvx rumdl fallback passes" 0
+assert_contains "uvx is preferred over npx" "$(cat "$UVX_LOG")" "rumdl@0.2.62"
+
+# Version policy: the pin outranks whatever the host happens to carry. A
+# stale rumdl on PATH must not shadow the pinned resolver, or every machine
+# silently lints with its own version and CI parity is decorative.
+STALE_DIR="$TEST_ROOT/stale-rumdl"
+mkdir -p "$STALE_DIR"
+cat > "$STALE_DIR/rumdl" <<'EOF'
+#!/bin/sh
+case "$1" in --version) echo "rumdl 0.0.1"; exit 0 ;; esac
+echo "stale rumdl ran" > "$STALE_LOG"
+exit 0
+EOF
+cat > "$STALE_DIR/uvx" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$*" > "$STALE_LOG"
+exit 0
+EOF
+chmod +x "$STALE_DIR/rumdl" "$STALE_DIR/uvx"
+STALE_LOG="$TEST_ROOT/stale.log"
+export STALE_LOG
+LINT_PATH="$STALE_DIR:/usr/bin:/bin"
+d=$(fixture stale-rumdl)
+run_lint "$d" --require-tools
+assert_status "a stale rumdl on PATH still passes" 0
+assert_contains "the pinned resolver outranks a stale PATH binary" "$(cat "$STALE_LOG")" "rumdl@0.2.62"
+assert_contains "the run reports the resolved source" "$LINT_OUT" "engine: rumdl 0.2.62 (uvx)"
+
+# The reverse: an exact-version match on PATH is used directly, so a machine
+# holding the pin does not pay a resolver fetch and works offline.
+EXACT_DIR="$TEST_ROOT/exact-rumdl"
+mkdir -p "$EXACT_DIR"
+cat > "$EXACT_DIR/rumdl" <<'EOF'
+#!/bin/sh
+case "$1" in --version) echo "rumdl 0.2.62"; exit 0 ;; esac
+printf '%s\n' "$*" > "$EXACT_LOG"
+exit 0
+EOF
+cat > "$EXACT_DIR/uvx" <<'EOF'
+#!/bin/sh
+echo "uvx should not have run" > "$EXACT_LOG"
+exit 0
+EOF
+chmod +x "$EXACT_DIR/rumdl" "$EXACT_DIR/uvx"
+EXACT_LOG="$TEST_ROOT/exact.log"
+export EXACT_LOG
+LINT_PATH="$EXACT_DIR:/usr/bin:/bin"
+d=$(fixture exact-rumdl)
+run_lint "$d" --require-tools
+assert_status "an exact-version rumdl on PATH passes" 0
+assert_contains "the matching PATH binary is used directly" "$LINT_OUT" "engine: rumdl 0.2.62 (PATH)"
+assert_contains "no resolver fetch happens" "$(cat "$EXACT_LOG")" "check"
+
+# Vale follows the same precedence, resolved through mise rather than uvx.
+VALE_DIR="$TEST_ROOT/vale-pin"
+mkdir -p "$VALE_DIR"
+cat > "$VALE_DIR/vale" <<'EOF'
+#!/bin/sh
+case "$1" in --version) echo "vale version 3.0.0"; exit 0 ;; esac
+echo "stale vale ran" > "$VALE_LOG"
+exit 0
+EOF
+cat > "$VALE_DIR/mise" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$*" > "$VALE_LOG"
+exit 0
+EOF
+chmod +x "$VALE_DIR/vale" "$VALE_DIR/mise"
+VALE_LOG="$TEST_ROOT/vale.log"
+export VALE_LOG
+LINT_PATH="$VALE_DIR:/usr/bin:/bin"
+d=$(fixture vale-pin)
+: > "$d/.vale.ini"
+run_lint "$d"
+assert_contains "mise resolves vale at the pin over a stale PATH copy" "$(cat "$VALE_LOG")" "vale@3.19.0"
+assert_contains "the vale source is reported" "$LINT_OUT" "engine: vale 3.19.0 (mise)"
+
+VALE_OK_DIR="$TEST_ROOT/vale-exact"
+mkdir -p "$VALE_OK_DIR"
+cat > "$VALE_OK_DIR/vale" <<'EOF'
+#!/bin/sh
+case "$1" in --version) echo "vale version 3.19.0"; exit 0 ;; esac
+printf '%s\n' "$*" > "$VALE_OK_LOG"
+exit 0
+EOF
+cat > "$VALE_OK_DIR/mise" <<'EOF'
+#!/bin/sh
+echo "mise should not have run" > "$VALE_OK_LOG"
+exit 0
+EOF
+chmod +x "$VALE_OK_DIR/vale" "$VALE_OK_DIR/mise"
+VALE_OK_LOG="$TEST_ROOT/vale-ok.log"
+export VALE_OK_LOG
+LINT_PATH="$VALE_OK_DIR:/usr/bin:/bin"
+d=$(fixture vale-exact)
+: > "$d/.vale.ini"
+run_lint "$d"
+assert_contains "an exact-version vale on PATH is used directly" "$LINT_OUT" "engine: vale 3.19.0 (PATH)"
+assert_contains "mise is not invoked when PATH already holds the pin" "$(cat "$VALE_OK_LOG")" "--output=line"
+
+AWK_DIR="$TEST_ROOT/awk-failure"
+mkdir -p "$AWK_DIR"
+cat > "$AWK_DIR/awk" <<'EOF'
+#!/bin/sh
+exit 7
+EOF
+chmod +x "$AWK_DIR/awk"
+LINT_PATH="$AWK_DIR:/usr/bin:/bin"
+d=$(fixture awk-failure)
+run_lint "$d"
+assert_status "an awk failure fails the lint" 1
+assert_contains "the awk failure is reported" "$LINT_OUT" "governance parser failed (awk exit 7)"
+LINT_PATH="$STUB_DIR:/usr/bin:/bin"
+
+echo
+echo "== parser runtime =="
+d=$(fixture parser-runtime)
+{
+  printf '# Fixture\n\n## One section §spec:one-section\n*Status: complete*\n'
+  i=1
+  while [ "$i" -le 2000 ]; do
+    printf 'Filler line %s.\n' "$i"
+    i=$((i + 1))
+  done
+  printf '\nSee §spec:one-section.\n'
+} > "$d/SPEC.md"
+start_time=$(date +%s)
+run_lint "$d" --require-tools
+elapsed=$(( $(date +%s) - start_time ))
+assert_status "the 2,000-line fixture passes" 0
+assert_elapsed_under_five "the 2,000-line fixture stays below five seconds" "$elapsed"
+
+# The CHANGELOG check needs no linter, so PATH is cleared of them: checks 1-2
+# report a skip and leave the status alone.
+LINT_PATH="/usr/bin:/bin"
+
+echo
+echo "== CHANGELOG structure: absent file =="
+d=$(fixture no-changelog)
+run_lint "$d"
+assert_status   "a repo with no CHANGELOG.md passes" 0
+assert_contains "the check reports itself skipped" "$LINT_OUT" "skip — no CHANGELOG.md"
+
+echo
+echo "== CHANGELOG structure: manual releases =="
+d=$(fixture manual-with-unreleased)
+cat > "$d/CHANGELOG.md" <<'CL'
+# Changelog
+
+## [Unreleased]
+
+## [1.0.0] - 2026-01-01
+CL
+run_lint "$d"
+assert_status "[Unreleased] present passes" 0
+
+d=$(fixture manual-without-unreleased)
+cat > "$d/CHANGELOG.md" <<'CL'
+# Changelog
+
+## [1.0.0] - 2026-01-01
+CL
+run_lint "$d"
+assert_status   "[Unreleased] missing fails" 1
+assert_contains "the omission is reported" "$LINT_OUT" "no [Unreleased] section"
+
+echo
+echo "== CHANGELOG structure: managed releases =="
+for marker in release-please-config.json .flywheel.yml; do
+  d=$(fixture "managed-${marker}")
+  cat > "$d/CHANGELOG.md" <<'CL'
+# Changelog
+
+## [1.0.0](https://example.invalid/compare/v0.9.0...v1.0.0) (2026-01-01)
+
+### Features
+
+* something ([#1](https://example.invalid/issues/1))
+CL
+  echo '{}' > "$d/$marker"
+  run_lint "$d"
+  assert_status       "$marker: no [Unreleased] required" 0
+  assert_not_contains "$marker: the omission is not reported" "$LINT_OUT" "no [Unreleased] section"
+done
+
+echo
+echo "== CHANGELOG structure: malformed =="
+d=$(fixture no-h1)
+cat > "$d/CHANGELOG.md" <<'CL'
+## [Unreleased]
+CL
+run_lint "$d"
+assert_status   "a missing h1 fails" 1
+assert_contains "the missing h1 is reported" "$LINT_OUT" "no '# Changelog' heading"
+
+d=$(fixture duplicate-version)
+cat > "$d/CHANGELOG.md" <<'CL'
+# Changelog
+
+## [Unreleased]
+
+## [1.0.0] - 2026-01-02
+
+## [1.0.0] - 2026-01-01
+CL
+run_lint "$d"
+assert_status   "a repeated version fails" 1
+assert_contains "the repeat is reported" "$LINT_OUT" "1.0.0"
+
+d=$(fixture unversioned-section)
+cat > "$d/CHANGELOG.md" <<'CL'
+# Changelog
+
+## [Unreleased]
+
+## Notes on versioning
+CL
+run_lint "$d"
+assert_status   "a section that names no version fails" 1
+assert_contains "the section is reported" "$LINT_OUT" "Notes on versioning"
+
+echo
+echo "== CHANGELOG structure: fenced blocks are exempt =="
+d=$(fixture fenced-changelog)
+cat > "$d/CHANGELOG.md" <<'CL'
+# Changelog
+
+## [Unreleased]
+
+Example of a heading this file does not itself contain:
+
+```markdown
+## Not a real section
+```
+CL
+run_lint "$d"
+assert_status "a heading inside a fence is not a section" 0
+
+echo
+echo "== CHANGELOG structure: symphonize's own =="
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+for cl in "$REPO_ROOT"/CHANGELOG.md "$REPO_ROOT"/plugins/*/CHANGELOG.md; do
+  [ -f "$cl" ] || continue
+  d=$(fixture "own-$(printf '%s' "$cl" | md5sum | cut -c1-8)")
+  cp "$cl" "$d/CHANGELOG.md"
+  cp "$REPO_ROOT/release-please-config.json" "$d/" 2>/dev/null || true
+  run_lint "$d"
+  assert_status "${cl#"$REPO_ROOT"/} passes" 0
+done
+
+echo
+echo "$pass passed, $fail failed"
+[ "$fail" -eq 0 ]

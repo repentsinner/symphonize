@@ -56,3 +56,6 @@ jobs:
         run: |
           bash tools/assemble-fragments.sh
           git diff --exit-code
+
+      - name: Test the governance lint parser
+        run: plugins/notation/scripts/governance-lint.test.sh

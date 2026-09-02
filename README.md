@@ -141,7 +141,7 @@ Target projects call this reusable workflow via `workflow_call`:
 
 | Workflow | Description |
 |---|---|
-| `governance-lint.yml` | Markdownlint, SPEC status lines, slug cross-refs, [Vale](https://vale.sh) prose linting, README headings |
+| `governance-lint.yml` | Markdownlint, SPEC status lines, slug cross-refs, [Vale](https://vale.sh) prose linting, CHANGELOG structure, README headings |
 
 ```yaml
 # .github/workflows/governance-lint.yml
@@ -172,7 +172,8 @@ Or from source during development:
 claude --plugin-dir /path/to/symphonize
 ```
 
-Needs `git`, `gh` (authenticated) and `npx` on `PATH`; `vale` when a
+Needs `git`, `gh` (authenticated) and a markdown linter on `PATH` —
+`rumdl`, or `uvx`/`npx` to fetch one on demand; `vale` when a
 `.vale.ini` exists; and Claude Code 2.1.139 or later with hooks enabled
 and workspace trust accepted, which `/conduct:orchestrate` needs for its
 unattended [`/goal`](https://code.claude.com/docs/en/goal) loop.

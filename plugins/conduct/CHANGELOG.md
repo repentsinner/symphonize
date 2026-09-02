@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.2.11](https://github.com/repentsinner/symphonize/compare/conduct--v0.2.10...conduct--v0.2.11) (2026-09-02)
+
+
+### Miscellaneous Chores
+
+* **conduct:** Synchronize symphonize-plugins versions
+
+## [0.2.10](https://github.com/repentsinner/symphonize/compare/conduct--v0.2.9...conduct--v0.2.10) (2026-09-02)
+
+
+### Miscellaneous Chores
+
+* **conduct:** Synchronize symphonize-plugins versions
+
+## [0.2.9](https://github.com/repentsinner/symphonize/compare/conduct--v0.2.8...conduct--v0.2.9) (2026-09-01)
+
+
+### Miscellaneous Chores
+
+* **conduct:** Synchronize symphonize-plugins versions
+
 ## [0.2.8](https://github.com/repentsinner/symphonize/compare/conduct--v0.2.7...conduct--v0.2.8) (2026-08-28)
 
 

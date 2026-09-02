@@ -45,8 +45,9 @@ heading (deeper headings may carry one); a flat, unique slug namespace
 (a duplicate definition fails); every `§`-reference resolving to exactly
 one defined slug (code spans and fenced blocks exempt; zero or multiple
 matches fail); rejection of positional addressing (a heading beginning
-with a numeric ordinal, or any `§<number>` reference); the README
-heading profile; and README derivability (§spec:readme-derivable).
+with a numeric ordinal, or any `§<number>` reference); CHANGELOG
+structure; the README heading profile; and README derivability
+(§spec:readme-derivable).
 
 **Local runs are a subset, and say so.** Vale and markdownlint need
 tools a contributor may not have installed. When one is absent the
