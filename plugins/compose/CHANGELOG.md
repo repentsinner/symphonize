@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.11](https://github.com/repentsinner/symphonize/compare/compose--v0.2.10...compose--v0.2.11) (2026-09-02)
+
+
+### Miscellaneous Chores
+
+* **compose:** Synchronize symphonize-plugins versions
+
 ## [0.2.10](https://github.com/repentsinner/symphonize/compare/compose--v0.2.9...compose--v0.2.10) (2026-09-02)
 
 

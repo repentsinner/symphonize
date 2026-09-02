@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.11](https://github.com/repentsinner/symphonize/compare/notation--v0.2.10...notation--v0.2.11) (2026-09-02)
+
+
+### Features
+
+* **notation:** bundled lint adoption ([#213](https://github.com/repentsinner/symphonize/issues/213)) ([b1667e5](https://github.com/repentsinner/symphonize/commit/b1667e572d478eb690ae47c56b454a5437e19d4e))
+
 ## [0.2.10](https://github.com/repentsinner/symphonize/compare/notation--v0.2.9...notation--v0.2.10) (2026-09-02)
 
 
