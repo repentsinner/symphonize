@@ -579,7 +579,10 @@ The governance-lint workflow validates structure (markdownlint) and
 cross-references (slug resolution), but not prose quality. SPEC.md
 and REQUIREMENTS.md use IEEE modal verbs — "shall" for mandatory
 requirements, "should" for recommendations, "may" for permission.
-`Must` and `will` are deprecated per IEEE SA Standards Style Manual.
+`Must` and `will` are deprecated per the IEEE SA Standards Style
+Manual, though narrowly: the manual deprecates them *for stating
+mandatory requirements*, and permits `must` for unavoidable situations
+and `will` for statements of fact.
 
 Modal-verb discipline applies document-wide, not only to criteria.
 The scaffolded `Requirements` Vale style flags `must` (and `will`)
@@ -607,6 +610,47 @@ The governance-lint workflow runs Vale against SPEC.md and
 REQUIREMENTS.md when a `.vale.ini` config exists. Projects opt in
 by adding `.vale.ini` and a `styles/` directory via
 `/notation:init`.
+
+### Severity follows the document's role §spec:prose-lint-severity
+
+`REQUIREMENTS.md` raises both deprecated modals to error. `SPEC.md`
+holds them at warning.
+
+Rationale: a per-sentence linter cannot separate a requirement from the
+narrative around it, so document role is the closest available proxy for
+the distinction IEEE actually draws. REQUIREMENTS.md is requirements
+throughout, and a deprecated modal there is the case the manual
+deprecates. SPEC.md carries design rationale beside its requirements,
+and rationale is made of exactly what IEEE still permits — unavoidable
+situations and statements of fact. Holding SPEC.md at error forced
+narrative into rephrasings the standard does not ask for, and taught
+authors to treat the rule as noise.
+
+Warning is not weaker enforcement here, because
+§spec:prose-lint-hook surfaces warnings at the moment of writing, where
+the fix costs nothing. CI keeps failing on the tier that shall not land.
+
+### Prose lint at write time §spec:prose-lint-hook
+
+The notation plugin ships a `PostToolUse` hook that lints SPEC.md or
+REQUIREMENTS.md immediately after a write, reporting findings to the
+author in the same turn.
+
+Rationale: the gate already existed twice — at commit and in CI — and
+neither is the cheapest moment to learn about a modal verb. By commit
+the author has moved on; by CI the correction costs a round trip and a
+runner. Both catch mechanical drift late, which is why the drift kept
+reaching review. Linting the one file that was just written closes the
+gap where a fix is still free, and leaves CI as the backstop it was
+meant to be rather than the first thing to notice.
+
+The hook lints a single file rather than the tree, reads the Vale pin
+from `governance-lint.sh` so the hook and the gate cannot resolve
+different versions, and reports warnings as well as errors. It stays
+silent when the file is not governed, when the project has no
+`.vale.ini` — prose linting is opt-in and a hook may not opt a project
+in — and when Vale cannot be resolved, since a missing linter is a gap
+in the environment rather than a defect in the prose.
 
 **Why prose linting:** agents generate requirements and spec text
 that drifts toward vague, passive, non-testable language.
