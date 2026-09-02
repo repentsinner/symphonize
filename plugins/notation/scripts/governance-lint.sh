@@ -590,23 +590,20 @@ if [ "$defined_slugs_started" = false ]; then
 fi
 
 # ------------------------------------------------- 6. CHANGELOG structure ---
-# Keep a Changelog only as far as every release tool agrees on it: an h1, and
-# sections that each name a version. Past that the tools diverge —
-# release-please writes "## [1.2.3](compare-url) (date)" under "### Features",
-# the hand-kept form is "## [1.2.3] - date" under "### Added" — so demanding
-# one shape would fail every repository that automates its releases.
+# Keep a Changelog, for a changelog a person keeps. One a release tool writes
+# is that tool's output, and the tools do not agree even on an h1:
+# release-please opens with "# Changelog", @semantic-release/changelog (what
+# flywheel drives) writes none unless told a title, and flywheel exposes no
+# way to tell it. Linting the output of a generator reports the generator's
+# choices as the author's defects, so a tool-managed file is skipped whole.
 section "CHANGELOG structure"
 if [ ! -f CHANGELOG.md ]; then
   echo "  skip — no CHANGELOG.md (the check is gated on the file existing)"
+elif [ -f release-please-config.json ] || [ -f .flywheel.yml ]; then
+  # The marker files are the ones §spec:release-automation-options names.
+  echo "  skip — CHANGELOG.md is tool-managed (release-please or flywheel);"
+  echo "         its shape is the generator's, not the author's"
 else
-  # [Unreleased] is where a hand-kept changelog stages the next release.
-  # release-please and flywheel cut a version section per release and never
-  # write one, so requiring it of them reports a defect for doing the right
-  # thing (§spec:release-automation-options).
-  changelog_managed=false
-  if [ -f release-please-config.json ] || [ -f .flywheel.yml ]; then
-    changelog_managed=true
-  fi
 
   if ! grep -qE '^# +[Cc]hangelog *$' CHANGELOG.md; then
     annotate error "CHANGELOG.md" "1" \
@@ -652,11 +649,11 @@ else
   echo "  checked $(wc -l < "$versions_file" | tr -d ' ') release section(s)"
   rm -f "$versions_file"
 
-  if ! $has_unreleased && ! $changelog_managed; then
+  # [Unreleased] is where a hand-kept changelog stages the next release.
+  if ! $has_unreleased; then
     annotate error "CHANGELOG.md" "" \
       "no [Unreleased] section — a hand-kept changelog stages the next release there"
   fi
-  $changelog_managed && echo "  [Unreleased] not required — releases are tool-managed"
 fi
 
 # ------------------------------------------------------------------ summary ---

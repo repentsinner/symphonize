@@ -58,15 +58,16 @@ and runs the rest. CI runs every check unconditionally, so local verification
 is honest about being a subset: it never reports clean on a check it did not
 run.
 
-**Why the CHANGELOG check bends to the release tool:** Keep a Changelog stages
-the next release under `[Unreleased]`, and for a hand-kept changelog its absence
-is a real defect — there is nowhere to record a landed change. Release-please
-and flywheel cut a version section per release and never write one, so requiring
-it of them would fail a repository for automating correctly; symphonize's own
-five changelogs have never had one. The check therefore requires `[Unreleased]`
-only where no release tool is configured (§spec:release-automation-options), and
-holds every changelog to what the tools do agree on: an h1, and sections that
-each name a version, uniquely.
+**Why the CHANGELOG check skips a tool-managed changelog:** Keep a Changelog
+stages the next release under `[Unreleased]`, and for a hand-kept changelog its
+absence is a real defect — there is nowhere to record a landed change. A
+changelog a release tool writes is that tool's output, and the tools do not
+agree even on an h1: release-please opens with `# Changelog`,
+`@semantic-release/changelog` (which flywheel drives) writes none unless given a
+title, and flywheel exposes no way to give it one. Holding generated output to
+an author's rules reports the generator's choices as defects. The check
+therefore runs only where no release tool is configured
+(§spec:release-automation-options) and reports itself skipped otherwise.
 
 **Markdown engine.** The pinned version outranks whatever the machine
 carries. A linter on `PATH` is an accident of that host's setup; the pin is
