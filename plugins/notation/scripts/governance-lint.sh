@@ -7,7 +7,8 @@
 #
 # Checks, in order:
 #   1. Vale prose rules            (needs vale; .vale.ini opt-in)
-#   2. markdownlint formatting     (needs markdownlint-cli2 or npx)
+#   2. markdownlint formatting     (needs rumdl or markdownlint-cli2;
+#                                   uvx or npx reach either)
 #   3. SPEC.md status lines
 #   4. README heading profile      (--readme-type)
 #   5. Heading addressing grammar, and README derivability
@@ -25,6 +26,7 @@ readme_type=""
 require_tools=false
 root="."
 markdownlint_version="0.23.2"
+rumdl_version="0.2.62"
 
 usage() {
   cat <<'USAGE'
@@ -32,8 +34,8 @@ Usage: governance-lint.sh [options]
 
   --readme-type <t>   README heading profile: library | application | ""
                       (empty or omitted skips the README heading check)
-  --require-tools     Fail when vale or markdownlint is missing, rather
-                      than skipping the check. CI passes this.
+  --require-tools     Fail when vale or a markdown linter is missing,
+                      rather than skipping the check. CI passes this.
   --root <dir>        Governance root to lint. Default: the current directory.
   -h, --help          This text.
 USAGE
@@ -114,16 +116,56 @@ else
 fi
 
 # -------------------------------------------------------- 2. markdownlint ---
+# Engine preference is rumdl: one static binary, no Node runtime, and `uvx`
+# reaches it from any machine carrying uv. markdownlint-cli2 stays as the
+# fallback for a machine with Node but no uv. The reusable CI workflow
+# installs rumdl, so the ordinary local path and CI run the same engine.
+#
+# rumdl reads .markdownlint.json and .markdownlint-cli2.jsonc, and implements
+# the same MD### rule identifiers, but it is not bug-for-bug identical to
+# markdownlint — line length and list indentation differ, and it follows
+# CommonMark over compatibility. A project that pins markdownlint-cli2 in its
+# own CI should install markdownlint-cli2 locally too, so both sides agree.
 section "markdownlint formatting"
 mdl=""
-if command -v markdownlint-cli2 >/dev/null 2>&1; then
+mdl_engine=""
+if command -v rumdl >/dev/null 2>&1; then
+  mdl="rumdl check"
+  mdl_engine="rumdl"
+elif command -v markdownlint-cli2 >/dev/null 2>&1; then
   mdl="markdownlint-cli2"
+  mdl_engine="markdownlint-cli2"
+elif command -v uvx >/dev/null 2>&1; then
+  mdl="uvx rumdl@${rumdl_version} check"
+  mdl_engine="rumdl"
 elif command -v npx >/dev/null 2>&1; then
   mdl="npx --yes markdownlint-cli2@${markdownlint_version}"
+  mdl_engine="markdownlint-cli2"
 fi
 if [ -z "$mdl" ]; then
-  missing_tool "markdownlint-cli2" "markdown formatting"
+  missing_tool "rumdl or markdownlint-cli2" "markdown formatting"
+elif [ "$mdl_engine" = "rumdl" ]; then
+  # rumdl does not expand `**` globs of its own accord. Handed one it prints
+  # "File not found" and still exits 0, which reads as a pass, so the file
+  # list is resolved here instead.
+  mdfiles=$(find . \( -name 'SPEC.md' -o -name 'ROADMAP.md' \
+    -o -name 'REQUIREMENTS.md' -o -name 'README.md' \) \
+    -not -path './.git/*' | sort)
+  if [ -z "$mdfiles" ]; then
+    echo "  skip — no governance markdown found"
+  else
+    echo "  engine: rumdl"
+    # Both expansions are deliberate: $mdl carries arguments, $mdfiles a list.
+    # shellcheck disable=SC2086
+    if ! $mdl $mdfiles; then
+      echo "::error::markdownlint reported findings"
+      errors=$((errors + 1))
+    else
+      echo "  ok"
+    fi
+  fi
 else
+  echo "  engine: markdownlint-cli2"
   if ! $mdl "**/SPEC.md" "**/ROADMAP.md" "**/README.md" "**/REQUIREMENTS.md"; then
     echo "::error::markdownlint reported findings"
     errors=$((errors + 1))

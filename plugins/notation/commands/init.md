@@ -286,32 +286,43 @@ if ! echo "$staged" | grep -qE '^(SPEC|ROADMAP|README)\.md$'; then
 fi
 
 # Git hooks run with a minimal PATH and do not inherit an interactive shell,
-# so version-manager shims (nvm, fnm, volta) are absent and a bare `npx`
-# fails even when node is installed. Look in the usual places.
-if ! command -v npx >/dev/null 2>&1; then
-  for dir in \
-    "$HOME"/.nvm/versions/node/*/bin \
-    "$HOME"/.volta/bin \
-    "$HOME"/.local/share/fnm/node-versions/*/installation/bin \
-    /opt/homebrew/bin \
-    /usr/local/bin
-  do
-    if [ -x "${dir}/npx" ]; then
-      PATH="${dir}:${PATH}"
-      export PATH
-      break
-    fi
-  done
+# so tools installed under $HOME and version-manager shims (nvm, fnm, volta)
+# are absent even when they work in a terminal. Look in the usual places.
+for dir in \
+  "$HOME"/.local/bin \
+  "$HOME"/.cargo/bin \
+  "$HOME"/.nvm/versions/node/*/bin \
+  "$HOME"/.volta/bin \
+  "$HOME"/.local/share/fnm/node-versions/*/installation/bin \
+  /opt/homebrew/bin \
+  /usr/local/bin
+do
+  [ -d "$dir" ] || continue
+  case ":${PATH}:" in
+    *":${dir}:"*) ;;
+    *) PATH="${dir}:${PATH}" ;;
+  esac
+done
+export PATH
+
+# rumdl first: one static binary, no Node runtime, and uvx reaches it from
+# any machine carrying uv. markdownlint-cli2 remains for a machine with Node
+# but no uv. rumdl needs real paths — handed a `**` glob it reports the file
+# as missing and still exits 0, which would read as a pass.
+if command -v rumdl >/dev/null 2>&1; then
+  exec rumdl check SPEC.md ROADMAP.md README.md
+elif command -v markdownlint-cli2 >/dev/null 2>&1; then
+  exec markdownlint-cli2 SPEC.md ROADMAP.md README.md
+elif command -v uvx >/dev/null 2>&1; then
+  exec uvx rumdl check SPEC.md ROADMAP.md README.md
+elif command -v npx >/dev/null 2>&1; then
+  exec npx markdownlint-cli2 SPEC.md ROADMAP.md README.md
 fi
 
-# No node toolchain reachable: skip rather than block. CI runs the same
-# check and is the authority.
-if ! command -v npx >/dev/null 2>&1; then
-  echo "pre-commit: npx not found, skipping markdownlint (CI still enforces it)" >&2
-  exit 0
-fi
-
-npx markdownlint-cli2 SPEC.md ROADMAP.md README.md
+# No linter reachable: skip rather than block. CI runs the same check and is
+# the authority.
+echo "pre-commit: no markdown linter found, skipping (CI still enforces it)" >&2
+exit 0
 ```
 
 Then activate hooks for this checkout:

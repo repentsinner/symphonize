@@ -55,6 +55,23 @@ and runs the rest. CI runs every check unconditionally, so local verification
 is honest about being a subset: it never reports clean on a check it did not
 run.
 
+**Markdown engine.** The script prefers `rumdl`: one static binary, no Node
+runtime, and `uvx` reaches it from any machine carrying uv.
+`markdownlint-cli2` remains the fallback for a machine with Node and no uv.
+The reusable workflow installs a pinned `rumdl` (§spec:reusable-ci), so CI and
+an ordinary local run share one engine rather than agreeing by luck.
+
+`rumdl` reads `.markdownlint.json` and `.markdownlint-cli2.jsonc` and
+implements the same rule identifiers, so an existing configuration needs no
+change. It is not bug-for-bug identical: line length and list indentation
+differ, and it follows CommonMark ahead of compatibility. A project that pins
+`markdownlint-cli2` in its own CI should install `markdownlint-cli2` locally
+too, so both sides run the linter that gates the merge.
+
+The script hands `rumdl` a resolved file list rather than a glob. Given
+`**/SPEC.md` it reports the file as missing and still exits 0, which reads as
+a pass — the one behaviour here that fails unsafely.
+
 **Why one script, plugin-bundled:** parity holds only when local and CI run the
 same contract logic, and a single source guarantees that by construction.
 Bundling it with the notation plugin — the same channel that delivers
