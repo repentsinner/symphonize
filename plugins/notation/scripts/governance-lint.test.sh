@@ -494,6 +494,53 @@ assert_status "an exact-version rumdl on PATH passes" 0
 assert_contains "the matching PATH binary is used directly" "$LINT_OUT" "engine: rumdl 0.2.62 (PATH)"
 assert_contains "no resolver fetch happens" "$(cat "$EXACT_LOG")" "check"
 
+# Vale follows the same precedence, resolved through mise rather than uvx.
+VALE_DIR="$TEST_ROOT/vale-pin"
+mkdir -p "$VALE_DIR"
+cat > "$VALE_DIR/vale" <<'EOF'
+#!/bin/sh
+case "$1" in --version) echo "vale version 3.0.0"; exit 0 ;; esac
+echo "stale vale ran" > "$VALE_LOG"
+exit 0
+EOF
+cat > "$VALE_DIR/mise" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$*" > "$VALE_LOG"
+exit 0
+EOF
+chmod +x "$VALE_DIR/vale" "$VALE_DIR/mise"
+VALE_LOG="$TEST_ROOT/vale.log"
+export VALE_LOG
+LINT_PATH="$VALE_DIR:/usr/bin:/bin"
+d=$(fixture vale-pin)
+: > "$d/.vale.ini"
+run_lint "$d"
+assert_contains "mise resolves vale at the pin over a stale PATH copy" "$(cat "$VALE_LOG")" "vale@3.19.0"
+assert_contains "the vale source is reported" "$LINT_OUT" "engine: vale 3.19.0 (mise)"
+
+VALE_OK_DIR="$TEST_ROOT/vale-exact"
+mkdir -p "$VALE_OK_DIR"
+cat > "$VALE_OK_DIR/vale" <<'EOF'
+#!/bin/sh
+case "$1" in --version) echo "vale version 3.19.0"; exit 0 ;; esac
+printf '%s\n' "$*" > "$VALE_OK_LOG"
+exit 0
+EOF
+cat > "$VALE_OK_DIR/mise" <<'EOF'
+#!/bin/sh
+echo "mise should not have run" > "$VALE_OK_LOG"
+exit 0
+EOF
+chmod +x "$VALE_OK_DIR/vale" "$VALE_OK_DIR/mise"
+VALE_OK_LOG="$TEST_ROOT/vale-ok.log"
+export VALE_OK_LOG
+LINT_PATH="$VALE_OK_DIR:/usr/bin:/bin"
+d=$(fixture vale-exact)
+: > "$d/.vale.ini"
+run_lint "$d"
+assert_contains "an exact-version vale on PATH is used directly" "$LINT_OUT" "engine: vale 3.19.0 (PATH)"
+assert_contains "mise is not invoked when PATH already holds the pin" "$(cat "$VALE_OK_LOG")" "--output=line"
+
 AWK_DIR="$TEST_ROOT/awk-failure"
 mkdir -p "$AWK_DIR"
 cat > "$AWK_DIR/awk" <<'EOF'

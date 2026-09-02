@@ -91,12 +91,22 @@ The script hands `rumdl` a resolved file list rather than a glob. Given
 `**/SPEC.md` it reports the file as missing and still exits 0, which reads as
 a pass — the one behaviour here that fails unsafely.
 
-**Vale is the exception, and stays unpinned locally.** No registry ships it,
-so there is no `uvx`-shaped resolver, and the alternative — a third-party
-repackage on PyPI — is a trust hop this gate does not need. Vale is therefore
-whatever the machine installed, or a skip. The run prints its version for the
-same reason it prints the markdown engine: CI pins one, and the disagreement
-should be legible.
+**Vale resolves the same way, through `mise`.** No language registry ships
+it — the PyPI package is a third-party repackage, and the npm ones are
+unofficial or abandoned — but aqua's registry does, fetching errata-ai's own
+release archives, and `mise` fronts aqua. `mise x vale@<pin>` therefore gets
+the official binary at an exact version on every platform aqua covers, which
+is the portability the release-archive naming made expensive to write here.
+Resolution mirrors the markdown engine: an exact-version match on `PATH`,
+then `mise` at the pin, then any `PATH` copy reported as unpinned, then the
+skip.
+
+**The pins live in the script.** `governance-lint.sh` declares
+`vale_version`, `rumdl_version` and `markdownlint_version`, and the reusable
+workflow reads them out of the script rather than repeating them. A second
+copy in the workflow drifts, and a CI job installing a version the script
+does not expect is the same local/CI split this contract exists to close,
+relocated one level up.
 
 **Why one script, plugin-bundled:** parity holds only when local and CI run the
 same contract logic, and a single source guarantees that by construction.

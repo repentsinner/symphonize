@@ -6,7 +6,8 @@
 # CI holds by construction, because there is one implementation to drift from.
 #
 # Checks, in order:
-#   1. Vale prose rules            (needs vale; .vale.ini opt-in)
+#   1. Vale prose rules            (needs vale, which mise resolves at the
+#                                   pin; .vale.ini opt-in)
 #   2. markdownlint formatting     (needs rumdl or markdownlint-cli2;
 #                                   uvx or npx reach either)
 #   3. SPEC.md status lines
@@ -27,6 +28,7 @@ require_tools=false
 root="."
 markdownlint_version="0.23.2"
 rumdl_version="0.2.62"
+vale_version="3.19.0"
 
 usage() {
   cat <<'USAGE'
@@ -105,20 +107,37 @@ govfiles=$(find . \( -name 'SPEC.md' -o -name 'ROADMAP.md' -o -name 'REQUIREMENT
   -not -path './.git/*' | sort)
 
 # ---------------------------------------------------------------- 1. Vale ---
+# Same precedence as the markdown engine: the pin outranks the host's copy.
+# mise resolves vale through aqua, which fetches errata-ai's own release
+# archives and already encodes the platform matrix, so the pin is portable
+# without a downloader written here.
 section "Vale prose rules"
+vale_cmd=""
+vale_label=""
+vale_unpinned=""
+vale_on_path="$(command -v vale >/dev/null 2>&1 && tool_version vale)"
+if [ -n "$vale_on_path" ] && [ "$vale_on_path" = "$vale_version" ]; then
+  vale_cmd="vale"
+  vale_label="vale ${vale_version} (PATH)"
+elif command -v mise >/dev/null 2>&1; then
+  vale_cmd="mise x vale@${vale_version} -- vale"
+  vale_label="vale ${vale_version} (mise)"
+elif command -v vale >/dev/null 2>&1; then
+  vale_cmd="vale"
+  vale_label="vale ${vale_on_path:-unknown} (PATH)"
+  vale_unpinned="vale ${vale_version}"
+fi
 if [ ! -f .vale.ini ]; then
   echo "  skip — no .vale.ini (prose linting is opt-in)"
-elif ! command -v vale >/dev/null 2>&1; then
+elif [ -z "$vale_cmd" ]; then
   missing_tool "vale" "prose rules"
 else
+  echo "  engine: ${vale_label}"
+  [ -n "$vale_unpinned" ] && echo "  note — not the pinned ${vale_unpinned}; CI runs the pin"
   # Lint the tree root so every finding in the configured files is reported,
   # matching what the .vale.ini scopes rather than a changed-lines subset.
-  # Vale has no pinned resolver — no registry ships it, and its release
-  # archives vary by platform — so it is whatever the machine installed.
-  # Report the version: CI pins one, and a disagreement should be visible
-  # here rather than only in a diff of two logs.
-  echo "  engine: vale $(tool_version vale)"
-  if ! vale --output=line .; then
+  # shellcheck disable=SC2086
+  if ! $vale_cmd --output=line .; then
     echo "::error::Vale reported findings"
     errors=$((errors + 1))
   else
