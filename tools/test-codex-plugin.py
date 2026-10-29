@@ -14,6 +14,8 @@ manifest = json.loads((root / ".codex-plugin/plugin.json").read_text())
 assert manifest["name"] == "symphonize"
 assert manifest["skills"] == "./skills/"
 assert manifest["version"] == json.loads((root / "plugins/symphonize/.claude-plugin/plugin.json").read_text())["version"]
+release_config = json.loads((root / "release-please-config.json").read_text())
+assert {"type": "json", "path": "/.codex-plugin/plugin.json", "jsonpath": "$.version"} in release_config["packages"]["plugins/symphonize"]["extra-files"]
 skills = sorted((root / "skills").glob("*/SKILL.md"))
 assert len(skills) == 11, len(skills)
 claude_skills = sorted((root / "plugins").glob("*/skills/*/SKILL.md"))

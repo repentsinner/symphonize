@@ -81,6 +81,13 @@ When the source creates `.githooks/pre-commit`, replace its Claude cache
 search with `$HOME/.codex/plugins/cache/*/*/*/plugins/notation/scripts/governance-lint.sh`.
 The `GOVERNANCE_LINT` override remains valid.
 """
+        if group == "conduct" and name == "clean":
+            body += """
+For both cleanup modes, remove only worktrees known to belong to a completed
+Symphonize batch. Confirm their changes are delivered and they have no
+uncommitted work. Leave all other worktrees and branches untouched. This
+rule overrides the source instruction to remove remaining worktrees.
+"""
         (skill / "SKILL.md").write_text(body)
 
 print(f"built {len(list(SKILLS.iterdir()))} Codex skill adapters")

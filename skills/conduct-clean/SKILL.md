@@ -26,3 +26,8 @@ Apply these Codex adaptations to the source instructions:
   `git worktree list` for discovery.
 - The package has no automatic hook. Check repo state explicitly before
   changing an existing project. No `/goal` turn loop runs in Codex.
+
+For both cleanup modes, remove only worktrees known to belong to a completed
+Symphonize batch. Confirm their changes are delivered and they have no
+uncommitted work. Leave all other worktrees and branches untouched. This
+rule overrides the source instruction to remove remaining worktrees.
