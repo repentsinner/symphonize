@@ -1870,7 +1870,7 @@ Reported by the maintainer (#132) and corroborated by two stalls observed in
 practice.
 
 ## Codex support §spec:codex-support
-*Status: not started*
+*Status: in progress*
 
 Codex users cannot install or run Symphonize's Claude Code commands today.
 The commands depend on Claude plugin paths, hooks, worktrees, subagents, and

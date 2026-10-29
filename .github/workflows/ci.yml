@@ -59,3 +59,9 @@ jobs:
 
       - name: Test the governance lint parser
         run: plugins/notation/scripts/governance-lint.test.sh
+
+      - name: Check the Codex package
+        run: |
+          python3 tools/build-codex-plugin.py
+          python3 tools/test-codex-plugin.py
+          git diff --exit-code
