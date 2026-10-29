@@ -1903,12 +1903,12 @@ and the modular adoption goal (§req:modular-adoption).
 
 ### Packaging and shared content
 
-The Codex package is a skills-based plugin. The Claude marketplace remains
-the Claude distribution channel (§spec:plugin-packaging). A shared source
-holds provider-neutral workflow text; packaging adds only the instructions
-and paths each runtime needs. Both package outputs are checked for drift.
-Provider-specific behavior stays in small adapters so a change to a
-governance rule does not need two independent edits.
+The Codex package is a skills-based plugin rooted at this repository. The
+Claude marketplace remains the Claude distribution channel
+(§spec:plugin-packaging). Codex skills point to the existing command files
+where behavior is portable. Provider-specific behavior stays in small
+adapters, so a governance rule does not need two independent edits. Package
+checks catch adapter and manifest drift.
 
 The Codex entry points keep the four capability groups, even if Codex's
 plugin format cannot reproduce Claude's dependency graph or slash-command

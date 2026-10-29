@@ -33,7 +33,7 @@ Create a linked git worktree from `origin/<trunk>` and a conventional branch
 `<type>/<scope>-<slug>`. Use a unique path outside the user's main checkout.
 If Codex subagents are available, delegate implementation to one subagent in
 that worktree. Give it the selected workstream, governance context, and the
-installed `resources/conduct/batch-agent.md` protocol. The subagent shall
+installed `codex-src/batch-agent.md` protocol. The subagent shall
 implement and verify the work, commit, and return the branch; it shall not
 open the PR. If subagents are unavailable, do those steps in the worktree
 in this session. Never edit the user's main checkout to execute the batch.
