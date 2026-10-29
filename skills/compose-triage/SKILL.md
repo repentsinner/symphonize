@@ -7,7 +7,7 @@ description: Classify a GitHub issue and route it to the appropriate governance 
 
 Find the installed plugin root by walking up from this SKILL.md to the
 nearest directory containing `.codex-plugin/plugin.json`. Read
-`plugins/compose/commands/triage.md` there in full and follow its workflow. Treat the user's text
+`plugins/compose/skills/triage/SKILL.md` there in full and follow its workflow. Treat the user's text
 after this skill's name as the command arguments.
 
 For an existing git project, inspect its branch, working tree, remote state,

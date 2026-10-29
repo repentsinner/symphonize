@@ -7,7 +7,7 @@ description: Scaffold governance files and CI workflows into a project
 
 Find the installed plugin root by walking up from this SKILL.md to the
 nearest directory containing `.codex-plugin/plugin.json`. Read
-`plugins/notation/commands/init.md` there in full and follow its workflow. Treat the user's text
+`plugins/notation/skills/init/SKILL.md` there in full and follow its workflow. Treat the user's text
 after this skill's name as the command arguments.
 
 For an existing git project, inspect its branch, working tree, remote state,

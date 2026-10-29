@@ -7,7 +7,7 @@ description: Submit feedback or report a bug to the symphonize project
 
 Find the installed plugin root by walking up from this SKILL.md to the
 nearest directory containing `.codex-plugin/plugin.json`. Read
-`plugins/symphonize/commands/feedback.md` there in full and follow its workflow. Treat the user's text
+`plugins/symphonize/skills/feedback/SKILL.md` there in full and follow its workflow. Treat the user's text
 after this skill's name as the command arguments.
 
 For an existing git project, inspect its branch, working tree, remote state,

@@ -4,8 +4,8 @@
 
 ### Align modal-verb guidance with document-wide Vale rule §road:modal-verb-scope
 
-The writing guidance in `plugins/compose/commands/plan.md` and
-`plugins/compose/commands/discover.md` scopes `shall` to *criteria*
+The writing guidance in `plugins/compose/skills/plan/SKILL.md` and
+`plugins/compose/skills/discover/SKILL.md` scopes `shall` to *criteria*
 only, while the `/notation:init`-scaffolded Vale rule
 (`styles/Requirements/MustDeprecated.yml`) flags `must` document-wide
 at error level. `/discover` and `/plan` write idiomatic narrative
@@ -55,7 +55,7 @@ hardcoded. Governance-lint passes.
 Detect the release tool from `.flywheel.yml` / `release-please-config.json`
 / neither and run the matching advisory check (flywheel eligibility, next
 release-please PR, or manual CHANGELOG/tag reminder) in
-`plugins/conduct/commands/clean.md`, mirroring the re-run detection signals
+`plugins/conduct/skills/clean/SKILL.md`, mirroring the re-run detection signals
 `/notation:init` already reads. §spec:release-automation-options
 
 **Verify:** Run `/conduct:clean` in a flywheel-scaffolded repo with
@@ -72,8 +72,8 @@ and does not invoke the release tool. Governance-lint passes.
 
 The writing guidance that shapes generated governance prose is restated
 across five files with no drift guard: the spec-compression thumb
-heuristic appears in `plugins/compose/commands/plan.md`,
-`plugins/conduct/commands/clean.md`, and
+heuristic appears in `plugins/compose/skills/plan/SKILL.md`,
+`plugins/conduct/skills/clean/SKILL.md`, and
 `plugins/conduct/protocols/batch-agent.md`, while mood and modal-verb
 rules are split across `plan.md`, `roadmap.md`, and `discover.md`. Add
 `fragments/prose-style.md` stating the contract once — declarative mood
@@ -85,7 +85,7 @@ modal rule lands. §spec:prose-linting §spec:governance-consistency
 
 ### Ship the Vale styles as notation templates §road:vale-style-templates
 
-`plugins/notation/commands/init.md` inlines all four
+`plugins/notation/skills/init/SKILL.md` inlines all four
 `styles/Requirements/*.yml` rule bodies as literal code blocks — the one
 duplicated artifact `tools/assemble-fragments.sh` does not guard, so a
 rule edited in `styles/` leaves the scaffolder handing adopters a stale
@@ -109,7 +109,7 @@ the copied styles. Governance-lint passes.
 
 The batch agent updates ROADMAP.md and SPEC.md status lines as it
 delivers (`plugins/conduct/protocols/batch-agent.md`, delivery phase)
-and `plugins/conduct/commands/next.md` removes shipped workstreams, but
+and `plugins/conduct/skills/next/SKILL.md` removes shipped workstreams, but
 nothing revisits README.md — so its compression of the governance files
 decays silently. Governance-lint catches only the loud half: a deleted
 spec section leaves a dangling `§` reference and hard-fails, while a

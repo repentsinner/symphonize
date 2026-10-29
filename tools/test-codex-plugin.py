@@ -16,6 +16,11 @@ assert manifest["skills"] == "./skills/"
 assert manifest["version"] == json.loads((root / "plugins/symphonize/.claude-plugin/plugin.json").read_text())["version"]
 skills = sorted((root / "skills").glob("*/SKILL.md"))
 assert len(skills) == 11, len(skills)
+claude_skills = sorted((root / "plugins").glob("*/skills/*/SKILL.md"))
+assert len(claude_skills) == 12, len(claude_skills)
+assert not list((root / "plugins").glob("*/commands/*.md"))
+for skill in claude_skills:
+    assert re.match(rf"---\nname: {skill.parent.name}\n(?:argument-hint: .+\n)?description: .+\n---\n", skill.read_text()), skill
 for skill in skills:
     text = skill.read_text()
     assert re.match(r"---\nname: [a-z]+-[a-z]+\ndescription: .+\n---\n", text), skill
@@ -29,4 +34,4 @@ for path in (
     "codex-src/batch-agent.md",
 ):
     assert (root / path).is_file(), path
-print("Codex package: 11 adapters, manifest, marketplace, and shared files valid")
+print("Plugin package: 12 Claude skills, 11 Codex adapters, and shared files valid")

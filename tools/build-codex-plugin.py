@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build small Codex skill adapters for the canonical command files."""
+"""Build small Codex skill adapters for the canonical plugin skills."""
 
 from pathlib import Path
 import json
@@ -29,7 +29,7 @@ if SKILLS.exists():
 SKILLS.mkdir()
 for group, names in SOURCES.items():
     for name in names:
-        source = ROOT / f"plugins/{group}/commands/{name}.md"
+        source = ROOT / f"plugins/{group}/skills/{name}/SKILL.md"
         raw = source.read_text()
         match = re.match(r"\A---\n(.*?)\n---\n", raw, re.S)
         if not match:
@@ -45,7 +45,7 @@ for group, names in SOURCES.items():
         if group == "conduct" and name == "next":
             source_path = "codex-src/next.md"
         else:
-            source_path = f"plugins/{group}/commands/{name}.md"
+            source_path = f"plugins/{group}/skills/{name}/SKILL.md"
         body = f"""---
 name: {group}-{name}
 description: {description}
