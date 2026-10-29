@@ -1868,3 +1868,79 @@ without depending on any resume mechanism.
 
 Reported by the maintainer (#132) and corroborated by two stalls observed in
 practice.
+
+## Codex support §spec:codex-support
+*Status: not started*
+
+Codex users cannot install or run Symphonize's Claude Code commands today.
+The commands depend on Claude plugin paths, hooks, worktrees, subagents, and
+`/goal`. A Codex user needs the same governance pipeline where Codex can
+perform it, with clear limits where it cannot. This section addresses #218
+and the modular adoption goal (§req:modular-adoption).
+
+### Observable behavior
+
+- A Codex user can install a documented Symphonize package and invoke the
+  applicable notation, compose, conduct, and symphonize workflows as Codex
+  skills. The documentation maps each Claude command to its Codex skill and
+  lists prerequisites and unsupported behavior.
+- Both packages produce and use the same governance file format, slug
+  references, lint rules, and reusable GitHub workflow. A document created
+  with either package works with the other. §req:success-criteria
+- Each supported Codex workflow has the same user-visible deliverable and
+  completion gate as its Claude counterpart. It uses Codex runtime paths and
+  available worktree and subagent operations instead of Claude-specific
+  variables or directories. If the runtime lacks a required operation, the
+  workflow reports the limit before it changes the project.
+- The Codex package documents whether repo-state reconciliation runs through
+  a trusted local hook or an explicit workflow step. Unattended orchestration
+  is offered only when Codex has a verified turn-resumption mechanism that
+  preserves the PR delivery gate; otherwise the package directs users to run
+  one batch at a time.
+- Package checks validate the Codex manifest, skill references, generated
+  files, and shared-content consistency. A smoke test exercises installation
+  and the governance workflow in Codex.
+
+### Packaging and shared content
+
+The Codex package is a skills-based plugin. The Claude marketplace remains
+the Claude distribution channel (§spec:plugin-packaging). A shared source
+holds provider-neutral workflow text; packaging adds only the instructions
+and paths each runtime needs. Both package outputs are checked for drift.
+Provider-specific behavior stays in small adapters so a change to a
+governance rule does not need two independent edits.
+
+The Codex entry points keep the four capability groups, even if Codex's
+plugin format cannot reproduce Claude's dependency graph or slash-command
+names. The recommended install exposes all four groups. The docs state any
+difference in partial installation. This preserves the purpose of modular
+adoption without depending on Claude's manifest semantics.
+
+### Why this design
+
+Codex packages reusable instructions as skills, while the current Claude
+package exposes commands. A separate package lets each runtime use its own
+entry points without changing the governance contract. Shared workflow
+content limits behavior drift. Package checks test path resolution
+from an installed package, not only from this source tree.
+
+Codex supports plugin hooks for local installs, but users approve their use.
+The package cannot treat a hook as active until that trust is established.
+Codex packaging guidance also excludes hooks from public directory
+submissions. An explicit reconciliation step keeps the core workflow usable
+when the hook is unavailable.
+
+### Alternatives and tradeoffs
+
+- Reusing the Claude plugin files unchanged was rejected because Claude
+  command metadata, runtime paths, and `/goal` do not establish Codex
+  behavior.
+- Maintaining independent copies of every workflow was rejected because
+  governance rules could diverge without a failing check.
+- A new always-on runner was rejected. It adds persistent machinery beyond
+  the file-based constraint (§req:constraints) and is not required for
+  interactive planning and single-batch delivery.
+
+The Codex package may expose different invocation names and may require an
+explicit reconciliation step. The installation and command guide shows these
+differences.
