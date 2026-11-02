@@ -1,4 +1,5 @@
 ---
+name: roadmap
 argument-hint: [spec section or feature area]
 description: Break spec sections into ROADMAP.md workstreams
 ---

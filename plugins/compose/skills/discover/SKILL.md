@@ -1,4 +1,5 @@
 ---
+name: discover
 argument-hint: [product idea or problem area]
 description: Interview the user to produce or update REQUIREMENTS.md
 ---
