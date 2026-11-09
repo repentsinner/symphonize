@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.14](https://github.com/repentsinner/symphonize/compare/conduct--v0.2.13...conduct--v0.2.14) (2026-11-09)
+
+
+### Miscellaneous Chores
+
+* **conduct:** Synchronize symphonize-plugins versions
+
 ## [0.2.13](https://github.com/repentsinner/symphonize/compare/conduct--v0.2.12...conduct--v0.2.13) (2026-11-02)
 
 
