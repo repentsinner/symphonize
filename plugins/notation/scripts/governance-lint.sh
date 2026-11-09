@@ -39,7 +39,7 @@ Usage: governance-lint.sh [options]
                       (empty or omitted skips the README heading check)
   --require-tools     Fail when vale or a markdown linter is missing,
                       rather than skipping the check. CI passes this.
-  --root <dir>        Governance root to lint. Default: the current directory.
+  --root <dir>        Governance root in a Git worktree. Default: the current directory.
   -h, --help          This text.
 USAGE
 }
@@ -104,8 +104,39 @@ missing_tool() {
   fi
 }
 
-govfiles=$(find . \( -name 'SPEC.md' -o -name 'ROADMAP.md' -o -name 'REQUIREMENTS.md' \) \
-  -not -path './.git/*' | sort)
+# Git selects tracked files and untracked files outside its ignore rules.
+# Vale retains all file types so .vale.ini controls its scope.
+file_list=$(mktemp) || exit 2
+if ! git ls-files --cached --others --exclude-standard -z -- . > "$file_list"; then
+  rm -f "$file_list"
+  echo "governance-lint: cannot select files through Git" >&2
+  exit 2
+fi
+
+valefiles=()
+mdfiles=()
+govfiles=()
+specfiles=()
+readme_file=""
+changelog_file=""
+while IFS= read -r -d '' file; do
+  file="./$file"
+  [ -f "$file" ] || continue
+  valefiles+=("$file")
+  case "${file##*/}" in
+    SPEC.md|ROADMAP.md|REQUIREMENTS.md)
+      govfiles+=("$file")
+      mdfiles+=("$file")
+      [ "${file##*/}" = SPEC.md ] && specfiles+=("$file")
+      ;;
+    README.md)
+      mdfiles+=("$file")
+      [ "$file" = ./README.md ] && readme_file="$file"
+      ;;
+    CHANGELOG.md) [ "$file" = ./CHANGELOG.md ] && changelog_file="$file" ;;
+  esac
+done < <(sort -zu "$file_list")
+rm -f "$file_list"
 
 # ---------------------------------------------------------------- 1. Vale ---
 # Same precedence as the markdown engine: the pin outranks the host's copy.
@@ -132,13 +163,14 @@ if [ ! -f .vale.ini ]; then
   echo "  skip — no .vale.ini (prose linting is opt-in)"
 elif [ -z "$vale_cmd" ]; then
   missing_tool "vale" "prose rules"
+elif [ "${#valefiles[@]}" -eq 0 ]; then
+  echo "  skip — no files selected by Git"
 else
   echo "  engine: ${vale_label}"
   [ -n "$vale_unpinned" ] && echo "  note — not the pinned ${vale_unpinned}; CI runs the pin"
-  # Lint the tree root so every finding in the configured files is reported,
-  # matching what the .vale.ini scopes rather than a changed-lines subset.
+  # Pass selected files so Vale cannot scan ignored paths.
   # shellcheck disable=SC2086
-  if ! $vale_cmd --output=line .; then
+  if ! $vale_cmd --output=line "${valefiles[@]}"; then
     echo "::error::Vale reported findings"
     errors=$((errors + 1))
   else
@@ -168,60 +200,37 @@ fi
 # own CI should install markdownlint-cli2 locally too, so both sides agree.
 section "markdownlint formatting"
 mdl=""
-mdl_engine=""
 mdl_label=""
 mdl_unpinned=""
 rumdl_on_path="$(command -v rumdl >/dev/null 2>&1 && tool_version rumdl)"
 if [ -n "$rumdl_on_path" ] && [ "$rumdl_on_path" = "$rumdl_version" ]; then
   mdl="rumdl check"
-  mdl_engine="rumdl"
   mdl_label="rumdl ${rumdl_version} (PATH)"
 elif command -v uvx >/dev/null 2>&1; then
   mdl="uvx rumdl@${rumdl_version} check"
-  mdl_engine="rumdl"
   mdl_label="rumdl ${rumdl_version} (uvx)"
 elif command -v npx >/dev/null 2>&1; then
   mdl="npx --yes markdownlint-cli2@${markdownlint_version}"
-  mdl_engine="markdownlint-cli2"
   mdl_label="markdownlint-cli2 ${markdownlint_version} (npx)"
 elif command -v rumdl >/dev/null 2>&1; then
   mdl="rumdl check"
-  mdl_engine="rumdl"
   mdl_label="rumdl ${rumdl_on_path:-unknown} (PATH)"
   mdl_unpinned="rumdl ${rumdl_version}"
 elif command -v markdownlint-cli2 >/dev/null 2>&1; then
   mdl="markdownlint-cli2"
-  mdl_engine="markdownlint-cli2"
   mdl_label="markdownlint-cli2 (PATH)"
   mdl_unpinned="markdownlint-cli2 ${markdownlint_version}"
 fi
 if [ -z "$mdl" ]; then
   missing_tool "rumdl or markdownlint-cli2" "markdown formatting"
-elif [ "$mdl_engine" = "rumdl" ]; then
-  # rumdl does not expand `**` globs of its own accord. Handed one it prints
-  # "File not found" and still exits 0, which reads as a pass, so the file
-  # list is resolved here instead.
-  mdfiles=$(find . \( -name 'SPEC.md' -o -name 'ROADMAP.md' \
-    -o -name 'REQUIREMENTS.md' -o -name 'README.md' \) \
-    -not -path './.git/*' | sort)
-  if [ -z "$mdfiles" ]; then
-    echo "  skip — no governance markdown found"
-  else
-    echo "  engine: ${mdl_label}"
-    [ -n "$mdl_unpinned" ] && echo "  note — not the pinned ${mdl_unpinned}; CI runs the pin"
-    # Both expansions are deliberate: $mdl carries arguments, $mdfiles a list.
-    # shellcheck disable=SC2086
-    if ! $mdl $mdfiles; then
-      echo "::error::markdownlint reported findings"
-      errors=$((errors + 1))
-    else
-      echo "  ok"
-    fi
-  fi
+elif [ "${#mdfiles[@]}" -eq 0 ]; then
+  echo "  skip — no governance markdown found"
 else
   echo "  engine: ${mdl_label}"
   [ -n "$mdl_unpinned" ] && echo "  note — not the pinned ${mdl_unpinned}; CI runs the pin"
-  if ! $mdl "**/SPEC.md" "**/ROADMAP.md" "**/README.md" "**/REQUIREMENTS.md"; then
+  # Both engines receive the same files. Only $mdl requires word splitting.
+  # shellcheck disable=SC2086
+  if ! $mdl "${mdfiles[@]}"; then
     echo "::error::markdownlint reported findings"
     errors=$((errors + 1))
   else
@@ -231,7 +240,9 @@ fi
 
 # ---------------------------------------------------- 3. SPEC status lines ---
 section "SPEC.md status lines"
-for specfile in $(find . -name 'SPEC.md' -not -path './.git/*' | sort); do
+# The default expansion supports empty arrays under Bash 3 with set -u.
+for specfile in "${specfiles[@]:-}"; do
+  [ -n "$specfile" ] || continue
   echo "  checking $specfile"
   spec_section=""
   expect_status=false
@@ -270,7 +281,7 @@ done
 section "README heading profile"
 if [ -z "$readme_type" ]; then
   echo "  skip — no --readme-type given"
-elif [ ! -f README.md ]; then
+elif [ -z "$readme_file" ]; then
   annotate error "README.md" "" "README.md not found"
 else
   headings=$(grep -E '^## ' README.md | sed 's/^## //' | tr '[:upper:]' '[:lower:]')
@@ -312,10 +323,10 @@ fi
 # rejected. Code spans and fenced blocks are exempt.
 section "Heading addressing grammar"
 parser_files=()
-while IFS= read -r govfile; do
+for govfile in "${govfiles[@]:-}"; do
   [ -n "$govfile" ] && parser_files+=("$govfile")
-done <<< "$govfiles"
-[ -f README.md ] && parser_files+=("README.md")
+done
+[ -n "$readme_file" ] && parser_files+=("README.md")
 
 # The unit separator keeps tabs in Markdown lines inside one parser record.
 unit_separator=$(printf '\034')
@@ -597,7 +608,7 @@ fi
 # way to tell it. Linting the output of a generator reports the generator's
 # choices as the author's defects, so a tool-managed file is skipped whole.
 section "CHANGELOG structure"
-if [ ! -f CHANGELOG.md ]; then
+if [ -z "$changelog_file" ]; then
   echo "  skip — no CHANGELOG.md (the check is gated on the file existing)"
 elif [ -f release-please-config.json ] || [ -f .flywheel.yml ]; then
   # The marker files are the ones §spec:release-automation-options names.
