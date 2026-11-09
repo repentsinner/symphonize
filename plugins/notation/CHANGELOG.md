@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.14](https://github.com/repentsinner/symphonize/compare/notation--v0.2.13...notation--v0.2.14) (2026-11-09)
+
+
+### Bug Fixes
+
+* **notation:** respect Git ignore rules in governance lint ([#235](https://github.com/repentsinner/symphonize/issues/235)) ([64e819c](https://github.com/repentsinner/symphonize/commit/64e819c4f70002e1fe620292eec5402d4d22c810))
+
 ## [0.2.13](https://github.com/repentsinner/symphonize/compare/notation--v0.2.12...notation--v0.2.13) (2026-11-02)
 
 
