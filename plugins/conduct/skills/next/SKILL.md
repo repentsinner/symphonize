@@ -1,4 +1,5 @@
 ---
+name: next
 argument-hint: [task or workstream]
 description: Execute roadmap workstreams
 ---

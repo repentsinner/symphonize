@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.13](https://github.com/repentsinner/symphonize/compare/conduct--v0.2.12...conduct--v0.2.13) (2026-11-02)
+
+
+### Features
+
+* add Codex plugin support ([#233](https://github.com/repentsinner/symphonize/issues/233)) ([7dac4a4](https://github.com/repentsinner/symphonize/commit/7dac4a440764a52d9bcf1073b6fe8ee4c162a3be))
+
 ## [0.2.12](https://github.com/repentsinner/symphonize/compare/conduct--v0.2.11...conduct--v0.2.12) (2026-09-02)
 
 

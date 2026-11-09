@@ -291,7 +291,7 @@ awk '
   found && /^```bash/ { copy = 1; next }
   copy && /^```/ { exit }
   copy { print }
-' "$SCRIPT_DIR/../commands/init.md" > "$d/.git/hooks/pre-commit"
+' "$SCRIPT_DIR/../skills/init/SKILL.md" > "$d/.git/hooks/pre-commit"
 chmod +x "$d/.git/hooks/pre-commit"
 
 GOVERNANCE_LINT="$TEST_ROOT/hook-lint"

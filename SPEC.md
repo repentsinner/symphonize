@@ -641,7 +641,7 @@ flow into REQUIREMENTS.md as prose.
 **Why frameworks as prompts:** users describe *what* they want
 without explaining *why*. Framework-derived questions produce
 richer problem statements and priority rationale without imposing
-structured output forms. `plugins/symphonize/commands/discover.md` documents both
+structured output forms. `plugins/symphonize/skills/discover/SKILL.md` documents both
 taxonomies inline as interviewer references.
 
 ## Product-type-agnostic discovery §spec:product-type-agnostic-discovery
@@ -740,7 +740,7 @@ attempted, or when ROADMAP.md contains no remaining workstreams.
 `/next`'s output shall make the terminal state visible to a
 reading evaluator — a literal sentinel string is not required and
 is not part of the contract. The exact condition wording is an
-implementation detail of `plugins/conduct/commands/orchestrate.md`.
+implementation detail of `plugins/conduct/skills/orchestrate/SKILL.md`.
 
 ### Why /goal, not ralph-loop
 
@@ -797,7 +797,7 @@ internally consistent. Specifically:
 - init.md scaffolding templates match the format rules
   governance-lint enforces (slug-style headings, status lines,
   `§prefix:slug` suffixes)
-- `plugins/symphonize/commands/discover.md` documents the standard REQUIREMENTS.md
+- `plugins/symphonize/skills/discover/SKILL.md` documents the standard REQUIREMENTS.md
   sections inline
 - The lint command documents which checks it runs vs. which
   checks CI runs (lint is a subset of governance-lint.yml)
@@ -890,7 +890,7 @@ to the cost of losing a valid PR.
 The `/conduct:next` dispatch layer selects workstreams for a
 batch by building dependency chains that reach the user-facing
 surface, then selecting the longest chain that fits the batch cap.
-The algorithm is implemented in `plugins/conduct/commands/next.md` step 3.
+The algorithm is implemented in `plugins/conduct/skills/next/SKILL.md` step 3.
 
 Batch selection goals, in priority order: vertical slices, walking
 skeleton, dependency correctness, batch coherence, forward progress.
@@ -931,7 +931,7 @@ updates ensures tests run against the shipped state.
 ## Pre-PR review gates §spec:pre-pr-review-gates
 *Status: complete*
 
-The dispatch layer (`plugins/conduct/commands/next.md`) runs review gates
+The dispatch layer (`plugins/conduct/skills/next/SKILL.md`) runs review gates
 against the branch the batch agent returns, after the `/simplify` gate and
 before opening the PR: `/security-review` as a mandatory gate,
 `/review --comment` as a recommendation in the PR body. The gates run as
@@ -952,7 +952,7 @@ positives or require auto-dismissal — defeating the purpose.
 ## Simplify gate §spec:simplify-gate
 *Status: complete*
 
-The dispatch layer (`plugins/conduct/commands/next.md`) runs a mandatory
+The dispatch layer (`plugins/conduct/skills/next/SKILL.md`) runs a mandatory
 `/simplify` gate against the branch the batch agent returns, before
 `/security-review` and before opening the PR. `/simplify` spawns parallel
 review agents for code reuse, quality, and efficiency and applies fixes.
@@ -1300,8 +1300,8 @@ marketplace named `symphonize`, declaring four plugins — `notation`,
 `compose`, `conduct`, `symphonize` — each rooted at `plugins/<name>/` and
 listed in `.claude-plugin/marketplace.json` with
 `source: "./plugins/<name>"`. Each plugin carries its own
-`.claude-plugin/plugin.json`; commands resolve by convention from each
-plugin's `commands/` directory. The marketplace and its umbrella plugin
+`.claude-plugin/plugin.json`; skills resolve by convention from each
+plugin's `skills/` directory. The marketplace and its umbrella plugin
 share the name `symphonize` — the marketplace-named plugin is the
 whole-product entry point.
 
@@ -1352,7 +1352,7 @@ Installed plugins are copied into `~/.claude/plugins/cache/` and cannot
 read files outside their own directory — `../` into a sibling plugin fails.
 So the residual that several commands duplicate verbatim — the
 governance-root resolution algorithm — lives once under `fragments/` and is
-assembled into each consuming command file by a build step, with CI failing
+assembled into each consuming skill file by a build step, with CI failing
 on any drift from a fresh assembly. Each cached plugin stays self-contained
 while the fragment keeps one source of truth. (The `§`-slug grammar is
 command-specific guidance, not one verbatim block, so it is not a fragment.)
@@ -1868,3 +1868,79 @@ without depending on any resume mechanism.
 
 Reported by the maintainer (#132) and corroborated by two stalls observed in
 practice.
+
+## Codex support §spec:codex-support
+*Status: in progress*
+
+Codex users cannot install or run Symphonize's Claude Code commands today.
+The commands depend on Claude plugin paths, hooks, worktrees, subagents, and
+`/goal`. A Codex user needs the same governance pipeline where Codex can
+perform it, with clear limits where it cannot. This section addresses #218
+and the modular adoption goal (§req:modular-adoption).
+
+### Observable behavior
+
+- A Codex user can install a documented Symphonize package and invoke the
+  applicable notation, compose, conduct, and symphonize workflows as Codex
+  skills. The documentation maps each Claude command to its Codex skill and
+  lists prerequisites and unsupported behavior.
+- Both packages produce and use the same governance file format, slug
+  references, lint rules, and reusable GitHub workflow. A document created
+  with either package works with the other. §req:success-criteria
+- Each supported Codex workflow has the same user-visible deliverable and
+  completion gate as its Claude counterpart. It uses Codex runtime paths and
+  available worktree and subagent operations instead of Claude-specific
+  variables or directories. If the runtime lacks a required operation, the
+  workflow reports the limit before it changes the project.
+- The Codex package documents whether repo-state reconciliation runs through
+  a trusted local hook or an explicit workflow step. Unattended orchestration
+  is offered only when Codex has a verified turn-resumption mechanism that
+  preserves the PR delivery gate; otherwise the package directs users to run
+  one batch at a time.
+- Package checks validate the Codex manifest, skill references, generated
+  files, and shared-content consistency. A smoke test exercises installation
+  and the governance workflow in Codex.
+
+### Packaging and shared content
+
+The Codex package is a skills-based plugin rooted at this repository. The
+Claude marketplace remains the Claude distribution channel
+(§spec:plugin-packaging). Codex skills point to the existing skill files
+where behavior is portable. Provider-specific behavior stays in small
+adapters, so a governance rule does not need two independent edits. Package
+checks catch adapter and manifest drift.
+
+The Codex entry points keep the four capability groups, even if Codex's
+plugin format cannot reproduce Claude's dependency graph or slash-command
+names. The recommended install exposes all four groups. The docs state any
+difference in partial installation. This preserves the purpose of modular
+adoption without depending on Claude's manifest semantics.
+
+### Why this design
+
+Codex packages reusable instructions as skills, while the current Claude
+package exposes commands. A separate package lets each runtime use its own
+entry points without changing the governance contract. Shared workflow
+content limits behavior drift. Package checks test path resolution
+from an installed package, not only from this source tree.
+
+Codex supports plugin hooks for local installs, but users approve their use.
+The package cannot treat a hook as active until that trust is established.
+Codex packaging guidance also excludes hooks from public directory
+submissions. An explicit reconciliation step keeps the core workflow usable
+when the hook is unavailable.
+
+### Alternatives and tradeoffs
+
+- Reusing the Claude plugin files unchanged was rejected because Claude
+  command metadata, runtime paths, and `/goal` do not establish Codex
+  behavior.
+- Maintaining independent copies of every workflow was rejected because
+  governance rules could diverge without a failing check.
+- A new always-on runner was rejected. It adds persistent machinery beyond
+  the file-based constraint (§req:constraints) and is not required for
+  interactive planning and single-batch delivery.
+
+The Codex package may expose different invocation names and may require an
+explicit reconciliation step. The installation and command guide shows these
+differences.

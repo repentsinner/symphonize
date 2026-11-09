@@ -1,4 +1,5 @@
 ---
+name: init
 description: Scaffold governance files and CI workflows into a project
 ---
 
