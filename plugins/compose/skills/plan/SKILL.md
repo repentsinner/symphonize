@@ -1,4 +1,5 @@
 ---
+name: plan
 argument-hint: [task or feature area]
 description: Technical decisions — explore design options and produce SPEC.md sections
 ---

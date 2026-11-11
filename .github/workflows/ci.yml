@@ -49,7 +49,7 @@ jobs:
       - uses: actions/checkout@v7
 
       # Re-assemble canonical fragments into their consumers, then fail if a
-      # committed command file drifted from a fresh assembly. Local fix:
+      # committed skill file drifted from a fresh assembly. Local fix:
       # run `tools/assemble-fragments.sh` and commit. See fragments/README.md
       # and SPEC §spec:plugin-packaging.
       - name: Assemble fragments and check for drift
@@ -59,3 +59,9 @@ jobs:
 
       - name: Test the governance lint parser
         run: plugins/notation/scripts/governance-lint.test.sh
+
+      - name: Check the Codex package
+        run: |
+          python3 tools/build-codex-plugin.py
+          python3 tools/test-codex-plugin.py
+          git diff --exit-code

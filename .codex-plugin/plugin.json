@@ -1,0 +1,6 @@
+{
+  "name": "symphonize",
+  "version": "0.2.14",
+  "description": "Governance planning and delivery workflows for Codex",
+  "skills": "./skills/"
+}

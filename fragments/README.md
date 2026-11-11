@@ -1,6 +1,6 @@
 # Canonical fragments
 
-Single-source content assembled into multiple plugin command files.
+Single-source content assembled into multiple plugin skill files.
 
 ## Why
 
@@ -29,8 +29,8 @@ Each consumer delimits the assembled region with HTML comments:
 ```
 
 Everything outside the markers is hand-authored and untouched by the build —
-including each command's own surrounding context (the section heading, the
-intro sentence, the per-command list of files read and written, and the
+including each skill's own surrounding context (the section heading, the
+intro sentence, the per-skill list of files read and written, and the
 upstream-context paragraph), which legitimately varies per command.
 
 ## Build

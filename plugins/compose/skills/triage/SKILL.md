@@ -1,4 +1,5 @@
 ---
+name: triage
 argument-hint: [issue number]
 description: Classify a GitHub issue and route it to the appropriate governance file
 ---

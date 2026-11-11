@@ -112,9 +112,9 @@ not an active requirement.
 
 ## Constraints §req:constraints
 
-- **Claude Code plugin system** — commands are markdown files with
-  frontmatter. No server, no database, no persistent state beyond
-  files in the repo.
+- **Agent Skills format** — workflows are Markdown files with frontmatter,
+  packaged for Claude Code and Codex. No server, no database, no persistent
+  state beyond files in the repo.
 - **`gh` CLI as the GitHub interface** — authenticated `gh` handles
   issue reads, PR creation, and comments. No direct API calls.
 - **Human-in-the-loop for now** — triage, planning, and review

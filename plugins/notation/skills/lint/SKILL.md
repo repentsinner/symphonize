@@ -1,4 +1,5 @@
 ---
+name: lint
 description: Validate governance files (SPEC.md, ROADMAP.md, README.md)
 ---
 

@@ -24,17 +24,17 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
 FRAGMENTS_DIR="${REPO_ROOT}/fragments"
 
-# Consumer registry: "fragment_name|relative/path/to/command.md".
+# Consumer registry: "fragment_name|relative/path/to/SKILL.md".
 # Each consumer wraps the assembled region in:
 #   <!-- assembled:<fragment_name> --> ... <!-- /assembled:<fragment_name> -->
 # Everything outside the markers is hand-authored and untouched.
 CONSUMERS=(
-  "governance-root|plugins/compose/commands/discover.md"
-  "governance-root|plugins/compose/commands/plan.md"
-  "governance-root|plugins/compose/commands/roadmap.md"
-  "governance-root|plugins/conduct/commands/next.md"
-  "governance-root|plugins/notation/commands/lint.md"
-  "governance-root|plugins/conduct/commands/clean.md"
+  "governance-root|plugins/compose/skills/discover/SKILL.md"
+  "governance-root|plugins/compose/skills/plan/SKILL.md"
+  "governance-root|plugins/compose/skills/roadmap/SKILL.md"
+  "governance-root|plugins/conduct/skills/next/SKILL.md"
+  "governance-root|plugins/notation/skills/lint/SKILL.md"
+  "governance-root|plugins/conduct/skills/clean/SKILL.md"
 )
 
 # Whole-file copy registry: "canonical/source|plugin/destination".

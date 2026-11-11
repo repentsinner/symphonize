@@ -1,4 +1,5 @@
 ---
+name: init
 description: Scaffold governance files and CI workflows into a project
 ---
 
@@ -279,8 +280,8 @@ Create `.githooks/pre-commit`:
 #!/usr/bin/env bash
 set -uo pipefail
 
-# Only lint when a governance file is staged. The pattern allows a leading
-# path so directory-scoped governance triggers it too.
+# Lint when a governance file is staged at any depth.
+# The shared script uses Git to select files through the ignore rules.
 staged=$(git diff --cached --name-only)
 if ! echo "$staged" | grep -qE '(^|/)(SPEC|ROADMAP|README|REQUIREMENTS|CHANGELOG)\.md$'; then
   exit 0
