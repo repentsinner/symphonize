@@ -10,7 +10,8 @@
 #
 # Contract:
 #   - Read-only. Runs Vale against a single file and reports; changes nothing.
-#   - Silent no-op unless the written file is SPEC.md or REQUIREMENTS.md.
+#   - Silent no-op unless the written file is SPEC.md or REQUIREMENTS.md, and
+#     when Git ignores it: the lint script never selects an ignored file.
 #   - Silent no-op when the governance root has no .vale.ini — prose linting is
 #     opt-in (§spec:prose-linting) and a hook may not opt a project in.
 #   - Silent no-op when Vale cannot be resolved. A missing linter is a gap in
@@ -47,6 +48,14 @@ case "$(basename "$file")" in
   SPEC.md | REQUIREMENTS.md) ;;
   *) bail ;;
 esac
+
+# Vale does not read .gitignore, so an ignored file has to be dropped here. The
+# lint script selects files through Git for the same reason; a file it would
+# never lint must not be linted at write time either. Outside a repository
+# check-ignore fails, which leaves the file governed.
+if git -C "$(dirname "$file")" check-ignore -q -- "$file" 2>/dev/null; then
+  bail
+fi
 
 # The governance root is the nearest ancestor holding .vale.ini. Vale resolves
 # its own config by walking up, but it needs to run from that directory for the
