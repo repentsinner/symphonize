@@ -1,12 +1,18 @@
 # symphonize
 
-Plan-to-implementation execution engine for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+Product and project management for agent-built software, on
+[Claude Code](https://docs.anthropic.com/en/docs/claude-code) and Codex.
 
-Plain-language requirements become auditable specs become shipped PRs.
-You describe the problem, make the technical decisions, and review the
-results; agents do the branching, coding, testing and PR-opening in
-between. The governance files constrain them at each stage, which makes
-the output loosely deterministic — predictable enough to review
+You know your problem, and a coding agent can write the code. Between the
+two of you, nobody asks what the problem is or where it ends, and nobody
+sequences the work so each piece connects to something a user can see.
+Symphonize does both. It interviews you about your own field and records
+what you know as requirements, a spec and a roadmap. Then it runs agents
+through that roadmap in thin slices, each one a PR you can review.
+
+You answer questions, make the technical decisions, and review the
+results. The governance files constrain the agents at each stage, which
+makes the output loosely deterministic — predictable enough to review
 confidently, flexible enough for a real codebase.
 
 > [REQUIREMENTS.md](REQUIREMENTS.md) — the problem.
@@ -51,10 +57,10 @@ symphonize ─┤              ├──► notation
 
 - **notation** — the schema everything builds on: file formats, slug
   grammar, status-line contract, the lint workflow, the scaffolder.
-- **compose** — "are we building the right thing": produces the
-  governance documents.
-- **conduct** — "are we building it right": performs them into landed
-  PRs.
+- **compose** — product management, "are we building the right thing":
+  produces the governance documents.
+- **conduct** — project management, "are we building it right": performs
+  them into landed PRs.
 - **symphonize** — the umbrella, and the whole-product entry point.
 
 Installing `symphonize` pulls all four. Adopt one layer for a subset —
@@ -121,6 +127,8 @@ records what belongs there and what belongs in the source instead.
 
 ## Installation
 
+### Claude Code
+
 ```shell
 /plugin marketplace add repentsinner/symphonize
 /plugin install symphonize@repentsinner-symphonize
@@ -137,6 +145,31 @@ Needs `git`, `gh` (authenticated) and a markdown linter on `PATH` —
 `.vale.ini` exists; and Claude Code 2.1.139 or later with hooks enabled
 and workspace trust accepted, which `/conduct:orchestrate` needs for its
 unattended [`/goal`](https://code.claude.com/docs/en/goal) loop.
+
+### Codex
+
+From this repository, add the local marketplace and install the plugin:
+
+```shell
+codex plugin marketplace add .
+codex plugin add symphonize@symphonize
+```
+
+After the Codex package is released, use
+`codex plugin marketplace add repentsinner/symphonize` instead of the local
+path. Start a new Codex session after installation. The Codex package exposes
+11 skills. Invoke them as `$symphonize:notation-init`,
+`$symphonize:compose-plan`, `$symphonize:conduct-next`, and so on. The
+Claude commands above map to skills with the same group and command name,
+joined by a hyphen. The package includes all four groups in one install.
+
+Codex needs `git`, authenticated `gh`, and the same optional prose linters
+as Claude Code. `conduct-next` uses a linked git worktree and a Codex
+subagent when available. It works in the worktree in the current session
+when subagents are unavailable. The Codex package has no automatic
+repo-state hook: each workflow checks repository state before it changes
+files. Codex has no equivalent of this project's unattended `/goal` loop,
+so `conduct-orchestrate` is not included. Run `conduct-next` for each batch.
 
 ## License
 

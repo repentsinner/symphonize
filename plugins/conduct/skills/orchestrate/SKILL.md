@@ -1,4 +1,5 @@
 ---
+name: orchestrate
 description: Loop /conduct:next over ROADMAP.md until the section is attempted
 ---
 The governance root is determined by the current working directory

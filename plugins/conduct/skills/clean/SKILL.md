@@ -1,4 +1,5 @@
 ---
+name: clean
 argument-hint: [--lite | --full]
 description: Cleans up after executing batch workstreams
 ---

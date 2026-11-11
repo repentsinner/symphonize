@@ -1,4 +1,5 @@
 ---
+name: review
 argument-hint: [PR number or URL]
 description: Integrate a PR — resolve conflicts and check out the branch locally for testing
 ---

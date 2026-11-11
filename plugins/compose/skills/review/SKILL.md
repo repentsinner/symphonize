@@ -1,4 +1,5 @@
 ---
+name: review
 argument-hint: [PR number or URL]
 description: Review a PR for correctness and taste — summarize changes and guide verification against the roadmap criteria
 ---

@@ -34,6 +34,7 @@ LINT_STATUS=0
 fixture() {
   local dir="$TEST_ROOT/$1"
   mkdir -p "$dir"
+  git -C "$dir" init -q
   cat > "$dir/SPEC.md" <<'SPEC'
 # Fixture
 
@@ -116,6 +117,230 @@ assert_elapsed_under_five() {
     echo "FAIL - $label (${elapsed}s)"
   fi
 }
+
+echo "== Git file selection =="
+IGNORED_DIRS=(
+  node_modules dist vendor .venv target generated local-only global-only
+  packages/widget/node_modules packages/widget/dist
+  packages/deep/widget/node_modules packages/deep/widget/dist
+  packages/service/vendor packages/service/.venv packages/service/target docs/scratch
+)
+SELECTION_STUB="$TEST_ROOT/selection-tool"
+cat > "$SELECTION_STUB" <<'EOF'
+#!/bin/sh
+tool=${0##*/}
+if [ "${1:-}" = --version ]; then
+  case "$tool" in
+    vale) echo 'vale version 3.19.0' ;;
+    rumdl) echo 'rumdl 0.2.62' ;;
+  esac
+  exit 0
+fi
+printf '%s\n' "$@" > "$SELECTION_LOG/$tool"
+for file in "$@"; do
+  case "$file" in --output=line|check) continue ;; esac
+  if [ ! -f "$file" ]; then
+    echo "$tool: expected a file: $file" >&2
+    exit 1
+  fi
+  if grep -qF 'LINT_ERROR' "$file"; then
+    echo "$tool: finding in $file" >&2
+    exit 1
+  fi
+done
+EOF
+chmod +x "$SELECTION_STUB"
+SELECTION_LOG="$TEST_ROOT/selection-log"
+export SELECTION_LOG
+mkdir -p "$SELECTION_LOG"
+
+for engine in rumdl markdownlint-cli2; do
+  selection_bin="$TEST_ROOT/selection-$engine"
+  mkdir -p "$selection_bin"
+  cp "$SELECTION_STUB" "$selection_bin/vale"
+  cp "$SELECTION_STUB" "$selection_bin/$engine"
+  LINT_PATH="$selection_bin:/usr/bin:/bin"
+  d=$(fixture "exclusions-$engine")
+  printf 'node_modules/\ndist/\nvendor/\n.venv/\ntarget/\ngenerated/\n' > "$d/.gitignore"
+  printf 'local-only/\n' >> "$d/.git/info/exclude"
+  printf 'global-only/\n' > "$TEST_ROOT/global-ignore"
+  git -C "$d" config core.excludesFile "$TEST_ROOT/global-ignore"
+  : > "$d/.vale.ini"
+  printf '# Fixture\n' > "$d/README.md"
+  mkdir -p "$d/docs/reference with spaces"
+  cat > "$d/docs/reference with spaces/SPEC.md" <<'SPEC'
+# Nested specification
+
+## Nested section §spec:nested-section
+*Status: complete*
+SPEC
+  printf '# Requirements\n' > "$d/docs/reference with spaces/REQUIREMENTS.md"
+  printf '# Roadmap\n' > "$d/docs/reference with spaces/ROADMAP.md"
+  printf '# Readme\n' > "$d/docs/reference with spaces/README.md"
+  printf 'Other prose.\n' > "$d/docs/prose.txt"
+  printf 'scratch/\n' > "$d/docs/.gitignore"
+  printf 'ignored-prose/*\n!ignored-prose/keep.txt\n' >> "$d/.gitignore"
+  mkdir -p "$d/ignored-prose"
+  printf 'LINT_ERROR\n' > "$d/ignored-prose/drop.txt"
+  printf 'Other prose.\n' > "$d/ignored-prose/keep.txt"
+  for excluded in "${IGNORED_DIRS[@]}" .git; do
+    mkdir -p "$d/$excluded/deep"
+    for name in SPEC ROADMAP REQUIREMENTS README CHANGELOG; do
+      printf '## Invalid heading\nLINT_ERROR §spec:missing\n' > "$d/$excluded/deep/$name.md"
+    done
+    printf 'LINT_ERROR\n' > "$d/$excluded/deep/prose.txt"
+  done
+
+  run_lint "$d" --require-tools
+  assert_status "$engine: excluded errors do not fail lint" 0
+  assert_not_contains "$engine: built-in checks exclude dependencies" "$LINT_OUT" 'node_modules/'
+  assert_not_contains "$engine: built-in checks exclude build files" "$LINT_OUT" 'dist/'
+  assert_contains "$engine: nested SPEC receives a status check" "$LINT_OUT" \
+    'checking ./docs/reference with spaces/SPEC.md'
+  assert_contains "$engine: nested requirements receive a heading check" "$LINT_OUT" \
+    'checking ./docs/reference with spaces/REQUIREMENTS.md'
+  assert_contains "$engine: nested roadmap receives a heading check" "$LINT_OUT" \
+    'checking ./docs/reference with spaces/ROADMAP.md'
+  for tool in vale "$engine"; do
+    selection_args=$(cat "$SELECTION_LOG/$tool")
+    for excluded in "${IGNORED_DIRS[@]}"; do
+      assert_not_contains "$tool: $excluded files never reach the tool" "$selection_args" "./$excluded/"
+      assert_not_contains "$engine: built-in checks exclude $excluded" "$LINT_OUT" "./$excluded/"
+    done
+    assert_not_contains "$tool: Git files never reach the tool" "$selection_args" './.git/'
+    assert_contains "$tool: root README receives checks" "$selection_args" './README.md'
+    for name in SPEC ROADMAP REQUIREMENTS README; do
+      assert_contains "$tool: nested $name receives checks" "$selection_args" \
+        "./docs/reference with spaces/$name.md"
+    done
+  done
+  assert_contains 'Vale retains non-Markdown scope' "$(cat "$SELECTION_LOG/vale")" './docs/prose.txt'
+  assert_contains 'Vale includes files restored by ignore negation' "$(cat "$SELECTION_LOG/vale")" \
+    './ignored-prose/keep.txt'
+  assert_not_contains 'Vale excludes files that match ignore patterns' "$(cat "$SELECTION_LOG/vale")" \
+    './ignored-prose/drop.txt'
+
+  printf '\nLINT_ERROR\n' >> "$d/docs/reference with spaces/README.md"
+  run_lint "$d" --require-tools
+  assert_status "$engine: findings outside excluded directories fail" 1
+  assert_contains "$engine: Vale findings still fail lint" "$LINT_OUT" 'Vale reported findings'
+  assert_contains "$engine: Markdown findings still fail lint" "$LINT_OUT" 'markdownlint reported findings'
+
+  printf '# Readme\n' > "$d/docs/reference with spaces/README.md"
+  printf '\n## Invalid section\n*Status: invalid*\n' >> "$d/docs/reference with spaces/SPEC.md"
+  run_lint "$d" --require-tools
+  assert_status "$engine: nested governance errors still fail" 1
+  assert_contains "$engine: nested status errors are reported" "$LINT_OUT" 'invalid or missing status line'
+  assert_contains "$engine: nested heading errors are reported" "$LINT_OUT" '## heading missing §spec: slug'
+
+  printf '# Nested specification\n' > "$d/docs/reference with spaces/SPEC.md"
+  git -C "$d" add -f vendor/deep/SPEC.md
+  run_lint "$d" --require-tools
+  assert_status "$engine: tracked files remain in scope despite ignore rules" 1
+  assert_contains "$engine: tracked status errors are reported" "$LINT_OUT" \
+    "./vendor/deep/SPEC.md: error:"
+  for tool in vale "$engine"; do
+    assert_contains "$tool: tracked files reach the tool despite ignore rules" \
+      "$(cat "$SELECTION_LOG/$tool")" './vendor/deep/SPEC.md'
+  done
+  rm "$d/vendor/deep/SPEC.md"
+  run_lint "$d" --require-tools
+  assert_status "$engine: absent tracked files do not reach checks" 0
+
+  printf '## Invalid heading\nLINT_ERROR\n' > "$d/SPEC.md"
+  : > "$d/docs/reference with spaces/.vale.ini"
+  run_lint "$d/docs/reference with spaces" --require-tools
+  assert_status "$engine: a nested governance root excludes parent files" 0
+  for tool in vale "$engine"; do
+    assert_contains "$tool: nested roots use relative file paths" \
+      "$(cat "$SELECTION_LOG/$tool")" './SPEC.md'
+  done
+
+  d=$(fixture "all-ignored-$engine")
+  printf '*\n' > "$d/.gitignore"
+  : > "$d/.vale.ini"
+  printf '## Invalid heading\nLINT_ERROR\n' > "$d/README.md"
+  printf 'Invalid changelog.\n' > "$d/CHANGELOG.md"
+  run_lint "$d" --require-tools
+  assert_status "$engine: ignored root files do not reach built-in checks" 0
+  assert_contains "$engine: an empty file list skips Vale" "$LINT_OUT" 'skip — no files selected by Git'
+done
+LINT_PATH="$STUB_DIR:/usr/bin:/bin"
+
+d="$TEST_ROOT/no-governance-files"
+mkdir -p "$d/node_modules" "$d/dist"
+git -C "$d" init -q
+printf 'node_modules/\ndist/\n' > "$d/.gitignore"
+printf '## Invalid section\n' > "$d/node_modules/SPEC.md"
+printf '## Invalid section\n' > "$d/dist/SPEC.md"
+run_lint "$d"
+assert_status 'a root with only excluded governance files passes' 0
+assert_contains 'no selected Markdown files skips the engine' "$LINT_OUT" 'skip — no governance markdown found'
+
+d="$TEST_ROOT/outside-git"
+mkdir -p "$d"
+run_lint "$d"
+assert_status 'file selection outside Git fails explicitly' 2
+assert_contains 'Git selection errors are reported' "$LINT_OUT" 'cannot select files through Git'
+
+echo
+echo "== pre-commit template selection =="
+d=$(fixture hook-exclusions)
+awk '
+  /^Create `.githooks\/pre-commit`:/ { found = 1; next }
+  found && /^```bash/ { copy = 1; next }
+  copy && /^```/ { exit }
+  copy { print }
+' "$SCRIPT_DIR/../skills/init/SKILL.md" > "$d/.git/hooks/pre-commit"
+chmod +x "$d/.git/hooks/pre-commit"
+
+GOVERNANCE_LINT="$TEST_ROOT/hook-lint"
+HOOK_LOG="$TEST_ROOT/hook.log"
+HOOK_LINT="$LINT"
+HOOK_LINT_PATH="$TEST_ROOT/selection-rumdl:/usr/bin:/bin"
+export GOVERNANCE_LINT HOOK_LOG HOOK_LINT HOOK_LINT_PATH
+cat > "$GOVERNANCE_LINT" <<'EOF'
+#!/bin/sh
+echo invoked > "$HOOK_LOG"
+exec env PATH="$HOOK_LINT_PATH" "$HOOK_LINT" "$@"
+EOF
+chmod +x "$GOVERNANCE_LINT"
+
+printf 'node_modules/\ndist/\n' > "$d/.gitignore"
+printf '# Root README\n' > "$d/README.md"
+for excluded in node_modules dist packages/widget/node_modules packages/widget/dist \
+  packages/deep/widget/node_modules packages/deep/widget/dist; do
+  mkdir -p "$d/$excluded"
+  printf '## Invalid heading\nLINT_ERROR\n' > "$d/$excluded/SPEC.md"
+done
+git -C "$d" add README.md
+LINT_OUT="$(cd "$d" && .git/hooks/pre-commit 2>&1)"
+LINT_STATUS=$?
+assert_status 'a staged root README triggers a successful lint with ignored files present' 0
+assert_contains 'the hook invokes the shared script for a root README' "$(cat "$HOOK_LOG")" invoked
+assert_contains 'the hook checks the root SPEC' "$LINT_OUT" 'checking ./SPEC.md'
+git -C "$d" rm -q --cached README.md
+
+for excluded in node_modules dist packages/widget/node_modules packages/widget/dist \
+  packages/deep/widget/node_modules packages/deep/widget/dist; do
+  rm -f "$HOOK_LOG"
+  git -C "$d" add -f "$excluded/SPEC.md"
+  LINT_OUT="$(cd "$d" && .git/hooks/pre-commit 2>&1)"
+  LINT_STATUS=$?
+  assert_status "$excluded: tracked governance errors fail lint despite ignore rules" 1
+  assert_contains "$excluded: tracked governance changes trigger the script" \
+    "$(cat "$HOOK_LOG" 2>/dev/null)" invoked
+  git -C "$d" rm -q --cached "$excluded/SPEC.md"
+done
+
+mkdir -p "$d/docs/reference"
+printf '## Invalid heading\n*Status: invalid*\n' > "$d/docs/reference/SPEC.md"
+git -C "$d" add docs/reference/SPEC.md
+LINT_OUT="$(cd "$d" && .git/hooks/pre-commit 2>&1)"
+LINT_STATUS=$?
+assert_status 'a staged nested SPEC triggers lint and fails on governance errors' 1
+assert_contains 'the hook reports nested governance errors' "$LINT_OUT" 'invalid or missing status line'
+unset GOVERNANCE_LINT HOOK_LOG HOOK_LINT HOOK_LINT_PATH
 
 echo "== valid roots and input forms =="
 d=$(fixture valid-library)
@@ -611,9 +836,9 @@ echo
 echo "== CHANGELOG structure: managed releases =="
 for marker in release-please-config.json .flywheel.yml; do
   d=$(fixture "managed-${marker}")
+  # The shape @semantic-release/changelog writes: no h1, no [Unreleased], a
+  # version section per release. Everything the hand-kept rules would flag.
   cat > "$d/CHANGELOG.md" <<'CL'
-# Changelog
-
 ## [1.0.0](https://example.invalid/compare/v0.9.0...v1.0.0) (2026-01-01)
 
 ### Features
@@ -622,8 +847,10 @@ for marker in release-please-config.json .flywheel.yml; do
 CL
   echo '{}' > "$d/$marker"
   run_lint "$d"
-  assert_status       "$marker: no [Unreleased] required" 0
-  assert_not_contains "$marker: the omission is not reported" "$LINT_OUT" "no [Unreleased] section"
+  assert_status       "$marker: a generated changelog passes untouched" 0
+  assert_contains     "$marker: the check reports itself skipped" "$LINT_OUT" "tool-managed"
+  assert_not_contains "$marker: the missing h1 is not reported" "$LINT_OUT" "no '# Changelog' heading"
+  assert_not_contains "$marker: the missing [Unreleased] is not reported" "$LINT_OUT" "no [Unreleased] section"
 done
 
 echo

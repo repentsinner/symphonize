@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.2.14](https://github.com/repentsinner/symphonize/compare/notation--v0.2.13...notation--v0.2.14) (2026-11-09)
+
+
+### Bug Fixes
+
+* **notation:** respect Git ignore rules in governance lint ([#235](https://github.com/repentsinner/symphonize/issues/235)) ([64e819c](https://github.com/repentsinner/symphonize/commit/64e819c4f70002e1fe620292eec5402d4d22c810))
+
+## [0.2.13](https://github.com/repentsinner/symphonize/compare/notation--v0.2.12...notation--v0.2.13) (2026-11-02)
+
+
+### Features
+
+* add Codex plugin support ([#233](https://github.com/repentsinner/symphonize/issues/233)) ([7dac4a4](https://github.com/repentsinner/symphonize/commit/7dac4a440764a52d9bcf1073b6fe8ee4c162a3be))
+
+## [0.2.12](https://github.com/repentsinner/symphonize/compare/notation--v0.2.11...notation--v0.2.12) (2026-09-02)
+
+
+### Bug Fixes
+
+* **notation:** skip the CHANGELOG check for a tool-managed changelog ([#225](https://github.com/repentsinner/symphonize/issues/225)) ([23eb549](https://github.com/repentsinner/symphonize/commit/23eb549c98fd2aad30fdcb1fbace003cf6511122))
+
 ## [0.2.11](https://github.com/repentsinner/symphonize/compare/notation--v0.2.10...notation--v0.2.11) (2026-09-02)
 
 
