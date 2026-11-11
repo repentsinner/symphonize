@@ -87,10 +87,10 @@ Create at the governance root (CWD):
   StylesPath = styles
   MinAlertLevel = warning
 
-  [SPEC.md]
+  [{SPEC.md,**/SPEC.md}]
   BasedOnStyles = Requirements
 
-  [REQUIREMENTS.md]
+  [{REQUIREMENTS.md,**/REQUIREMENTS.md}]
   BasedOnStyles = Requirements
   ```
 - **styles/Requirements/MustDeprecated.yml** — flags deprecated `must`:

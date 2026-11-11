@@ -919,5 +919,14 @@ for cl in "$REPO_ROOT"/CHANGELOG.md "$REPO_ROOT"/plugins/*/CHANGELOG.md; do
 done
 
 echo
+echo "== the shipped Vale config reaches nested governance files =="
+# A bare [SPEC.md] section matches only the root file when Vale runs from the
+# root, so a package's governance files would get no rules at all.
+vale_sections="$(grep '^\[' "$REPO_ROOT/.vale.ini")"
+for name in SPEC.md REQUIREMENTS.md; do
+  assert_contains "a .vale.ini section matches **/$name" "$vale_sections" "**/$name"
+done
+
+echo
 echo "$pass passed, $fail failed"
 [ "$fail" -eq 0 ]

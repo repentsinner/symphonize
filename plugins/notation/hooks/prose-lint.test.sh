@@ -103,6 +103,20 @@ assert_status "no .vale.ini means no linting" 0
 assert_empty  "an un-opted project hears nothing" "$HOOK_ERR"
 
 echo
+echo "== gitignored governance files are not linted =="
+d=$(governed ignored)
+git -C "$d" init -q
+printf 'scratch/\n' > "$d/.gitignore"
+mkdir -p "$d/scratch"
+printf '# S\n\nThe kernel must be loaded first.\n' > "$d/scratch/SPEC.md"
+run "$d/scratch/SPEC.md"
+assert_status "an ignored SPEC.md exits clean" 0
+assert_empty  "an ignored SPEC.md produces no output" "$HOOK_ERR"
+printf '# S\n\nThe kernel must be loaded first.\n' > "$d/SPEC.md"
+run "$d/SPEC.md"
+assert_status "an unignored SPEC.md in the same repo is still linted" 2
+
+echo
 echo "== absent input and absent file =="
 HOOK_ERR="$(printf '' | bash "$HOOK" 2>&1 >/dev/null)"; HOOK_STATUS=$?
 assert_status "empty payload exits clean" 0

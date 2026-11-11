@@ -612,6 +612,15 @@ REQUIREMENTS.md when a `.vale.ini` config exists. Projects opt in
 by adding `.vale.ini` and a `styles/` directory via
 `/notation:init`.
 
+Vale lints every SPEC.md and REQUIREMENTS.md that Git selects, at the
+repository root or under a package governance root, and no file Git
+ignores. **Why:** Vale applies a `.vale.ini` section by matching the
+path it is given, so a bare `[SPEC.md]` section matches only the root
+file and leaves a package's governance files with no rules. Vale also
+reads no ignore rules of its own, so each entry point selects files
+through Git before Vale sees them, and a file the CI gate never lints
+is not linted at write time either.
+
 ### Severity follows the document's role §spec:prose-lint-severity
 
 `REQUIREMENTS.md` raises both deprecated modals to error. `SPEC.md`
@@ -648,7 +657,7 @@ meant to be rather than the first thing to notice.
 The hook lints a single file rather than the tree, reads the Vale pin
 from `governance-lint.sh` so the hook and the gate cannot resolve
 different versions, and reports warnings as well as errors. It stays
-silent when the file is not governed, when the project has no
+silent when the file is not governed or Git ignores it, when the project has no
 `.vale.ini` — prose linting is opt-in and a hook may not opt a project
 in — and when Vale cannot be resolved, since a missing linter is a gap
 in the environment rather than a defect in the prose.
