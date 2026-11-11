@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.15](https://github.com/repentsinner/symphonize/compare/notation--v0.2.14...notation--v0.2.15) (2026-11-11)
+
+
+### Features
+
+* **notation:** lint governance prose at write time, and split severity by document role ([#223](https://github.com/repentsinner/symphonize/issues/223)) ([f0f89fb](https://github.com/repentsinner/symphonize/commit/f0f89fbc67294f55aa75d0c1c5ea97634a1b6591))
+
 ## [0.2.14](https://github.com/repentsinner/symphonize/compare/notation--v0.2.13...notation--v0.2.14) (2026-11-09)
 
 
