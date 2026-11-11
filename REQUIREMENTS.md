@@ -55,14 +55,15 @@ Current solutions fall short because:
 
 ## User stories §req:user-stories
 
-**As a solo developer,** I want to describe my problem and have the
-system guide me through requirements, architecture, and work planning
-so that I can build something larger than I could coordinate myself.
+**As a solo developer,** I want to answer questions about my problem and
+have the system guide me through requirements, architecture, and work
+planning so that I can build something larger than I could coordinate
+myself.
 
-**As a product manager who codes,** I want to outsource development
-to agents while retaining control over requirements and design
-decisions so that the output reflects my domain expertise, not the
-agent's defaults.
+**As a product manager who codes,** I want the pipeline to carry the
+requirements, planning and sequencing discipline for the agents, so that
+my time goes to the decisions that need my judgment and the output
+reflects my domain expertise, not the agent's defaults.
 
 **As a project maintainer,** I want incoming issues to flow into my
 governance docs so that I have one source of truth for planned work,
