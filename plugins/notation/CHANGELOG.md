@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.16](https://github.com/repentsinner/symphonize/compare/notation--v0.2.15...notation--v0.2.16) (2026-11-11)
+
+
+### Bug Fixes
+
+* **notation:** lint nested governance files with Vale, and skip ignored ones ([#247](https://github.com/repentsinner/symphonize/issues/247)) ([3dbbdc9](https://github.com/repentsinner/symphonize/commit/3dbbdc98404a68f70b1b49447ce75cbe6927ffd9))
+
 ## [0.2.15](https://github.com/repentsinner/symphonize/compare/notation--v0.2.14...notation--v0.2.15) (2026-11-11)
 
 
