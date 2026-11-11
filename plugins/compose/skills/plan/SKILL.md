@@ -58,18 +58,21 @@ The scaffolded Vale style enforces the mechanical half; the rest is
 judgement.
 
 <!-- assembled:prose-style -->
-**Modal verbs, document-wide.** `shall` marks a requirement, `should` a
+**Modal verbs, in requirements.** `shall` marks a requirement, `should` a
 recommendation, `may` permission (IEEE SA Standards Style Manual). That
-manual deprecates `must` and `will` *for stating mandatory
-requirements*; it permits `must` for an unavoidable situation and `will`
-for a statement of fact. Vale cannot tell a requirement line from a
-narrative one, so the scaffolded style flags both in *any* sentence of
-SPEC.md or REQUIREMENTS.md — narrative, rationale and problem statements
-included, not criteria alone — as an error in REQUIREMENTS.md and a
-warning in SPEC.md, where the rationale IEEE still permits them in
-lives.
-Prefer rephrasing to substitution: "the adopter re-maps each header"
-beats "the adopter shall re-map each header" where nothing is required.
+manual deprecates `must` and `will` only *for stating requirements*; it
+permits `must` for an unavoidable situation and `will` for a statement
+of fact. A linter cannot tell those uses apart by their words, so a
+requirement takes a form it can recognize: in REQUIREMENTS.md, state
+each requirement as a list item. The scaffolded style flags `must` and
+`will` in those list items as errors, and narrative, rationale and
+problem statements keep IEEE's allowance.
+
+SPEC.md is declarative and carries no modal rules. Describe what the
+system does ("the hook searches the plugin cache"), not what it shall
+do; obligation belongs in REQUIREMENTS.md. Prefer rephrasing to
+substitution everywhere: "the adopter re-maps each header" beats "the
+adopter shall re-map each header" where nothing is required.
 
 **Omit needless words.** Cut adverbs, qualifiers and hedges — `very`,
 `really`, `basically`, `simply`, `just`. One idea per sentence. Prefer
@@ -119,9 +122,11 @@ Rules:
 - When wrapping or integrating an external system, reference it — don't
   re-spec it. Document only deviations, scope boundaries, and decisions
   specific to this project.
-- Write each criterion as observable behavior: "the system shall…" or
-  "when X, the system shall Y." Model after EARS for structure, but
-  don't force every line into rigid templates.
+- Write each criterion as a list item stating observable behavior in
+  the present tense: "the system returns…" or "when X, the system does
+  Y." Model after EARS for structure, but drop its `shall`: SPEC.md is
+  declarative, and obligation belongs in REQUIREMENTS.md. Don't force
+  every line into rigid templates.
 - Criteria stay valid after implementation. If a criterion becomes
   nonsensical once the work is complete, it belongs in a commit message,
   not a spec.

@@ -90,14 +90,18 @@ this command never carries a second copy to drift from.
 
 What the four rules enforce, and why:
 
-- **MustDeprecated** (error) — `must` is deprecated by the IEEE SA
-  Standards Style Manual. `shall` marks a requirement, `should` a
-  recommendation, `may` permission. The rule matches any sentence of
-  SPEC.md or REQUIREMENTS.md, narrative included, because Vale cannot
-  tell a requirement line from a narrative one.
-- **WillDeprecated** (warning) — `will` states a prediction where a
-  requirement is meant. Warning rather than error: it has honest uses
-  in rationale prose.
+- **MustDeprecated** (error) — `must` in a requirement. The IEEE SA
+  Standards Style Manual deprecates it for stating requirements: `shall`
+  marks a requirement, `should` a recommendation, `may` permission. The
+  rule checks list items in REQUIREMENTS.md, because a requirement there
+  is a list item. Prose keeps IEEE's allowance for `must` in an
+  unavoidable situation.
+- **WillDeprecated** (error) — `will` in a requirement, where it predicts
+  instead of requiring. Same scope as MustDeprecated; prose keeps `will`
+  for a statement of fact.
+
+Neither modal rule runs on SPEC.md. A spec is declarative: it describes
+what the system does, and obligation belongs in REQUIREMENTS.md.
 - **FillerPhrases** (warning) — six phrases that carry no information
   (`in order to`, `due to the fact that`, and kin).
 - **OrdinalHeadings** (warning) — a heading numbered in prose

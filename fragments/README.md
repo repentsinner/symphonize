@@ -18,7 +18,7 @@ every consumer, and CI fails when a committed copy drifts.
   root). Consumed by `compose` (`discover`, `plan`, `roadmap`) and `conduct`
   (`next`).
 - **prose-style.md** — the writing contract every governance document is held
-  to: IEEE modal verbs document-wide, filler phrases, terseness and term
+  to: IEEE modal verbs in requirements, filler phrases, terseness and term
   discipline, with sources. Consumed by the commands that write governance
   prose — `compose` (`discover`, `plan`, `roadmap`).
 - **spec-compression.md** — what a completed spec section retains and removes,

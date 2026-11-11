@@ -1,7 +1,9 @@
 extends: existence
-message: "'%s' is deprecated by IEEE for requirements. Use 'shall' for mandatory, 'should' for recommended."
+message: "'%s' predicts where a requirement is meant. Use 'shall' for mandatory, 'should' for recommended."
 ignorecase: true
-level: warning
-scope: sentence
+level: error
+# A requirement is a list item (§spec:prose-lint-severity). Prose keeps IEEE's
+# allowance for `will` in a statement of fact, so only list items match.
+scope: list
 tokens:
   - '\bwill\b'

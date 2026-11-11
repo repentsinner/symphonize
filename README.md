@@ -54,26 +54,25 @@ scaffolds as four rules over SPEC.md and REQUIREMENTS.md:
 
 | Rule | REQUIREMENTS.md | SPEC.md | What it catches |
 |---|---|---|---|
-| `MustDeprecated` | error | warning | `must` — [IEEE SA](https://standards.ieee.org/) reserves `shall` for a requirement, `should` for a recommendation, `may` for permission |
-| `WillDeprecated` | error | warning | `will`, which predicts where a requirement is meant |
+| `MustDeprecated` | error, in list items | off | `must` in a requirement — [IEEE SA](https://standards.ieee.org/) reserves `shall` for a requirement, `should` for a recommendation, `may` for permission |
+| `WillDeprecated` | error, in list items | off | `will` in a requirement, where it predicts instead of requiring |
 | `FillerPhrases` | warning | warning | `in order to`, `due to the fact that`, and four more that carry no information |
 | `OrdinalHeadings` | warning | warning | a heading numbered in prose — address it by its `§` slug instead |
 
-Modal discipline applies to every sentence, not only to acceptance
-criteria: Vale matches per sentence and cannot tell a requirement line
-from a narrative one, so the guidance matches the rule's reach rather
-than fighting it.
+The modal rules check requirements, not every sentence, because the IEEE
+rule is narrower than a blanket ban. The manual deprecates `must` and
+`will` *for stating requirements*, and permits `must` for an unavoidable
+situation and `will` for a statement of fact. Words alone cannot tell
+those uses apart, so a requirement takes a form a linter can recognize:
+in REQUIREMENTS.md, each requirement is a list item. The rules check
+those list items and leave the surrounding prose alone.
 
-Severity follows the document's role, because the IEEE rule is narrower
-than a blanket ban. The manual deprecates `must` and `will` *for stating
-mandatory requirements*, and permits `must` for unavoidable situations
-and `will` for statements of fact — which is what rationale is made of.
-REQUIREMENTS.md is requirements throughout, so both are errors there.
-SPEC.md carries rationale beside its requirements, so both warn.
-`FillerPhrases` and `OrdinalHeadings` warn everywhere, because each has
-an honest exception: a filler phrase is sometimes the clearest phrasing,
-and only an author can tell an ordinal that describes the system from
-one that numbers the document.
+SPEC.md carries no modal rules. A spec describes what the system does,
+so its sentences are declarative, and the obligation they would carry
+belongs in REQUIREMENTS.md. `FillerPhrases` and `OrdinalHeadings` warn
+in both files, because each has an honest exception: a filler phrase is
+sometimes the clearest phrasing, and only an author can tell an ordinal
+that describes the system from one that numbers the document.
 
 A warning is not an exemption. The notation plugin lints governance
 prose the moment it is written and reports warnings alongside errors, so
