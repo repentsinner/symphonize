@@ -8,12 +8,17 @@ but who don't naturally follow the lifecycle practices that make
 larger projects succeed. Solo developers, product managers who code,
 domain experts building tools for their teams.
 
-AI coding agents have strong "solve the next problem" priors. They
-produce working code but skip requirements gathering, architecture
-decisions, integration testing, and every other development stage
-that separates a solo script from a maintainable product. The result:
-horizontal plumbing that passes unit tests but doesn't connect to
-anything a user can see or verify.
+Neither party in the loop manages the product. The domain expert holds
+the knowledge that decides whether a solution is the right one, and has
+no reason to have learned requirements practice — they came for their
+own problem, not for a lifecycle. The coding agent is a strong developer
+and a poor product manager: it accepts the first framing offered, scopes
+to the corner of the problem it was handed, and produces working code
+for a problem nobody finished describing.
+
+The result is not bad code. It is code that solves a fragment, found to
+be a fragment after it ships — horizontal plumbing that passes unit
+tests and connects to nothing a user can see or verify.
 
 Symphonize fills the process gap. It encodes software lifecycle best
 practices as a command pipeline that agents follow, producing auditable
@@ -44,6 +49,9 @@ Current solutions fall short because:
 - A new contributor can read REQUIREMENTS.md, SPEC.md, and ROADMAP.md
   and understand what the project does, why, and what's left to build
   — without conversation history
+- A problem statement carries an observable stopping condition before
+  any workstream references it: the author states what "enough" looks
+  like before the work is scoped
 
 ## User stories §req:user-stories
 
@@ -284,3 +292,55 @@ Success looks like:
   before and after the document is restructured.
 - Cross-document validation catches a broken reference rather than
   letting it silently resolve to the wrong unit.
+
+## Domain expertise capture §req:domain-expertise-capture
+
+**As a domain expert without product-management training,** I want to
+answer questions about my own field and get a coherent problem
+description out of it, so that the eventual solution addresses the
+problem I have rather than the corner of it I described first.
+
+The knowledge that decides whether a solution is the right one belongs
+to the expert. The practice that turns that knowledge into a reviewable
+problem description belongs to product management, and the expert has no
+reason to have learned it. Requiring them to learn slugs, modal verbs or
+story formats before they can record what they know inverts the
+exchange: the tool takes structure and hands back homework.
+
+The interview carries the practice. It asks domain questions —
+workflows, vocabulary, edge cases, failure modes, handoffs — and does
+the product management around the answers. Its value concentrates in the
+question the expert would not have volunteered, because an expert
+describing a problem unprompted describes the part already in view.
+
+Prose is the recorded form, and the form is load-bearing. Governance
+files hold why a decision was made, what constrained it, and what was
+rejected. Source code holds none of that, and a reader reconstructing
+intent from code reconstructs a guess. Plain language is what a human
+checks for internal coherence, which is what makes a problem description
+arguable while argument is still cheap (§req:success-criteria).
+
+**Agent legibility is a consequence, not a goal.** The same files orient
+a coding agent cheaply, which is useful and costs nothing to keep. It
+does not drive how they are written. Where a paragraph helps a human
+understand the problem and costs an agent tokens to carry, the paragraph
+stays.
+
+### A problem is not ready without a stopping condition §req:stopping-condition-first
+
+A problem statement admits a workstream only once it records what
+"enough" looks like.
+
+Attacking one corner of a problem space is not a failure of effort; it
+is what happens when no one has said where the work ends. An unbounded
+problem has no wrong answer, so the first plausible solution reads as
+correct, and the distance between it and the real problem surfaces after
+the code ships. Writing the stopping condition first is the cheapest
+moment to find that the problem is larger than the corner in view.
+
+- A problem statement carries an explicit stopping condition before any
+  workstream references it.
+- The stopping condition is observable: a reader can tell whether it has
+  been reached without asking the author.
+- A workstream referencing a problem that has no stopping condition is
+  rejected, the same way an unresolved slug is rejected today.
