@@ -1,0 +1,9 @@
+extends: existence
+message: "'%s' states a requirement. Use 'shall' for mandatory, 'should' for recommended."
+ignorecase: true
+level: error
+# A requirement is a list item (§spec:prose-lint-severity). Prose keeps IEEE's
+# allowance for `must` in an unavoidable situation, so only list items match.
+scope: list
+tokens:
+  - '\bmust\b'
