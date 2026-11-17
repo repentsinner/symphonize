@@ -148,16 +148,14 @@ unattended [`/goal`](https://code.claude.com/docs/en/goal) loop.
 
 ### Codex
 
-From this repository, add the local marketplace and install the plugin:
+Add the marketplace and install the plugin:
 
 ```shell
-codex plugin marketplace add .
+codex plugin marketplace add repentsinner/symphonize
 codex plugin add symphonize@symphonize
 ```
 
-After the Codex package is released, use
-`codex plugin marketplace add repentsinner/symphonize` instead of the local
-path. Start a new Codex session after installation. The Codex package exposes
+Start a new Codex session after installation. The Codex package exposes
 11 skills. Invoke them as `$symphonize:notation-init`,
 `$symphonize:compose-plan`, `$symphonize:conduct-next`, and so on. The
 Claude commands above map to skills with the same group and command name,
