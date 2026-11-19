@@ -42,6 +42,57 @@ issue is an API round trip, and because the spec that was true when a
 commit was made stays visible in that commit's checkout — at the cost of
 labels, milestones and browser-friendly triage (§spec:governance-in-repo).
 
+## How those files are written
+
+The four files are held to one writing standard, because a governance
+document a reader distrusts is one they stop reading. Half of it is
+mechanical and half is judgement, and the split is deliberate
+(§spec:prose-linting).
+
+The mechanical half is [Vale](https://vale.sh), which `/notation:init`
+scaffolds as four rules over SPEC.md and REQUIREMENTS.md:
+
+| Rule | REQUIREMENTS.md | SPEC.md | What it catches |
+|---|---|---|---|
+| `MustDeprecated` | error, in list items | off | `must` in a requirement — [IEEE SA](https://standards.ieee.org/) reserves `shall` for a requirement, `should` for a recommendation, `may` for permission |
+| `WillDeprecated` | error, in list items | off | `will` in a requirement, where it predicts instead of requiring |
+| `FillerPhrases` | warning | warning | `in order to`, `due to the fact that`, and four more that carry no information |
+| `OrdinalHeadings` | warning | warning | a heading numbered in prose — address it by its `§` slug instead |
+
+The modal rules check requirements, not every sentence, because the IEEE
+rule is narrower than a blanket ban. The manual deprecates `must` and
+`will` *for stating requirements*, and permits `must` for an unavoidable
+situation and `will` for a statement of fact. Words alone cannot tell
+those uses apart, so a requirement takes a form a linter can recognize:
+in REQUIREMENTS.md, each requirement is a list item. The rules check
+those list items and leave the surrounding prose alone.
+
+SPEC.md carries no modal rules. A spec describes what the system does,
+so its sentences are declarative, and the obligation they would carry
+belongs in REQUIREMENTS.md. `FillerPhrases` and `OrdinalHeadings` warn
+in both files, because each has an honest exception: a filler phrase is
+sometimes the clearest phrasing, and only an author can tell an ordinal
+that describes the system from one that numbers the document.
+
+A warning is not an exemption. The notation plugin lints governance
+prose the moment it is written and reports warnings alongside errors, so
+the warning tier is enforced where the fix is free rather than deferred
+to review.
+
+The judgement half — terseness, one term per concept, condition before
+command — is stated once in `fragments/prose-style.md` and assembled
+into every command that writes governance prose, so the rule a linter
+enforces and the rule a command teaches are the same sentence rather
+than copies free to disagree. It derives from Strunk & White's *The
+Elements of Style* (Rule 17, "omit needless words"), the [Google
+Developer Documentation Style Guide](https://developers.google.com/style),
+and Gernot Heiser's [Notes on Writing](https://gernot-heiser.org/style-guide.html).
+
+Prose linting is opt-in: a project with no `.vale.ini` skips it in both
+the local script and CI. The rules ship as `/notation:init` templates
+copied from this repository's own config, so the scaffolder cannot hand
+you a rule symphonize no longer runs (§spec:scaffold-freshness).
+
 ## Plugins
 
 Four plugins, named for a score-and-performance metaphor: a composer

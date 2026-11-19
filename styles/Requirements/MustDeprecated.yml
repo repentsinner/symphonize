@@ -1,7 +1,9 @@
 extends: existence
-message: "'%s' is deprecated by IEEE. Use 'shall' for mandatory requirements."
+message: "'%s' states a requirement. Use 'shall' for mandatory, 'should' for recommended."
 ignorecase: true
 level: error
-scope: sentence
+# A requirement is a list item (§spec:prose-lint-severity). Prose keeps IEEE's
+# allowance for `must` in an unavoidable situation, so only list items match.
+scope: list
 tokens:
   - '\bmust\b'

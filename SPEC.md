@@ -574,38 +574,48 @@ translation from requirements to spec is where design decisions
 happen — that boundary should be explicit.
 
 ## Prose linting §spec:prose-linting
-*Status: in progress*
+*Status: complete*
 
 The governance-lint workflow validates structure (markdownlint) and
-cross-references (slug resolution), but not prose quality. SPEC.md
-and REQUIREMENTS.md use IEEE modal verbs — "shall" for mandatory
-requirements, "should" for recommendations, "may" for permission.
-`Must` and `will` are deprecated per the IEEE SA Standards Style
-Manual, though narrowly: the manual deprecates them *for stating
-mandatory requirements*, and permits `must` for unavoidable situations
-and `will` for statements of fact.
+cross-references (slug resolution), but not prose quality.
+Requirements in REQUIREMENTS.md use IEEE modal verbs — "shall" for
+mandatory requirements, "should" for recommendations, "may" for
+permission. The IEEE SA Standards Style Manual deprecates `must` and
+`will` only *for stating requirements*, and permits `must` for
+unavoidable situations and `will` for statements of fact.
 
-Modal-verb discipline applies document-wide, not only to criteria.
-The scaffolded `Requirements` Vale style flags `must` (and `will`)
-in any sentence of SPEC.md / REQUIREMENTS.md, including narrative
-problem statements, context, and rationale. The writing commands
-(`/compose:discover`, `/compose:plan`) therefore steer all prose in
-these files away from `must`/`will` — not the criteria alone — so
-generated documents pass the scaffolded Vale style on the first
-push.
+A requirement in REQUIREMENTS.md is a list item, and the modal rules
+check list items only. Narrative problem statements, context and
+rationale keep IEEE's allowance. SPEC.md is declarative: it describes
+what the system does, carries no modal rules, and leaves obligation to
+REQUIREMENTS.md. The writing commands state requirements as list items
+and specs in the present tense, so generated documents pass the
+scaffolded style on the first push.
 
-**Why document-wide:** Vale matches tokens per sentence; it cannot
-reliably tell a requirement line ("the system shall…") from
-narrative (`the user must re-map each header`). Scoping the rule to
-criteria-only is not mechanically feasible, so the prose guidance
-matches the rule's actual reach. Aligning the guidance to the
-linter is cheaper and more robust than weakening the linter
-(reported in #131).
+That guidance is stated once, in `fragments/prose-style.md`, and
+assembled into every command that writes governance prose
+(§spec:plugin-packaging). The rule the linter enforces and the rule
+the commands teach are then the same sentence rather than three
+copies free to disagree. The Vale styles themselves ship as
+`/notation:init` templates copied from this repository's own
+`.vale.ini` and `styles/`, so the scaffolder cannot hand an adopter a
+rule this project no longer runs (§spec:scaffold-freshness).
+
+**Why list items:** no linter can tell a requirement's `must` from an
+unavoidable situation's `must` by the word alone, so a rule that
+matches every sentence flags narrative IEEE permits, and authors
+rephrase sound prose to satisfy it. A structural form is decidable
+where the meaning is not. REQUIREMENTS.md already states its
+requirements as list items, so scoping the rules to that form costs
+existing documents nothing and narrows the rule to what IEEE
+deprecates.
 
 Vale (<https://vale.sh>) enforces prose rules via custom YAML
-styles. A `Requirements` style checks modal verb compliance, flags
-passive voice in requirements, and catches ambiguous language. Vale
-complements markdownlint — structure vs. prose.
+styles. The `Requirements` style carries four: `MustDeprecated` and
+`WillDeprecated` for modal-verb compliance, `FillerPhrases` for
+phrases that carry no information, and `OrdinalHeadings` for a
+heading numbered in prose. Vale complements markdownlint — structure
+vs. prose.
 
 The governance-lint workflow runs Vale against SPEC.md and
 REQUIREMENTS.md when a `.vale.ini` config exists. Projects opt in
@@ -621,24 +631,24 @@ reads no ignore rules of its own, so each entry point selects files
 through Git before Vale sees them, and a file the CI gate never lints
 is not linted at write time either.
 
-### Severity follows the document's role §spec:prose-lint-severity
+### Modal rules follow the document's role §spec:prose-lint-severity
 
-`REQUIREMENTS.md` raises both deprecated modals to error. `SPEC.md`
-holds them at warning.
+In REQUIREMENTS.md, both deprecated modals are errors in list items. In
+SPEC.md, neither modal rule runs. `FillerPhrases` and `OrdinalHeadings`
+warn in both.
 
-Rationale: a per-sentence linter cannot separate a requirement from the
-narrative around it, so document role is the closest available proxy for
-the distinction IEEE actually draws. REQUIREMENTS.md is requirements
-throughout, and a deprecated modal there is the case the manual
-deprecates. SPEC.md carries design rationale beside its requirements,
-and rationale is made of exactly what IEEE still permits — unavoidable
-situations and statements of fact. Holding SPEC.md at error forced
-narrative into rephrasings the standard does not ask for, and taught
-authors to treat the rule as noise.
-
-Warning is not weaker enforcement here, because
-§spec:prose-lint-hook surfaces warnings at the moment of writing, where
-the fix costs nothing. CI keeps failing on the tier that shall not land.
+Rationale: the modal verb carries the meaning of a requirement. A reader
+of REQUIREMENTS.md asks what is mandatory, what is recommended and what
+is optional, and a loose `must` or a predictive `will` answers that
+question wrong, so a wrong modal there is an error. SPEC.md is mostly
+rationale, which is made of exactly what IEEE still permits: unavoidable
+situations and statements of fact. Its criteria are present-tense
+descriptions of observable behavior, and spec compression removes `shall`
+that restates the code once a section completes
+(`fragments/spec-compression.md`).
+A modal rule there flags sound narrative and checks sentences the
+process later deletes, so SPEC.md holds the declarative mood through
+the writing guidance instead of a linter.
 
 ### Prose lint at write time §spec:prose-lint-hook
 
@@ -664,7 +674,8 @@ in the environment rather than a defect in the prose.
 
 **Why prose linting:** agents generate requirements and spec text
 that drifts toward vague, passive, non-testable language.
-Mechanical enforcement catches `the system will...` (deprecated)
+Mechanical enforcement catches a requirement written as `the system
+will...` (deprecated)
 and `it should be noted that...` (filler) before review.
 
 CI evaluates the whole file rather than the diff, and a violation
